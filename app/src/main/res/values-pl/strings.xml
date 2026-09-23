@@ -1,0 +1,75 @@
+<resources>
+    <string name="app_name">ResidentSleeper</string>
+    <string name="nav_dashboard">Panel</string>
+    <string name="nav_review">Podsumowanie</string>
+    <string name="nav_settings">Ustawienia</string>
+
+    <!-- Dashboard buttons -->
+    <string name="btn_sleep_start">Zasnął</string>
+    <string name="btn_sleep_end">Pobudka</string>
+    <string name="btn_nursing_start">Start karmienia</string>
+    <string name="btn_nursing_end">Koniec karmienia</string>
+    <string name="btn_diaper_pee">Siku</string>
+    <string name="btn_diaper_poo">Kupka</string>
+    <string name="btn_diaper_both">Siku i kupka</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_time_adjust_title">Wybierz czas zdarzenia</string>
+    <string name="time_now">W tej chwili</string>
+    <string name="time_custom">Własna godzina</string>
+    <string name="time_minus_10m">-10 min</string>
+    <string name="time_minus_20m">-20 min</string>
+    <string name="time_minus_30m">-30 min</string>
+    <string name="time_minus_1h">-1 godzina</string>
+    <string name="confirm">Zatwierdź</string>
+    <string name="cancel">Anuluj</string>
+
+    <!-- Nursing selection -->
+    <string name="nursing_dialog_title">Szczegóły karmienia</string>
+    <string name="nursing_left_breast">Lewa pierś</string>
+    <string name="nursing_right_breast">Prawa pierś</string>
+    <string name="nursing_both_breasts">Obie piersi</string>
+    <string name="nursing_bottle">Butelka</string>
+    <string name="bottle_amount_hint">Ilość w ml (np. 90)</string>
+
+    <!-- Statuses -->
+    <string name="status_sleeping">Śpi od %1$s (%2$s)</string>
+    <string name="status_awake">Czuwa od %1$s</string>
+    <string name="status_wake_window_ends">Koniec okna czuwania za %1$s</string>
+    <string name="status_wake_window_overdue">Okno czuwania przekroczone o %1$s</string>
+    <string name="status_next_feed">Kolejne karmienie za ok. %1$s</string>
+    <string name="status_last_feed">Ostatnie karmienie: %1$s temu</string>
+
+    <!-- Reviews -->
+    <string name="review_daily">Dzień</string>
+    <string name="review_weekly_avg">Średnia tygodniowa</string>
+    <string name="review_monthly_avg">Średnia miesięczna</string>
+    <string name="stat_total_sleep">Łączny sen</string>
+    <string name="stat_day_sleep">Drzemki dzienne</string>
+    <string name="stat_night_sleep">Sen nocny</string>
+    <string name="stat_wake_window">Średnie okno czuwania</string>
+    <string name="stat_feedings">Karmienia</string>
+    <string name="stat_diapers">Pieluchy</string>
+    <string name="stat_pee">Mokre</string>
+    <string name="stat_poo">Brudne</string>
+
+    <!-- Settings -->
+    <string name="settings_baby_profile">Profil malucha</string>
+    <string name="settings_birth_date">Data urodzenia</string>
+    <string name="settings_wake_window">Długość okna czuwania</string>
+    <string name="settings_wake_window_auto">Automatycznie wg wieku (%1$d min)</string>
+    <string name="settings_wake_window_manual">Własny limit (%1$d min)</string>
+    <string name="settings_feeding_interval">Odstęp między karmieniami</string>
+    <string name="settings_calendar_sync">Synchronizacja z Kalendarzem Google</string>
+    <string name="settings_choose_calendar">Wybierz kalendarz</string>
+    <string name="settings_notifications">Powiadomienia push</string>
+    <string name="settings_notify_advance">Powiadamiaj 10 minut przed czasem</string>
+
+    <!-- Notification strings -->
+    <string name="notif_channel_alerts">Alerty rytmu dziecka</string>
+    <string name="notif_channel_alerts_desc">Powiadomienia o zbliżającym się końcu aktywności i porze karmienia</string>
+    <string name="notif_wake_window_title">Koniec okna czuwania za 10 minut</string>
+    <string name="notif_wake_window_body">Koniec okna czuwania za 10 minut. Pora na wyciszenie i ułożenie do snu!</string>
+    <string name="notif_feeding_title">Zbliża się pora karmienia</string>
+    <string name="notif_feeding_body">Przybliżony czas kolejnego posiłku za 10 minut.</string>
+</resources>

@@ -1,0 +1,75 @@
+<resources>
+    <string name="app_name">ResidentSleeper</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_review">Reviews</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dashboard buttons -->
+    <string name="btn_sleep_start">Start Sleep</string>
+    <string name="btn_sleep_end">Wake Up</string>
+    <string name="btn_nursing_start">Start Nursing</string>
+    <string name="btn_nursing_end">End Nursing</string>
+    <string name="btn_diaper_pee">Pee</string>
+    <string name="btn_diaper_poo">Poo</string>
+    <string name="btn_diaper_both">Pee &amp; Poo</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_time_adjust_title">Select Time</string>
+    <string name="time_now">Right Now</string>
+    <string name="time_custom">Custom Time</string>
+    <string name="time_minus_10m">-10 min</string>
+    <string name="time_minus_20m">-20 min</string>
+    <string name="time_minus_30m">-30 min</string>
+    <string name="time_minus_1h">-1 hour</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Nursing selection -->
+    <string name="nursing_dialog_title">Nursing Details</string>
+    <string name="nursing_left_breast">Left Breast</string>
+    <string name="nursing_right_breast">Right Breast</string>
+    <string name="nursing_both_breasts">Both Breasts</string>
+    <string name="nursing_bottle">Bottle</string>
+    <string name="bottle_amount_hint">Amount in ml (e.g. 90)</string>
+
+    <!-- Statuses -->
+    <string name="status_sleeping">Sleeping since %1$s (%2$s)</string>
+    <string name="status_awake">Awake for %1$s</string>
+    <string name="status_wake_window_ends">Wake window ends in %1$s</string>
+    <string name="status_wake_window_overdue">Wake window ended %1$s ago</string>
+    <string name="status_next_feed">Next feed due in %1$s</string>
+    <string name="status_last_feed">Last fed %1$s ago</string>
+
+    <!-- Reviews -->
+    <string name="review_daily">Daily</string>
+    <string name="review_weekly_avg">Weekly Avg</string>
+    <string name="review_monthly_avg">Monthly Avg</string>
+    <string name="stat_total_sleep">Total Sleep</string>
+    <string name="stat_day_sleep">Day Naps</string>
+    <string name="stat_night_sleep">Night Sleep</string>
+    <string name="stat_wake_window">Avg Wake Window</string>
+    <string name="stat_feedings">Feedings</string>
+    <string name="stat_diapers">Diapers</string>
+    <string name="stat_pee">Wet</string>
+    <string name="stat_poo">Dirty</string>
+
+    <!-- Settings -->
+    <string name="settings_baby_profile">Baby Profile</string>
+    <string name="settings_birth_date">Birth Date</string>
+    <string name="settings_wake_window">Wake Window Duration</string>
+    <string name="settings_wake_window_auto">Automatic (Based on age: %1$d min)</string>
+    <string name="settings_wake_window_manual">Manual override (%1$d min)</string>
+    <string name="settings_feeding_interval">Feeding Interval</string>
+    <string name="settings_calendar_sync">Google Calendar Sync</string>
+    <string name="settings_choose_calendar">Choose Calendar</string>
+    <string name="settings_notifications">Push Notifications</string>
+    <string name="settings_notify_advance">Notify 10 minutes before</string>
+
+    <!-- Notification strings -->
+    <string name="notif_channel_alerts">Baby Cycle Alerts</string>
+    <string name="notif_channel_alerts_desc">Alerts for upcoming end of activity cycles and next feedings</string>
+    <string name="notif_wake_window_title">Activity Cycle Ending Soon</string>
+    <string name="notif_wake_window_body">Baby\'s wake window ends in 10 minutes. Time to start the wind-down ritual!</string>
+    <string name="notif_feeding_title">Feeding Approaching</string>
+    <string name="notif_feeding_body">Approximated feeding time in 10 minutes.</string>
+</resources>
