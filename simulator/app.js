@@ -317,7 +317,7 @@
     }
 
     // Helper to draw an arc between two timestamps
-    function drawTimeArc(startTime, endTime, color) {
+    function drawTimeArc(startTime, endTime, color, isSleep = false) {
       const clampedStart = Math.max(dayStart, startTime);
       const clampedEnd = Math.min(dayEnd, endTime);
       if (clampedStart >= clampedEnd) return;
@@ -325,25 +325,72 @@
       const startMin = (new Date(clampedStart).getHours() * 60) + new Date(clampedStart).getMinutes();
       const endMin = (new Date(clampedEnd).getHours() * 60) + new Date(clampedEnd).getMinutes();
 
-      ctx.strokeStyle = color;
       ctx.lineWidth = strokeWidth;
       ctx.lineCap = 'butt';
+
+      const sleepGrad = isSleep || color === '#4f46e5';
 
       if (endMin >= startMin) {
         const startAngle = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
         const endAngle = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
+
+        const p1X = centerX + radius * Math.cos(startAngle);
+        const p1Y = centerY + radius * Math.sin(startAngle);
+        const p2X = centerX + radius * Math.cos(endAngle);
+        const p2Y = centerY + radius * Math.sin(endAngle);
+
+        const grad = ctx.createLinearGradient(p1X, p1Y, p2X, p2Y);
+        if (sleepGrad) {
+          grad.addColorStop(0, '#6366f1'); // Luminous smooth indigo
+          grad.addColorStop(1, '#3730a3'); // Deep night indigo
+        } else {
+          grad.addColorStop(0, '#34d399'); // Vibrant emerald mint
+          grad.addColorStop(1, '#059669'); // Rich deep mint
+        }
+
+        ctx.strokeStyle = grad;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.stroke();
       } else {
         const a1 = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
         const a2 = 2 * Math.PI - Math.PI / 2;
+        const p1X = centerX + radius * Math.cos(a1);
+        const p1Y = centerY + radius * Math.sin(a1);
+        const p2X = centerX + radius * Math.cos(a2);
+        const p2Y = centerY + radius * Math.sin(a2);
+
+        const grad1 = ctx.createLinearGradient(p1X, p1Y, p2X, p2Y);
+        if (sleepGrad) {
+          grad1.addColorStop(0, '#6366f1');
+          grad1.addColorStop(1, '#4338ca');
+        } else {
+          grad1.addColorStop(0, '#34d399');
+          grad1.addColorStop(1, '#059669');
+        }
+
+        ctx.strokeStyle = grad1;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, a1, a2);
         ctx.stroke();
 
         const b1 = -Math.PI / 2;
         const b2 = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
+        const pb1X = centerX + radius * Math.cos(b1);
+        const pb1Y = centerY + radius * Math.sin(b1);
+        const pb2X = centerX + radius * Math.cos(b2);
+        const pb2Y = centerY + radius * Math.sin(b2);
+
+        const grad2 = ctx.createLinearGradient(pb1X, pb1Y, pb2X, pb2Y);
+        if (sleepGrad) {
+          grad2.addColorStop(0, '#4338ca');
+          grad2.addColorStop(1, '#3730a3');
+        } else {
+          grad2.addColorStop(0, '#10b981');
+          grad2.addColorStop(1, '#047857');
+        }
+
+        ctx.strokeStyle = grad2;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius, b1, b2);
         ctx.stroke();

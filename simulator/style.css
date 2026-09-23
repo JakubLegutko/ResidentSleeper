@@ -710,7 +710,7 @@ body {
 }
 .bar-pillar {
   width: 14px;
-  background: var(--sleep-indigo);
+  background: linear-gradient(180deg, #6366f1 0%, #312e81 100%);
   border-radius: 0;
   transition: height 0.3s;
 }

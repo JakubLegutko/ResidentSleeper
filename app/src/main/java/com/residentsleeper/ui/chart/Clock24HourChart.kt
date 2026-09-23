@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -37,7 +38,11 @@ import com.residentsleeper.ui.theme.NursingPink
 import com.residentsleeper.ui.theme.RingBackgroundDark
 import com.residentsleeper.ui.theme.RingBackgroundLight
 import com.residentsleeper.ui.theme.SleepIndigo
+import com.residentsleeper.ui.theme.SleepIndigoGradientEnd
+import com.residentsleeper.ui.theme.SleepIndigoGradientStart
 import com.residentsleeper.ui.theme.WakeMint
+import com.residentsleeper.ui.theme.WakeMintGradientEnd
+import com.residentsleeper.ui.theme.WakeMintGradientStart
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -89,8 +94,17 @@ fun Clock24HourChart(
             // Draw Activity / Wake Arcs first
             for (arc in cycleArcs) {
                 if (!arc.isSleep) {
+                    val a1 = (arc.startAngle * PI / 180f).toFloat()
+                    val a2 = ((arc.startAngle + arc.sweepAngle) * PI / 180f).toFloat()
+                    val p1 = Offset(center.x + radius * cos(a1), center.y + radius * sin(a1))
+                    val p2 = Offset(center.x + radius * cos(a2), center.y + radius * sin(a2))
+                    val brush = Brush.linearGradient(
+                        colors = listOf(WakeMintGradientStart, WakeMintGradientEnd),
+                        start = p1,
+                        end = p2
+                    )
                     drawArc(
-                        color = WakeMint,
+                        brush = brush,
                         startAngle = arc.startAngle,
                         sweepAngle = arc.sweepAngle,
                         useCenter = false,
@@ -104,8 +118,17 @@ fun Clock24HourChart(
             // Draw Sleep Arcs on top
             for (arc in cycleArcs) {
                 if (arc.isSleep) {
+                    val a1 = (arc.startAngle * PI / 180f).toFloat()
+                    val a2 = ((arc.startAngle + arc.sweepAngle) * PI / 180f).toFloat()
+                    val p1 = Offset(center.x + radius * cos(a1), center.y + radius * sin(a1))
+                    val p2 = Offset(center.x + radius * cos(a2), center.y + radius * sin(a2))
+                    val brush = Brush.linearGradient(
+                        colors = listOf(SleepIndigoGradientStart, SleepIndigoGradientEnd),
+                        start = p1,
+                        end = p2
+                    )
                     drawArc(
-                        color = SleepIndigo,
+                        brush = brush,
                         startAngle = arc.startAngle,
                         sweepAngle = arc.sweepAngle,
                         useCenter = false,
