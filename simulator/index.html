@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResidentSleeper - Android Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Ambient Glow -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Main Container -->
+  <div class="app-layout">
+
+    <!-- Desktop Sidebar Controls (Testing Utilities) -->
+    <aside class="desktop-controls">
+      <div class="brand">
+        <span class="brand-icon">👶💤</span>
+        <div>
+          <h2>ResidentSleeper</h2>
+          <p class="subtitle">Android App Interactive Simulator</p>
+        </div>
+      </div>
+
+      <div class="control-card">
+        <h3>⚡ Time Simulation</h3>
+        <p class="card-desc">Simulate the passage of time to test wake windows and predictive alerts.</p>
+        <div class="btn-group">
+          <button id="btn-time-minus-30" class="ctrl-btn">-30 min</button>
+          <button id="btn-time-plus-15" class="ctrl-btn">+15 min</button>
+          <button id="btn-time-plus-60" class="ctrl-btn">+1 hour</button>
+          <button id="btn-time-reset" class="ctrl-btn secondary">Reset to Now</button>
+        </div>
+        <div class="current-sim-time">
+          Simulated Clock: <strong id="sim-clock-display">--:--</strong>
+        </div>
+      </div>
+
+      <div class="control-card">
+        <h3>🔔 Alert Testing</h3>
+        <p class="card-desc">Test push notifications and Google Calendar reminders 10 minutes prior.</p>
+        <button id="btn-trigger-wake-alert" class="ctrl-btn accent">Test Wake Alert (T-10m)</button>
+        <button id="btn-trigger-feed-alert" class="ctrl-btn accent">Test Feed Alert (T-10m)</button>
+      </div>
+
+      <div class="control-card">
+        <h3>💾 Demo Data</h3>
+        <button id="btn-load-seed-data" class="ctrl-btn secondary">Load Realistic 24h Seed Data</button>
+        <button id="btn-clear-all" class="ctrl-btn danger">Clear All Data</button>
+      </div>
+    </aside>
+
+    <!-- Smartphone Mockup Wrapper -->
+    <main class="phone-wrapper">
+      <div class="phone-frame">
+        <!-- Phone Speaker & Camera Notch -->
+        <div class="phone-header-notch">
+          <div class="notch-speaker"></div>
+          <div class="notch-camera"></div>
+        </div>
+
+        <!-- Phone Status Bar -->
+        <div class="phone-status-bar">
+          <span id="phone-status-time" class="status-time">13:45</span>
+          <div class="status-icons">
+            <span class="icon">📶</span>
+            <span class="icon">📡</span>
+            <span class="icon">🔋</span>
+          </div>
+        </div>
+
+        <!-- Simulated Push Notification Banner -->
+        <div id="push-notification-banner" class="notification-banner hidden">
+          <div class="notif-icon">⏰</div>
+          <div class="notif-content">
+            <strong id="notif-title">Activity Cycle Ending Soon</strong>
+            <p id="notif-body">Wake window ends in 10 minutes. Time to start the soothing ritual!</p>
+          </div>
+          <button id="notif-dismiss" class="notif-close">&times;</button>
+        </div>
+
+        <!-- App Screen Content -->
+        <div class="phone-screen-content">
+
+          <!-- 1. DASHBOARD VIEW -->
+          <div id="view-dashboard" class="screen-view active">
+            <!-- Top App Bar -->
+            <header class="app-top-bar">
+              <button id="btn-active-profile-chip" class="profile-chip">
+                <span class="chip-avatar">👶</span>
+                <span id="header-profile-name">Emma (4w)</span>
+                <span class="chip-arrow">▾</span>
+              </button>
+              <div class="header-actions">
+                <button id="btn-nav-reviews" class="icon-btn" title="Reviews">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+                </button>
+                <button id="btn-nav-settings" class="icon-btn" title="Settings">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                </button>
+              </div>
+            </header>
+
+            <!-- Date Navigation -->
+            <div class="date-navigator">
+              <button id="btn-date-prev" class="date-arrow">&larr;</button>
+              <span id="date-display-label" class="date-label">Today, 23 September</span>
+              <button id="btn-date-next" class="date-arrow">&rarr;</button>
+            </div>
+
+            <!-- 24-Hour Donut Chart Container -->
+            <div class="chart-section">
+              <div class="canvas-container">
+                <canvas id="clock-chart-canvas" width="280" height="280"></canvas>
+                <!-- Hollow Center Info Overlay -->
+                <div class="chart-center-overlay">
+                  <div id="chart-center-status" class="center-status-badge">👶 Awake</div>
+                  <div id="chart-center-timer" class="center-main-timer">35 min</div>
+                  <div id="chart-center-sub" class="center-subtext">Window ends in 25m</div>
+                  <div id="chart-center-feed" class="center-feedtext">Next feed in 45m</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4 Action Buttons Grid -->
+            <div class="action-grid">
+              <!-- Button 1: Sleep -->
+              <button id="btn-action-sleep" class="action-card sleep-card">
+                <div class="action-icon">🛏️</div>
+                <div id="sleep-btn-title" class="action-title">Start Sleep</div>
+                <div id="sleep-btn-sub" class="action-sub">Tap: Now | Hold: Adjust</div>
+              </button>
+
+              <!-- Button 2: Nursing -->
+              <button id="btn-action-nursing" class="action-card nursing-card">
+                <div class="action-icon">🍼</div>
+                <div id="nursing-btn-title" class="action-title">Start Nursing</div>
+                <div id="nursing-btn-sub" class="action-sub">Breast / Bottle</div>
+              </button>
+
+              <!-- Button 3: Diaper Pee (One-shot) -->
+              <button id="btn-action-pee" class="action-card pee-card">
+                <div class="action-icon">💧</div>
+                <div class="action-title">Pee</div>
+                <div class="action-sub">One-shot wet</div>
+              </button>
+
+              <!-- Button 4: Diaper Poo (One-shot) -->
+              <button id="btn-action-poo" class="action-card poo-card">
+                <div class="action-icon">💩</div>
+                <div class="action-title">Poo</div>
+                <div class="action-sub">One-shot dirty</div>
+              </button>
+            </div>
+
+            <!-- Quick Status Summary Ticker -->
+            <div class="quick-summary-card">
+              <div class="summary-col">
+                <span class="col-label">Target Wake</span>
+                <span id="summary-target-wake" class="col-value">50 min</span>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="summary-col">
+                <span class="col-label">Feed Interval</span>
+                <span id="summary-feed-interval" class="col-value">2.5 hrs</span>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="summary-col">
+                <span class="col-label">Today Logs</span>
+                <span id="summary-today-logs" class="col-value">0 items</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. REVIEWS VIEW -->
+          <div id="view-reviews" class="screen-view">
+            <header class="app-top-bar">
+              <button id="btn-reviews-back" class="icon-btn">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <h2 class="view-title">Reviews & Analytics</h2>
+              <div style="width: 32px;"></div>
+            </header>
+
+            <div class="segmented-tabs">
+              <button id="tab-review-daily" class="seg-tab active">Daily</button>
+              <button id="tab-review-weekly" class="seg-tab">Weekly Avg</button>
+              <button id="tab-review-monthly" class="seg-tab">Monthly Avg</button>
+            </div>
+
+            <div class="review-metrics-container">
+              <div class="metric-card">
+                <div class="metric-icon indigo">🛏️</div>
+                <div class="metric-info">
+                  <span class="metric-title">Total Sleep</span>
+                  <strong id="metric-total-sleep" class="metric-value">14h 20m</strong>
+                  <span id="metric-sleep-sub" class="metric-desc">Day: 4h 30m • Night: 9h 50m (5 naps)</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-icon mint">⏱️</div>
+                <div class="metric-info">
+                  <span class="metric-title">Avg Wake Window</span>
+                  <strong id="metric-avg-wake" class="metric-value">52 min</strong>
+                  <span class="metric-desc">Average activity cycle between naps</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-icon teal">🍼</div>
+                <div class="metric-info">
+                  <span class="metric-title">Feedings</span>
+                  <strong id="metric-feedings-count" class="metric-value">7 sessions</strong>
+                  <span id="metric-feedings-sub" class="metric-desc">165m total nursing time</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <div class="metric-icon cyan">💧</div>
+                <div class="metric-info">
+                  <span class="metric-title">Diapers</span>
+                  <strong id="metric-diaper-count" class="metric-value">8 changes</strong>
+                  <span id="metric-diaper-sub" class="metric-desc">💧 Wet: 5  |  💩 Dirty: 3</span>
+                </div>
+              </div>
+
+              <!-- Sleep Trend Chart (Mini Bar Chart) -->
+              <div id="weekly-trend-box" class="trend-chart-box">
+                <h4>Sleep Trend (Hours / Day)</h4>
+                <div id="trend-bars-container" class="trend-bars">
+                  <!-- Bars generated via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. SETTINGS VIEW -->
+          <div id="view-settings" class="screen-view">
+            <header class="app-top-bar">
+              <button id="btn-settings-back" class="icon-btn">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              </button>
+              <h2 class="view-title">Settings & Data</h2>
+              <div style="width: 32px;"></div>
+            </header>
+
+            <div class="settings-scroll-content">
+              <!-- Section: Child Profiles -->
+              <div class="settings-section">
+                <div class="section-header">
+                  <h3>Child Profiles</h3>
+                  <button id="btn-settings-add-profile" class="text-btn">+ Add Child</button>
+                </div>
+                <div id="settings-profiles-list" class="profiles-card-list">
+                  <!-- Populated via JS -->
+                </div>
+              </div>
+
+              <!-- Section: Active Profile Tuning -->
+              <div class="settings-section">
+                <h3>Active Child: <span id="settings-active-name">Emma</span></h3>
+                <div class="settings-card">
+                  <label class="setting-label">Birth Date</label>
+                  <input type="date" id="input-profile-birthdate" class="form-input">
+                  <small id="settings-age-weeks-label" class="setting-hint">Baby's age: 4 weeks</small>
+                </div>
+              </div>
+
+              <!-- Section: Cycle Calculations -->
+              <div class="settings-section">
+                <h3>Cycle Calculations</h3>
+                <div class="settings-card">
+                  <label class="setting-label">Wake Window Duration</label>
+                  <div class="chip-options" id="wake-window-chips">
+                    <button class="choice-chip active" data-val="auto">Auto (Age)</button>
+                    <button class="choice-chip" data-val="60">60 min</button>
+                    <button class="choice-chip" data-val="75">75 min</button>
+                    <button class="choice-chip" data-val="90">90 min</button>
+                  </div>
+
+                  <label class="setting-label" style="margin-top: 14px;">Feeding Interval</label>
+                  <div class="chip-options" id="feed-interval-chips">
+                    <button class="choice-chip" data-val="120">2.0 hrs</button>
+                    <button class="choice-chip active" data-val="150">2.5 hrs</button>
+                    <button class="choice-chip" data-val="180">3.0 hrs</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section: Alerts & Calendar -->
+              <div class="settings-section">
+                <h3>Alerts & Google Calendar</h3>
+                <div class="settings-card">
+                  <div class="toggle-row">
+                    <div>
+                      <strong>Push Notifications</strong>
+                      <p>10 minutes before cycle ends</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" id="toggle-push-notifs" checked>
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+
+                  <div class="toggle-row" style="margin-top: 14px;">
+                    <div>
+                      <strong>Google Calendar Sync</strong>
+                      <p>Add reminders to Google account</p>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" id="toggle-calendar-sync" checked>
+                      <span class="slider round"></span>
+                    </label>
+                  </div>
+
+                  <div id="calendar-select-group" style="margin-top: 12px;">
+                    <label class="setting-label">Choose Calendar</label>
+                    <select id="select-google-calendar" class="form-select">
+                      <option value="1">Primary (google@example.com)</option>
+                      <option value="2">Baby Routine (family@gmail.com)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section: Data Portability & Backup -->
+              <div class="settings-section">
+                <h3>Data Portability & Backup</h3>
+                <div class="settings-card">
+                  <button id="btn-export-json" class="btn-primary-action">
+                    <span>📥</span> Export Backup (JSON)
+                  </button>
+                  <button id="btn-export-csv" class="btn-secondary-action">
+                    <span>📊</span> Export Spreadsheet (CSV)
+                  </button>
+                  <label class="btn-secondary-action file-upload-label">
+                    <span>📤</span> Import Backup (JSON)
+                    <input type="file" id="input-import-json" accept=".json,application/json" style="display: none;">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- /phone-screen-content -->
+
+        <!-- MODAL 1: Profile Switcher Modal -->
+        <div id="modal-profile-switcher" class="modal-backdrop hidden">
+          <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <h3 id="modal-profile-title">Switch Child Profile</h3>
+            <div id="modal-profiles-container" class="modal-list">
+              <!-- Rendered via JS -->
+            </div>
+            <div id="add-profile-form" class="hidden">
+              <input type="text" id="input-new-profile-name" placeholder="Child's name (e.g. Leo)" class="form-input">
+              <input type="date" id="input-new-profile-birth" class="form-input" style="margin-top: 8px;">
+            </div>
+            <div class="modal-actions">
+              <button id="btn-modal-add-profile" class="modal-btn secondary">+ Add New Child</button>
+              <button id="btn-modal-close-profile" class="modal-btn">Done</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL 2: Time Adjust Dialog -->
+        <div id="modal-time-adjust" class="modal-backdrop hidden">
+          <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <h3 id="time-adjust-title">Adjust Event Time</h3>
+            <p id="time-adjust-current" class="selected-time-preview">Selected: 13:45</p>
+
+            <div class="quick-offset-chips">
+              <button class="offset-chip active" data-offset="0">Right Now</button>
+              <button class="offset-chip" data-offset="-10">-10 min</button>
+              <button class="offset-chip" data-offset="-20">-20 min</button>
+              <button class="offset-chip" data-offset="-30">-30 min</button>
+              <button class="offset-chip" data-offset="-60">-1 hour</button>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <label class="setting-label">Or Custom Time</label>
+              <input type="time" id="input-custom-time" class="form-input">
+            </div>
+
+            <div class="modal-actions">
+              <button id="btn-time-adjust-cancel" class="modal-btn secondary">Cancel</button>
+              <button id="btn-time-adjust-confirm" class="modal-btn primary">Confirm</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL 3: Nursing Details Dialog -->
+        <div id="modal-nursing" class="modal-backdrop hidden">
+          <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <h3>Nursing Details</h3>
+            <p class="card-desc">Select breast side or bottle amount:</p>
+
+            <div class="nursing-choice-grid">
+              <button class="nursing-choice-btn active" data-type="LEFT_BREAST">Left Breast</button>
+              <button class="nursing-choice-btn" data-type="RIGHT_BREAST">Right Breast</button>
+              <button class="nursing-choice-btn" data-type="BOTH_BREASTS">Both Sides</button>
+              <button class="nursing-choice-btn" data-type="BOTTLE">Bottle</button>
+            </div>
+
+            <div id="bottle-amount-group" class="hidden" style="margin-top: 12px;">
+              <label class="setting-label">Bottle Amount (ml)</label>
+              <input type="number" id="input-bottle-ml" value="90" class="form-input">
+            </div>
+
+            <div class="modal-actions">
+              <button id="btn-nursing-cancel" class="modal-btn secondary">Cancel</button>
+              <button id="btn-nursing-confirm" class="modal-btn primary">Confirm & Start</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL 4: Import Mode Dialog -->
+        <div id="modal-import-mode" class="modal-backdrop hidden">
+          <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <h3>Import Data</h3>
+            <p class="card-desc">Choose how you would like to import the backup:</p>
+            <div class="import-options">
+              <label class="radio-label">
+                <input type="radio" name="import-mode" value="merge" checked>
+                <span><strong>Merge with existing data</strong> (keeps current profiles and events)</span>
+              </label>
+              <label class="radio-label" style="margin-top: 10px;">
+                <input type="radio" name="import-mode" value="replace">
+                <span><strong>Replace all current data</strong> (clean restore from file)</span>
+              </label>
+            </div>
+            <div class="modal-actions">
+              <button id="btn-import-cancel" class="modal-btn secondary">Cancel</button>
+              <button id="btn-import-confirm" class="modal-btn primary">Import</button>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- /phone-frame -->
+    </main>
+
+  </div> <!-- /app-layout -->
+
+  <script src="app.js"></script>
+</body>
+</html>
