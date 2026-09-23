@@ -81,6 +81,8 @@ fun DashboardScreen(
     var showProfileSwitcher by remember { mutableStateOf(false) }
     var showSleepTimeAdjustDialog by remember { mutableStateOf(false) }
     var showNursingDialog by remember { mutableStateOf(false) }
+    var showNursingTimeAdjustDialog by remember { mutableStateOf(false) }
+    var pendingNursingAdjustedTime by remember { mutableStateOf<Long?>(null) }
     var showDiaperTimeAdjustDialog by remember { mutableStateOf<DiaperType?>(null) }
 
     Scaffold(
@@ -223,9 +225,10 @@ fun DashboardScreen(
                             showNursingDialog = true
                         }
                     },
-                    onLongClick = { showNursingDialog = true }
+                    onLongClick = { showNursingTimeAdjustDialog = true }
                 )
             }
+
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -345,19 +348,41 @@ fun DashboardScreen(
         )
     }
 
+    if (showNursingTimeAdjustDialog) {
+        val isNursing = state.ongoingNursing != null
+        TimeAdjustDialog(
+            title = if (isNursing) "Adjust Nursing End Time" else "Adjust Nursing Start Time",
+            onDismiss = { showNursingTimeAdjustDialog = false },
+            onTimeSelected = { adjustedTimestamp ->
+                showNursingTimeAdjustDialog = false
+                if (isNursing) {
+                    viewModel.onNursingButtonClick(adjustedTime = adjustedTimestamp)
+                } else {
+                    pendingNursingAdjustedTime = adjustedTimestamp
+                    showNursingDialog = true
+                }
+            }
+        )
+    }
+
     if (showNursingDialog) {
         NursingDetailsDialog(
-            onDismiss = { showNursingDialog = false },
-            onConfirm = { nursingType, amountMl ->
+            onDismiss = {
                 showNursingDialog = false
-                viewModel.onNursingButtonClick(nursingType, amountMl)
+                pendingNursingAdjustedTime = null
+            },
+            onConfirm = { nursingType, amountMl ->
+                val time = pendingNursingAdjustedTime
+                pendingNursingAdjustedTime = null
+                showNursingDialog = false
+                viewModel.onNursingButtonClick(nursingType, amountMl, adjustedTime = time)
             }
         )
     }
 
     showDiaperTimeAdjustDialog?.let { diaperType ->
         TimeAdjustDialog(
-            title = "Adjust Diaper Time",
+            title = if (diaperType == DiaperType.PEE) "Adjust Pee Time" else "Adjust Poo Time",
             onDismiss = { showDiaperTimeAdjustDialog = null },
             onTimeSelected = { adjustedTimestamp ->
                 viewModel.onDiaperClick(diaperType, adjustedTimestamp)

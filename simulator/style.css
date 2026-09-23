@@ -508,6 +508,11 @@ body {
 .action-card:active {
   transform: scale(0.96);
 }
+.action-card.btn-holding {
+  transform: scale(0.92);
+  filter: brightness(1.18);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.6);
+}
 .action-icon {
   font-size: 20px;
   margin-bottom: 2px;

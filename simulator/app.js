@@ -716,107 +716,216 @@
     });
   });
 
-  // --- Action Button Handlers ---
-  let pendingAction = null; // { type: 'SLEEP' | 'NURSING' | 'DIAPER', diaperType, nursingType, amountMl }
+  // --- Action Button Handlers (Tap = Immediate, Hold / Long-press = Edit Time) ---
+  function setupHoldButton(btnId, onClick, onHold) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
 
-  // Sleep Action Button
-  document.getElementById('btn-action-sleep').addEventListener('click', () => {
-    const profile = getActiveProfile();
-    const sleepEvents = state.events.filter(e => e.babyProfileId === profile.id && e.type === 'SLEEP');
-    const ongoing = sleepEvents.find(e => !e.endTime);
+    let holdTimer = null;
+    let didHold = false;
+    const HOLD_DURATION = 420; // ms
 
-    if (ongoing) {
-      // Wake up
-      ongoing.endTime = getSimulatedNow();
-      saveState();
-      renderClockChart();
-    } else {
-      // Start sleep
-      state.events.push({
-        id: Date.now(),
-        babyProfileId: profile.id,
-        type: 'SLEEP',
-        startTime: getSimulatedNow(),
-        endTime: null
-      });
-      saveState();
-      renderClockChart();
+    function startHold(e) {
+      if (e.button !== undefined && e.button !== 0) return; // left click only
+      didHold = false;
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(() => {
+        didHold = true;
+        btn.classList.add('btn-holding');
+        setTimeout(() => btn.classList.remove('btn-holding'), 200);
+        onHold();
+      }, HOLD_DURATION);
     }
-  });
 
-  // Long press / right-click on sleep opens time adjust
-  document.getElementById('btn-action-sleep').addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    openTimeAdjust('Sleep Time', (time) => {
+    function cancelHold() {
+      clearTimeout(holdTimer);
+    }
+
+    btn.addEventListener('mousedown', startHold);
+    btn.addEventListener('mouseup', cancelHold);
+    btn.addEventListener('mouseleave', cancelHold);
+
+    btn.addEventListener('touchstart', (e) => {
+      startHold(e);
+    }, { passive: true });
+    btn.addEventListener('touchend', cancelHold);
+    btn.addEventListener('touchcancel', cancelHold);
+
+    // Right-click triggers hold instantly on PC
+    btn.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      clearTimeout(holdTimer);
+      didHold = true;
+      onHold();
+    });
+
+    btn.addEventListener('click', (e) => {
+      if (didHold) {
+        didHold = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      onClick();
+    });
+  }
+
+  // 1. Sleep Action Button
+  setupHoldButton(
+    'btn-action-sleep',
+    () => {
       const profile = getActiveProfile();
-      const ongoing = state.events.find(ev => ev.babyProfileId === profile.id && ev.type === 'SLEEP' && !ev.endTime);
+      const sleepEvents = state.events.filter(e => e.babyProfileId === profile.id && e.type === 'SLEEP');
+      const ongoing = sleepEvents.find(e => !e.endTime);
+
       if (ongoing) {
-        ongoing.endTime = time;
+        ongoing.endTime = getSimulatedNow();
       } else {
         state.events.push({
           id: Date.now(),
           babyProfileId: profile.id,
           type: 'SLEEP',
-          startTime: time,
+          startTime: getSimulatedNow(),
           endTime: null
         });
       }
       saveState();
       renderClockChart();
-    });
-  });
+    },
+    () => {
+      const profile = getActiveProfile();
+      const ongoing = state.events.find(ev => ev.babyProfileId === profile.id && ev.type === 'SLEEP' && !ev.endTime);
+      const title = ongoing ? 'Adjust Wake Up Time' : 'Adjust Sleep Start Time';
+      openTimeAdjust(title, (adjustedTime) => {
+        if (ongoing) {
+          ongoing.endTime = adjustedTime;
+        } else {
+          state.events.push({
+            id: Date.now(),
+            babyProfileId: profile.id,
+            type: 'SLEEP',
+            startTime: adjustedTime,
+            endTime: null
+          });
+        }
+        saveState();
+        renderClockChart();
+      });
+    }
+  );
 
-  // Nursing Action Button
-  document.getElementById('btn-action-nursing').addEventListener('click', () => {
-    const profile = getActiveProfile();
-    const ongoing = state.events.find(ev => ev.babyProfileId === profile.id && ev.type === 'NURSING' && !ev.endTime);
+  // 2. Nursing Action Button
+  setupHoldButton(
+    'btn-action-nursing',
+    () => {
+      const profile = getActiveProfile();
+      const ongoing = state.events.find(ev => ev.babyProfileId === profile.id && ev.type === 'NURSING' && !ev.endTime);
 
-    if (ongoing) {
-      ongoing.endTime = getSimulatedNow();
+      if (ongoing) {
+        ongoing.endTime = getSimulatedNow();
+        saveState();
+        renderClockChart();
+      } else {
+        openNursingDialog((nursingType, amountMl) => {
+          state.events.push({
+            id: Date.now(),
+            babyProfileId: profile.id,
+            type: 'NURSING',
+            startTime: getSimulatedNow(),
+            endTime: null,
+            nursingType,
+            amountMl
+          });
+          saveState();
+          renderClockChart();
+        });
+      }
+    },
+    () => {
+      const profile = getActiveProfile();
+      const ongoing = state.events.find(ev => ev.babyProfileId === profile.id && ev.type === 'NURSING' && !ev.endTime);
+      const title = ongoing ? 'Adjust Nursing End Time' : 'Adjust Nursing Start Time';
+      openTimeAdjust(title, (adjustedTime) => {
+        if (ongoing) {
+          ongoing.endTime = adjustedTime;
+          saveState();
+          renderClockChart();
+        } else {
+          openNursingDialog((nursingType, amountMl) => {
+            state.events.push({
+              id: Date.now(),
+              babyProfileId: profile.id,
+              type: 'NURSING',
+              startTime: adjustedTime,
+              endTime: null,
+              nursingType,
+              amountMl
+            });
+            saveState();
+            renderClockChart();
+          });
+        }
+      });
+    }
+  );
+
+  // 3. Diaper Pee Button
+  setupHoldButton(
+    'btn-action-pee',
+    () => {
+      state.events.push({
+        id: Date.now(),
+        babyProfileId: getActiveProfile().id,
+        type: 'DIAPER',
+        startTime: getSimulatedNow(),
+        diaperType: 'PEE'
+      });
       saveState();
       renderClockChart();
-    } else {
-      openNursingDialog((nursingType, amountMl) => {
+    },
+    () => {
+      openTimeAdjust('Adjust Pee Time', (adjustedTime) => {
         state.events.push({
           id: Date.now(),
-          babyProfileId: profile.id,
-          type: 'NURSING',
-          startTime: getSimulatedNow(),
-          endTime: null,
-          nursingType,
-          amountMl
+          babyProfileId: getActiveProfile().id,
+          type: 'DIAPER',
+          startTime: adjustedTime,
+          diaperType: 'PEE'
         });
         saveState();
         renderClockChart();
       });
     }
-  });
+  );
 
-  // One-Shot Diaper Pee
-  document.getElementById('btn-action-pee').addEventListener('click', () => {
-    state.events.push({
-      id: Date.now(),
-      babyProfileId: getActiveProfile().id,
-      type: 'DIAPER',
-      startTime: getSimulatedNow(),
-      diaperType: 'PEE'
-    });
-    saveState();
-    renderClockChart();
-  });
-
-  // One-Shot Diaper Poo
-  document.getElementById('btn-action-poo').addEventListener('click', () => {
-    state.events.push({
-      id: Date.now(),
-      babyProfileId: getActiveProfile().id,
-      type: 'DIAPER',
-      startTime: getSimulatedNow(),
-      diaperType: 'POO'
-    });
-    saveState();
-    renderClockChart();
-  });
+  // 4. Diaper Poo Button
+  setupHoldButton(
+    'btn-action-poo',
+    () => {
+      state.events.push({
+        id: Date.now(),
+        babyProfileId: getActiveProfile().id,
+        type: 'DIAPER',
+        startTime: getSimulatedNow(),
+        diaperType: 'POO'
+      });
+      saveState();
+      renderClockChart();
+    },
+    () => {
+      openTimeAdjust('Adjust Poo Time', (adjustedTime) => {
+        state.events.push({
+          id: Date.now(),
+          babyProfileId: getActiveProfile().id,
+          type: 'DIAPER',
+          startTime: adjustedTime,
+          diaperType: 'POO'
+        });
+        saveState();
+        renderClockChart();
+      });
+    }
+  );
 
   // --- Modals Logic ---
   // 1. Time Adjust Modal
@@ -827,6 +936,17 @@
     document.getElementById('time-adjust-title').textContent = title;
     selectedAdjustTime = getSimulatedNow();
     onTimeConfirmCallback = onConfirm;
+
+    // Reset offset chips to "Now" (offset 0)
+    document.querySelectorAll('.offset-chip').forEach(c => {
+      if (c.dataset.offset === '0') {
+        c.classList.add('active');
+      } else {
+        c.classList.remove('active');
+      }
+    });
+    const customInput = document.getElementById('input-custom-time');
+    if (customInput) customInput.value = '';
 
     const d = new Date(selectedAdjustTime);
     document.getElementById('time-adjust-current').textContent = `Selected: ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
