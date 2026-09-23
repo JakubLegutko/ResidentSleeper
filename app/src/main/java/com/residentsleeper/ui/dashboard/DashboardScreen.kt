@@ -62,7 +62,7 @@ import com.residentsleeper.ui.components.ProfileSwitcherDialog
 import com.residentsleeper.ui.components.TimeAdjustDialog
 import com.residentsleeper.ui.theme.DiaperPeeCyan
 import com.residentsleeper.ui.theme.DiaperPooWarm
-import com.residentsleeper.ui.theme.NursingTeal
+import com.residentsleeper.ui.theme.NursingPink
 import com.residentsleeper.ui.theme.SleepIndigo
 import com.residentsleeper.ui.theme.WakeMint
 import java.text.SimpleDateFormat
@@ -186,7 +186,7 @@ fun DashboardScreen(
             ) {
                 ChartLegendItem(color = SleepIndigo, label = "Sleep")
                 ChartLegendItem(color = WakeMint, label = "Activity")
-                ChartLegendItem(color = NursingTeal, label = "Nursing")
+                ChartLegendItem(color = NursingPink, label = "Nursing")
                 ChartLegendItem(color = DiaperPeeCyan, label = "Diaper")
             }
 
@@ -215,7 +215,7 @@ fun DashboardScreen(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
                     subtitle = if (isNursing) "Tap to finish" else "Breast / Bottle",
                     icon = Icons.Default.Restaurant,
-                    containerColor = if (isNursing) NursingTeal else MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = if (isNursing) NursingPink else MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = if (isNursing) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                     onClick = {

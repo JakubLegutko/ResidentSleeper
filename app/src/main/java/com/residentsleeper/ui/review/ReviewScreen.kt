@@ -48,7 +48,7 @@ import com.residentsleeper.R
 import com.residentsleeper.domain.DailySummary
 import com.residentsleeper.ui.theme.DiaperPeeCyan
 import com.residentsleeper.ui.theme.DiaperPooWarm
-import com.residentsleeper.ui.theme.NursingTeal
+import com.residentsleeper.ui.theme.NursingPink
 import com.residentsleeper.ui.theme.SleepIndigo
 import com.residentsleeper.ui.theme.WakeMint
 import java.text.SimpleDateFormat
@@ -152,7 +152,7 @@ private fun DailyMetricsView(summary: DailySummary) {
         mainValue = "${summary.feedingCount} sessions",
         subValue = if (summary.totalBottleMl > 0) "${summary.totalNursingDurationMinutes}m total • ${summary.totalBottleMl} ml bottle" else "${summary.totalNursingDurationMinutes}m total nursing time",
         icon = Icons.Default.Restaurant,
-        iconColor = NursingTeal
+        iconColor = NursingPink
     )
 
     Spacer(modifier = Modifier.height(12.dp))
@@ -221,7 +221,7 @@ private fun AggregatedMetricsView(
         mainValue = String.format(Locale.getDefault(), "%.1f times", avgFeeds),
         subValue = if (avgBottleMl > 0) String.format(Locale.getDefault(), "%.0f ml bottle/day", avgBottleMl) else "Nursing sessions per day",
         icon = Icons.Default.Restaurant,
-        iconColor = NursingTeal
+        iconColor = NursingPink
     )
 
     Spacer(modifier = Modifier.height(12.dp))

@@ -34,7 +34,6 @@ import com.residentsleeper.ui.theme.CurrentTimeNeedle
 import com.residentsleeper.ui.theme.DiaperPeeCyan
 import com.residentsleeper.ui.theme.DiaperPooWarm
 import com.residentsleeper.ui.theme.NursingPink
-import com.residentsleeper.ui.theme.NursingTeal
 import com.residentsleeper.ui.theme.RingBackgroundDark
 import com.residentsleeper.ui.theme.RingBackgroundLight
 import com.residentsleeper.ui.theme.SleepIndigo
@@ -127,7 +126,7 @@ fun Clock24HourChart(
                             x = center.x + radius * cos(angleRad),
                             y = center.y + radius * sin(angleRad)
                         )
-                        val markerColor = if (event.nursingType == NursingType.BOTTLE) NursingPink else NursingTeal
+                        val markerColor = NursingPink
                         drawCircle(
                             color = Color.White,
                             radius = 7.dp.toPx(),
@@ -230,7 +229,7 @@ fun Clock24HourChart(
                 Text(
                     text = "🍼 Nursing now",
                     style = MaterialTheme.typography.labelSmall,
-                    color = NursingTeal,
+                    color = NursingPink,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 4.dp)
                 )

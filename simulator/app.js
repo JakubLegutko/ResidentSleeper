@@ -395,7 +395,7 @@
         if (e.type === 'NURSING') {
           const markerX = centerX + radius * Math.cos(angle);
           const markerY = centerY + radius * Math.sin(angle);
-          const color = e.nursingType === 'BOTTLE' ? '#ec4899' : '#06b6d4';
+          const color = '#ec4899';
 
           ctx.beginPath();
           ctx.arc(markerX, markerY, 6, 0, 2 * Math.PI);

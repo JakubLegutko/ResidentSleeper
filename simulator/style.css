@@ -8,8 +8,9 @@
   --primary-glow: rgba(99, 102, 241, 0.35);
   --sleep-indigo: #4f46e5;
   --wake-mint: #10b981;
-  --nursing-teal: #06b6d4;
   --nursing-pink: #ec4899;
+  --nursing-pink-glow: rgba(236, 72, 153, 0.4);
+  --nursing-teal: #ec4899;
   --diaper-pee: #38bdf8;
   --diaper-poo: #f59e0b;
   --needle-red: #ef4444;
@@ -439,7 +440,7 @@ body {
 }
 .dot-sleep { background: var(--sleep-indigo); }
 .dot-activity { background: var(--wake-mint); }
-.dot-nursing { background: var(--nursing-teal); }
+.dot-nursing { background: var(--nursing-pink); }
 .dot-diaper { background: var(--diaper-pee); }
 
 .canvas-container {
@@ -541,9 +542,9 @@ body {
   color: #cbd5e1;
 }
 .nursing-card.active-nursing {
-  background: var(--nursing-teal);
+  background: var(--nursing-pink);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 6px 20px var(--nursing-pink-glow);
 }
 
 .pee-card {
@@ -653,7 +654,8 @@ body {
 }
 .metric-icon.indigo { background: rgba(79, 70, 229, 0.2); }
 .metric-icon.mint { background: rgba(16, 185, 129, 0.2); }
-.metric-icon.teal { background: rgba(6, 182, 212, 0.2); }
+.metric-icon.pink,
+.metric-icon.teal { background: rgba(236, 72, 153, 0.2); }
 .metric-icon.cyan { background: rgba(56, 189, 248, 0.2); }
 
 .metric-info {
@@ -985,9 +987,9 @@ input:checked + .slider:before { transform: translateX(18px); }
   cursor: pointer;
 }
 .nursing-choice-btn.active {
-  background: var(--nursing-teal);
+  background: var(--nursing-pink);
   color: #fff;
-  border-color: var(--nursing-teal);
+  border-color: var(--nursing-pink);
 }
 
 .radio-label {
