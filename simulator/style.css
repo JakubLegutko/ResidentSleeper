@@ -557,6 +557,15 @@ body {
   background: rgba(245, 158, 11, 0.25);
 }
 
+.pee-card .action-icon, .poo-card .action-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+.pee-card .action-title, .poo-card .action-title {
+  font-size: 14px;
+}
+
+
 /* Quick Summary Card */
 .quick-summary-card {
   background: rgba(30, 41, 59, 0.6);

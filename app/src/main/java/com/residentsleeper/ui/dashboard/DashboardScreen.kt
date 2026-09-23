@@ -237,7 +237,7 @@ fun DashboardScreen(
                 // Diaper Pee One-shot
                 ActionButtonCard(
                     title = stringResource(R.string.btn_diaper_pee),
-                    subtitle = "One-shot wet",
+                    subtitle = null,
                     icon = Icons.Default.WaterDrop,
                     containerColor = DiaperPeeCyan.copy(alpha = 0.2f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
@@ -249,7 +249,7 @@ fun DashboardScreen(
                 // Diaper Poo One-shot
                 ActionButtonCard(
                     title = stringResource(R.string.btn_diaper_poo),
-                    subtitle = "One-shot dirty",
+                    subtitle = null,
                     icon = Icons.Default.Check,
                     containerColor = DiaperPooWarm.copy(alpha = 0.2f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
@@ -371,7 +371,7 @@ fun DashboardScreen(
 @Composable
 private fun ActionButtonCard(
     title: String,
-    subtitle: String,
+    subtitle: String? = null,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     containerColor: Color,
     contentColor: Color,
@@ -401,7 +401,7 @@ private fun ActionButtonCard(
                 imageVector = icon,
                 contentDescription = title,
                 tint = contentColor,
-                modifier = Modifier.size(26.dp)
+                modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -411,12 +411,14 @@ private fun ActionButtonCard(
                 color = contentColor,
                 textAlign = TextAlign.Center
             )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.labelSmall,
-                color = contentColor.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
-            )
+            if (!subtitle.isNullOrBlank()) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = contentColor.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
