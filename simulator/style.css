@@ -711,7 +711,7 @@ body {
 .bar-pillar {
   width: 14px;
   background: var(--sleep-indigo);
-  border-radius: 4px 4px 0 0;
+  border-radius: 0;
   transition: height 0.3s;
 }
 .bar-day {

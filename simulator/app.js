@@ -282,7 +282,7 @@
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
     ctx.strokeStyle = '#1e293b';
     ctx.lineWidth = strokeWidth;
-    ctx.lineCap = 'round';
+    ctx.lineCap = 'butt';
     ctx.stroke();
 
     // 2. Draw Hour Ticks & Labels (00, 06, 12, 18)
@@ -327,7 +327,7 @@
 
       ctx.strokeStyle = color;
       ctx.lineWidth = strokeWidth;
-      ctx.lineCap = 'round';
+      ctx.lineCap = 'butt';
 
       if (endMin >= startMin) {
         const startAngle = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;

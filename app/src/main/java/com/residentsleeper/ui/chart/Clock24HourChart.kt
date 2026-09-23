@@ -96,7 +96,7 @@ fun Clock24HourChart(
                         useCenter = false,
                         topLeft = Offset(center.x - radius, center.y - radius),
                         size = Size(radius * 2, radius * 2),
-                        style = Stroke(width = strokePx, cap = StrokeCap.Round)
+                        style = Stroke(width = strokePx, cap = StrokeCap.Butt)
                     )
                 }
             }
@@ -111,7 +111,7 @@ fun Clock24HourChart(
                         useCenter = false,
                         topLeft = Offset(center.x - radius, center.y - radius),
                         size = Size(radius * 2, radius * 2),
-                        style = Stroke(width = strokePx, cap = StrokeCap.Round)
+                        style = Stroke(width = strokePx, cap = StrokeCap.Butt)
                     )
                 }
             }
