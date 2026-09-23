@@ -27,7 +27,7 @@ class AlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val (title, message, notifId) = when (alertType) {
+        val (defaultTitle, defaultMessage, notifId) = when (alertType) {
             BabyAlarmScheduler.ALERT_TYPE_WAKE_WINDOW -> Triple(
                 context.getString(R.string.notif_wake_window_title),
                 context.getString(R.string.notif_wake_window_body),
@@ -40,6 +40,9 @@ class AlarmReceiver : BroadcastReceiver() {
             )
             else -> return
         }
+
+        val title = intent.getStringExtra(BabyAlarmScheduler.EXTRA_ALERT_TITLE) ?: defaultTitle
+        val message = intent.getStringExtra(BabyAlarmScheduler.EXTRA_ALERT_BODY) ?: defaultMessage
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)

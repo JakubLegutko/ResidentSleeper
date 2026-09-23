@@ -154,15 +154,25 @@ object StatisticsCalculator {
             )
         }
 
-        val n = summaries.size.toFloat()
-        val totalSleep = summaries.sumOf { it.totalSleepMinutes }
-        val daySleep = summaries.sumOf { it.daySleepMinutes }
-        val nightSleep = summaries.sumOf { it.nightSleepMinutes }
-        val naps = summaries.sumOf { it.napCount }
-        val feeds = summaries.sumOf { it.feedingCount }
-        val bottle = summaries.sumOf { it.totalBottleMl }
-        val pees = summaries.sumOf { it.diaperPeeCount }
-        val poos = summaries.sumOf { it.diaperPooCount }
+        // Exclude days with missing data from denominators so averages reflect actual logged days
+        val daysWithSleep = summaries.filter { it.totalSleepMinutes > 0 }
+        val sleepCount = daysWithSleep.size.toFloat()
+        val avgTotalSleep = if (sleepCount > 0) (daysWithSleep.sumOf { it.totalSleepMinutes } / sleepCount).toLong() else 0L
+        val avgDaySleep = if (sleepCount > 0) (daysWithSleep.sumOf { it.daySleepMinutes } / sleepCount).toLong() else 0L
+        val avgNightSleep = if (sleepCount > 0) (daysWithSleep.sumOf { it.nightSleepMinutes } / sleepCount).toLong() else 0L
+        val avgNaps = if (sleepCount > 0) daysWithSleep.sumOf { it.napCount } / sleepCount else 0f
+
+        val daysWithFeeds = summaries.filter { it.feedingCount > 0 || it.totalBottleMl > 0 }
+        val feedCount = daysWithFeeds.size.toFloat()
+        val avgFeeds = if (feedCount > 0) daysWithFeeds.sumOf { it.feedingCount } / feedCount else 0f
+        val daysWithBottle = summaries.filter { it.totalBottleMl > 0 }
+        val avgBottle = if (daysWithBottle.isNotEmpty()) daysWithBottle.sumOf { it.totalBottleMl } / daysWithBottle.size.toFloat() else 0f
+
+        val daysWithDiapers = summaries.filter { (it.diaperPeeCount + it.diaperPooCount) > 0 }
+        val diaperCount = daysWithDiapers.size.toFloat()
+        val avgPee = if (diaperCount > 0) daysWithDiapers.sumOf { it.diaperPeeCount } / diaperCount else 0f
+        val avgPoo = if (diaperCount > 0) daysWithDiapers.sumOf { it.diaperPooCount } / diaperCount else 0f
+
         val wakeWins = summaries.filter { it.averageWakeWindowMinutes > 0 }
         val avgWake = if (wakeWins.isNotEmpty()) {
             wakeWins.sumOf { it.averageWakeWindowMinutes } / wakeWins.size
@@ -171,14 +181,14 @@ object StatisticsCalculator {
         return AggregatedReview(
             title = title,
             daysCount = summaries.size,
-            avgTotalSleepMinutesPerDay = (totalSleep / n).toLong(),
-            avgDaySleepMinutesPerDay = (daySleep / n).toLong(),
-            avgNightSleepMinutesPerDay = (nightSleep / n).toLong(),
-            avgNapsPerDay = naps / n,
-            avgFeedingsPerDay = feeds / n,
-            avgBottleMlPerDay = bottle / n,
-            avgDiaperPeePerDay = pees / n,
-            avgDiaperPooPerDay = poos / n,
+            avgTotalSleepMinutesPerDay = avgTotalSleep,
+            avgDaySleepMinutesPerDay = avgDaySleep,
+            avgNightSleepMinutesPerDay = avgNightSleep,
+            avgNapsPerDay = avgNaps,
+            avgFeedingsPerDay = avgFeeds,
+            avgBottleMlPerDay = avgBottle,
+            avgDiaperPeePerDay = avgPee,
+            avgDiaperPooPerDay = avgPoo,
             avgWakeWindowMinutes = avgWake,
             dailySummaries = summaries
         )

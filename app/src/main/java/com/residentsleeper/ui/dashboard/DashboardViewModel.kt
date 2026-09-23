@@ -108,9 +108,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val dayEnd = getEndOfDay(dayStart)
             val isToday = dayStart == getStartOfToday(safeProfile.dayStartHour)
 
-            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now)
-            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now)
             val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
+            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents)
+            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now)
 
             DashboardUiState(
                 selectedDayStart = dayStart,
@@ -181,11 +181,21 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 repository.endOngoingSleep(profileId, now)
 
                 // Reschedule wake alerts
+                val dayStart = getStartOfToday(profile.dayStartHour)
+                val dayEnd = getEndOfDay(dayStart)
+                val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
                 val latestSleep = repository.getLatestEvent(profileId, EventType.SLEEP)
-                val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now)
+                val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now, dayEvents)
 
                 if (profile.enablePushNotifications && wakeState.alert10MinTimestamp != null) {
-                    BabyAlarmScheduler.scheduleWakeWindowAlert(context, wakeState.alert10MinTimestamp)
+                    val notifTitle = "${profile.name}: ${wakeState.recommendationTitle}"
+                    val notifBody = "${wakeState.recommendationReason}\n\n💡 Tip: ${wakeState.triviaTip}"
+                    BabyAlarmScheduler.scheduleWakeWindowAlert(
+                        context,
+                        wakeState.alert10MinTimestamp,
+                        notifTitle,
+                        notifBody
+                    )
                 }
 
                 // Sync to Google Calendar

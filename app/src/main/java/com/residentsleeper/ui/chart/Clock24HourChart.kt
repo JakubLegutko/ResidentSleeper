@@ -275,6 +275,14 @@ fun Clock24HourChart(
                         color = if (remaining < 10) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
+                    Text(
+                        text = wakeState.recommendationTitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = SleepIndigo,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
                 }
             }
 

@@ -28,7 +28,9 @@ class BootReceiver : BroadcastReceiver() {
                         val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, ongoingSleep)
 
                         if (!wakeState.isSleeping && wakeState.alert10MinTimestamp != null) {
-                            BabyAlarmScheduler.scheduleWakeWindowAlert(context, wakeState.alert10MinTimestamp)
+                            val notifTitle = "${profile.name}: ${wakeState.recommendationTitle}"
+                            val notifBody = "${wakeState.recommendationReason}\n\n💡 Tip: ${wakeState.triviaTip}"
+                            BabyAlarmScheduler.scheduleWakeWindowAlert(context, wakeState.alert10MinTimestamp, notifTitle, notifBody)
                         }
 
                         val latestNursing = db.babyEventDao().getLatestEvent(profile.id, EventType.NURSING)

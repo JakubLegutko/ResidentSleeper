@@ -269,22 +269,295 @@
     return Math.floor(diff / (7 * 24 * 60 * 60 * 1000));
   }
 
+  const LITTLE_ONES_SCHEDULES = [
+    {
+      label: "0–4 Weeks (Newborn)",
+      minW: 0, maxW: 4,
+      targetSleepH: 16.5, targetDaySleepH: 7.0, targetNightH: 9.5,
+      targetNaps: 5,
+      morningWW: 50, middayWW: 60, afternoonWW: 60, bedtimeWW: 75,
+      morningNapM: 60, middayNapM: 120, catnapM: 45,
+      bedtimeH: 19, bedtimeM: 0,
+      trivia: [
+        "Newborns do not yet have a circadian rhythm. Daylight during awake times helps calibrate their developing body clock.",
+        "At 1 month old, wake windows include feeding, changing, interaction, and soothing. Sticking close to 50–60m prevents overtiredness.",
+        "Limiting individual daytime naps to 2–2.5 hours helps protect important nighttime sleep stretches."
+      ]
+    },
+    {
+      label: "5–8 Weeks (~2 Months)",
+      minW: 5, maxW: 8,
+      targetSleepH: 15.5, targetDaySleepH: 4.5, targetNightH: 11.0,
+      targetNaps: 4,
+      morningWW: 65, middayWW: 80, afternoonWW: 80, bedtimeWW: 90,
+      morningNapM: 45, middayNapM: 120, catnapM: 35,
+      bedtimeH: 18, bedtimeM: 45,
+      trivia: [
+        "Between 6 and 8 weeks, infant circadian rhythm begins to emerge. Anchoring a 7:00 AM morning wake time helps establish consistent days.",
+        "At 2 months, the first stretch of night sleep naturally begins to lengthen, especially with a solid 2-hour midday nap in place.",
+        "Wake windows that are too long cause cortisol spikes. If baby is fussy or resisting sleep, tighten the wake window by 15 minutes."
+      ]
+    },
+    {
+      label: "9–12 Weeks (~3 Months)",
+      minW: 9, maxW: 12,
+      targetSleepH: 15.5, targetDaySleepH: 3.5, targetNightH: 12.0,
+      targetNaps: 3,
+      morningWW: 80, middayWW: 100, afternoonWW: 105, bedtimeWW: 120,
+      morningNapM: 40, middayNapM: 120, catnapM: 35,
+      bedtimeH: 18, bedtimeM: 30,
+      trivia: [
+        "By 12 weeks, babies consolidate sleep into a short morning nap, a long 2-hour lunchtime sleep, and a short afternoon catnap.",
+        "Consistency in your 3-month daytime structure lays the foundation for navigating the upcoming 4-month sleep regression smoothly.",
+        "A calming 20-minute wind-down routine in dim lighting signals melatonin release, helping your baby settle without overtiredness."
+      ]
+    },
+    {
+      label: "13–16 Weeks (~4 Months)",
+      minW: 13, maxW: 16,
+      targetSleepH: 14.5, targetDaySleepH: 3.5, targetNightH: 11.0,
+      targetNaps: 3,
+      morningWW: 105, middayWW: 120, afternoonWW: 120, bedtimeWW: 135,
+      morningNapM: 40, middayNapM: 120, catnapM: 30,
+      bedtimeH: 18, bedtimeM: 30,
+      trivia: [
+        "The 4-Month Regression is a permanent biological milestone: infant sleep cycles mature into 4 adult-like stages every 45–50 minutes.",
+        "Because babies surface between sleep cycles around 4 months, practicing putting baby down drowsy but awake builds crucial independent settling skills.",
+        "Maintaining an age-appropriate 2-hour wake window prevents overtiredness, which is the #1 cause of frequent night wakes."
+      ]
+    },
+    {
+      label: "17–21 Weeks (~5 Months)",
+      minW: 17, maxW: 21,
+      targetSleepH: 14.5, targetDaySleepH: 3.25, targetNightH: 11.25,
+      targetNaps: 3,
+      morningWW: 120, middayWW: 135, afternoonWW: 135, bedtimeWW: 145,
+      morningNapM: 45, middayNapM: 120, catnapM: 25,
+      bedtimeH: 18, bedtimeM: 30,
+      trivia: [
+        "Five months often brings real predictability: a 45m morning nap, a 2h restorative lunchtime sleep, and a short 20–30m bridge catnap.",
+        "Ensure the late afternoon catnap ends no later than 5:00 PM to protect sleep pressure for a 7:00 PM bedtime.",
+        "Self-settling skills practiced during daytime naps carry over directly to reducing midnight wakeups."
+      ]
+    },
+    {
+      label: "22–25 Weeks (~6 Months)",
+      minW: 22, maxW: 25,
+      targetSleepH: 14.25, targetDaySleepH: 2.75, targetNightH: 11.5,
+      targetNaps: 3,
+      morningWW: 135, middayWW: 150, afternoonWW: 165, bedtimeWW: 180,
+      morningNapM: 35, middayNapM: 110, catnapM: 15,
+      bedtimeH: 18, bedtimeM: 30,
+      trivia: [
+        "At 6 months, the 3-to-2 nap transition begins. The late afternoon nap shrinks to a 10–15 minute bridge catnap.",
+        "If your 6-month-old skips or refuses the 3rd nap, pull bedtime forward to 6:30 PM to avoid an overtired bedtime meltdown.",
+        "Introducing solid foods and learning to roll can temporarily cause nighttime restlessness; keep the bedtime routine steady."
+      ]
+    },
+    {
+      label: "26–30 Weeks (~7 Months)",
+      minW: 26, maxW: 30,
+      targetSleepH: 14.0, targetDaySleepH: 2.5, targetNightH: 11.5,
+      targetNaps: 2,
+      morningWW: 140, middayWW: 165, afternoonWW: 180, bedtimeWW: 195,
+      morningNapM: 35, middayNapM: 110, catnapM: 15,
+      bedtimeH: 18, bedtimeM: 30,
+      trivia: [
+        "Fighting the 3rd nap is the primary sign baby is ready for a 2-nap routine (morning nap ~9:30 AM, lunchtime nap ~12:30 PM).",
+        "Wake windows naturally lengthen to 2.5–3 hours, with the shortest window in the morning and longest before bed.",
+        "If morning wake is early (before 6:00 AM), check if bedtime was too late; overtiredness causes early morning waking."
+      ]
+    },
+    {
+      label: "31–34 Weeks (~8 Months)",
+      minW: 31, maxW: 34,
+      targetSleepH: 14.0, targetDaySleepH: 2.5, targetNightH: 11.5,
+      targetNaps: 2,
+      morningWW: 150, middayWW: 180, afternoonWW: 195, bedtimeWW: 210,
+      morningNapM: 30, middayNapM: 110, catnapM: 0,
+      bedtimeH: 18, bedtimeM: 30,
+      trivia: [
+        "The 8-Month Sleep Regression is driven by major physical leaps: crawling, pulling to stand, and emerging separation anxiety.",
+        "At 8 months, 2 naps totaling ~2.5 hours of day sleep provides the sweet spot for 11–12 hours of consolidated night sleep.",
+        "Keep bedtime between 6:30 and 7:00 PM. A consistent sequence of bath, feeding, and lullaby anchors baby through separation anxiety."
+      ]
+    },
+    {
+      label: "35–38 Weeks (~9 Months)",
+      minW: 35, maxW: 38,
+      targetSleepH: 13.75, targetDaySleepH: 2.25, targetNightH: 11.5,
+      targetNaps: 2,
+      morningWW: 155, middayWW: 180, afternoonWW: 200, bedtimeWW: 210,
+      morningNapM: 30, middayNapM: 105, catnapM: 0,
+      bedtimeH: 18, bedtimeM: 45,
+      trivia: [
+        "At 9 months, overtiredness often disguises itself as hyperactivity, standing in the cot, or loud babbling rather than yawning!",
+        "Most 9-month-olds thrive on: 7:00 AM wake, 9:30 AM nap 1 (30m), 12:30 PM nap 2 (1.5–2h), 6:45 PM bedtime.",
+        "Avoid letting the afternoon nap run past 2:30–2:45 PM so that sleep pressure rebuilds adequately for bedtime."
+      ]
+    },
+    {
+      label: "39–43 Weeks (~10 Months)",
+      minW: 39, maxW: 43,
+      targetSleepH: 13.75, targetDaySleepH: 2.25, targetNightH: 11.5,
+      targetNaps: 2,
+      morningWW: 165, middayWW: 195, afternoonWW: 210, bedtimeWW: 225,
+      morningNapM: 30, middayNapM: 95, catnapM: 0,
+      bedtimeH: 18, bedtimeM: 45,
+      trivia: [
+        "At 10 months, if your baby resists nap 1, cap it to 20–30 minutes to preserve their sleep pressure for the longer midday nap.",
+        "Separation awareness peaks at 10 months. Spending 5 minutes playing peek-a-boo in the nursery builds confidence before naptime.",
+        "Do not drop to 1 nap yet! 10-month-olds who drop to 1 nap quickly accumulate severe sleep debt resulting in split nights."
+      ]
+    },
+    {
+      label: "44–47 Weeks (~11 Months)",
+      minW: 44, maxW: 47,
+      targetSleepH: 13.5, targetDaySleepH: 2.0, targetNightH: 11.5,
+      targetNaps: 2,
+      morningWW: 180, middayWW: 205, afternoonWW: 215, bedtimeWW: 240,
+      morningNapM: 30, middayNapM: 90, catnapM: 0,
+      bedtimeH: 18, bedtimeM: 45,
+      trivia: [
+        "Beware the 11-Month False 1-Nap Trap! Babies often test boundaries by resisting nap 2, but genuine 1-nap readiness rarely occurs before 14–15 months.",
+        "Wake windows now comfortably reach 3.5 to 4 hours before bedtime.",
+        "Balancing daytime sleep to around 2 hours total is key to preventing 5:00 AM early morning rising."
+      ]
+    },
+    {
+      label: "48+ Weeks (12+ Months)",
+      minW: 48, maxW: 150,
+      targetSleepH: 13.25, targetDaySleepH: 1.75, targetNightH: 11.5,
+      targetNaps: 1,
+      morningWW: 210, middayWW: 240, afternoonWW: 250, bedtimeWW: 270,
+      morningNapM: 30, middayNapM: 90, catnapM: 0,
+      bedtimeH: 19, bedtimeM: 0,
+      trivia: [
+        "The 2-to-1 nap transition happens between 12 and 18 months, most commonly around 14–15 months when baby handles a 5-hour morning window.",
+        "When transitioning to 1 nap, schedule the single nap in the middle of the day (~12:00–12:30 PM) for 2 to 2.5 hours.",
+        "During nap transitions, bring bedtime 30–45 minutes earlier to avoid overtiredness until the new schedule consolidates."
+      ]
+    }
+  ];
+
+  function getLittleOnesSchedule(ageWeeks) {
+    const safeW = Math.max(0, ageWeeks || 0);
+    return LITTLE_ONES_SCHEDULES.find(s => safeW >= s.minW && safeW <= s.maxW) || LITTLE_ONES_SCHEDULES[LITTLE_ONES_SCHEDULES.length - 1];
+  }
+
   function getRecommendedWakeWindow(ageWeeks) {
-    if (ageWeeks < 5) return 50;
-    if (ageWeeks < 9) return 65;
-    if (ageWeeks < 13) return 80;
-    if (ageWeeks < 17) return 100;
-    return 120;
+    const s = getLittleOnesSchedule(ageWeeks);
+    return s.middayWW;
   }
 
   function computeWakeWindowState(profile) {
     const now = getSimulatedNow();
     const ageWeeks = calculateAgeInWeeks(profile.birthTimestamp);
-    const targetMinutes = profile.customWakeWindowMinutes || getRecommendedWakeWindow(ageWeeks);
+    const schedule = getLittleOnesSchedule(ageWeeks);
 
     const profileEvents = state.events.filter(e => e.babyProfileId === profile.id);
     const sleepEvents = profileEvents.filter(e => e.type === 'SLEEP').sort((a, b) => b.startTime - a.startTime);
     const ongoingSleep = sleepEvents.find(e => !e.endTime);
+
+    // Completed naps today
+    const dayStart = state.selectedDayStart;
+    const dayEnd = dayStart + 24 * 60 * 60 * 1000 - 1;
+    const completedSleepsToday = profileEvents.filter(e => e.type === 'SLEEP' && e.endTime && e.startTime >= dayStart && e.startTime <= dayEnd);
+    const napsCount = completedSleepsToday.length;
+    const daySleepMinutes = Math.round(completedSleepsToday.reduce((acc, ev) => acc + Math.max(0, (ev.endTime - ev.startTime)), 0) / 60000);
+
+    const simDate = new Date(now);
+    const currentMinOfDay = simDate.getHours() * 60 + simDate.getMinutes();
+    const bedtimeStartMin = schedule.bedtimeH * 60 + schedule.bedtimeM;
+
+    // Determine category
+    let nextCategory = 'midday';
+    let recTitle = 'Next: Restorative Midday Nap';
+    let recDuration = `${Math.floor(schedule.middayNapM / 60)}h ${schedule.middayNapM % 60 ? (schedule.middayNapM % 60) + 'm' : ''} (Restorative Nap)`;
+    let baseWindow = schedule.middayWW;
+
+    if (napsCount >= schedule.targetNaps && currentMinOfDay >= 16 * 60) {
+      nextCategory = 'bedtime';
+      recTitle = 'Next: Bedtime Ritual';
+      recDuration = `${Math.round(schedule.targetNightH)} hours (Consolidated Night Sleep)`;
+      baseWindow = schedule.bedtimeWW;
+    } else if (currentMinOfDay >= bedtimeStartMin - 60) {
+      nextCategory = 'bedtime';
+      recTitle = 'Next: Bedtime Ritual';
+      recDuration = `${Math.round(schedule.targetNightH)} hours (Consolidated Night Sleep)`;
+      baseWindow = schedule.bedtimeWW;
+    } else if (napsCount === 0) {
+      nextCategory = 'morning';
+      recTitle = 'Next: Morning Nap';
+      recDuration = `${schedule.morningNapM} min (Morning Nap)`;
+      baseWindow = schedule.morningWW;
+    } else if (napsCount === 1) {
+      if (schedule.targetNaps === 1) {
+        nextCategory = 'bedtime';
+        recTitle = 'Next: Bedtime Ritual';
+        recDuration = `${Math.round(schedule.targetNightH)} hours (Consolidated Night Sleep)`;
+        baseWindow = schedule.bedtimeWW;
+      } else {
+        nextCategory = 'midday';
+        recTitle = 'Next: Restorative Midday Nap';
+        recDuration = `${Math.floor(schedule.middayNapM / 60)}h ${schedule.middayNapM % 60 ? (schedule.middayNapM % 60) + 'm' : ''} (Restorative Nap)`;
+        baseWindow = schedule.middayWW;
+      }
+    } else if (napsCount === 2) {
+      if (schedule.targetNaps >= 3) {
+        nextCategory = 'catnap';
+        recTitle = 'Next: Bridge Catnap';
+        recDuration = `${schedule.catnapM} min (Bridge Catnap — end before 5:00 PM)`;
+        baseWindow = schedule.afternoonWW;
+      } else {
+        nextCategory = 'bedtime';
+        recTitle = 'Next: Bedtime Ritual';
+        recDuration = `${Math.round(schedule.targetNightH)} hours (Consolidated Night Sleep)`;
+        baseWindow = schedule.bedtimeWW;
+      }
+    } else {
+      if (currentMinOfDay >= 16 * 60 + 30) {
+        nextCategory = 'bedtime';
+        recTitle = 'Next: Bedtime Ritual';
+        recDuration = `${Math.round(schedule.targetNightH)} hours (Consolidated Night Sleep)`;
+        baseWindow = schedule.bedtimeWW;
+      } else {
+        nextCategory = 'catnap';
+        recTitle = 'Next: Bridge Catnap';
+        recDuration = `${schedule.catnapM} min (Bridge Catnap — end before 5:00 PM)`;
+        baseWindow = schedule.afternoonWW;
+      }
+    }
+
+    if (profile.customWakeWindowMinutes) {
+      baseWindow = profile.customWakeWindowMinutes;
+    }
+
+    // Dynamic adjustment based on last nap
+    const latestSleep = sleepEvents[0];
+    const lastSleepDurationMin = latestSleep && latestSleep.endTime ? Math.round((latestSleep.endTime - latestSleep.startTime) / 60000) : 0;
+    let targetMinutes = baseWindow;
+    let recReason = '';
+
+    if (!profile.customWakeWindowMinutes) {
+      if (nextCategory === 'bedtime') {
+        recReason = `Bedtime window approaching (${String(schedule.bedtimeH).padStart(2,'0')}:${String(schedule.bedtimeM).padStart(2,'0')}–19:30). Longer wake window builds overnight sleep pressure.`;
+      } else if (lastSleepDurationMin >= 1 && lastSleepDurationMin < 40) {
+        const reduction = Math.round(baseWindow * 0.18);
+        targetMinutes = Math.max(35, baseWindow - reduction);
+        recReason = `Last nap was short (${lastSleepDurationMin}m). Wake window shortened by ${reduction}m to prevent overtiredness.`;
+      } else if (lastSleepDurationMin >= 90) {
+        recReason = `Last nap was restorative (${lastSleepDurationMin}m). Full age-appropriate wake window supported.`;
+      } else {
+        recReason = nextCategory === 'morning'
+          ? "Morning wake window is naturally shorter as circadian alertness ramps up."
+          : (nextCategory === 'midday' ? "Midday sleep window builds pressure for the core restorative nap." : "Bridge catnap to prevent overtiredness before evening bedtime.");
+      }
+    } else {
+      recReason = `Using custom wake window setting (${profile.customWakeWindowMinutes}m).`;
+    }
+
+    const triviaTip = schedule.trivia[0] || "Consistency in daytime rhythms protects restorative nighttime sleep.";
 
     if (ongoingSleep) {
       const durMin = Math.floor(Math.max(0, now - ongoingSleep.startTime) / 60000);
@@ -294,11 +567,18 @@
         targetMinutes,
         remainingMinutes: null,
         statusText: `Sleeping (${durMin}m)`,
-        isAlert10m: false
+        isAlert10m: false,
+        nextCategory,
+        recTitle: "Sleep In Progress",
+        recDuration,
+        recReason: `Target duration: ${recDuration}`,
+        triviaTip,
+        napsCount,
+        targetNaps: schedule.targetNaps,
+        daySleepMinutes
       };
     }
 
-    const latestSleep = sleepEvents[0];
     const wakeStart = latestSleep ? (latestSleep.endTime || latestSleep.startTime) : (now - 25 * 60 * 1000);
     const wakeDurationMinutes = Math.floor(Math.max(0, now - wakeStart) / 60000);
     const expectedEnd = wakeStart + (targetMinutes * 60 * 1000);
@@ -310,7 +590,15 @@
       targetMinutes,
       remainingMinutes: diffMinutes,
       statusText: diffMinutes >= 0 ? `Window ends in ${diffMinutes}m` : `Overdue by ${-diffMinutes}m`,
-      isAlert10m: diffMinutes <= 10 && diffMinutes >= 0
+      isAlert10m: diffMinutes <= 10 && diffMinutes >= 0,
+      nextCategory,
+      recTitle,
+      recDuration,
+      recReason,
+      triviaTip,
+      napsCount,
+      targetNaps: schedule.targetNaps,
+      daySleepMinutes
     };
   }
 
@@ -599,7 +887,7 @@
       statusBadge.textContent = '👶 Awake';
       statusBadge.style.color = '#10b981';
       timerElem.textContent = `${wakeState.durationMinutes} min`;
-      subElem.textContent = wakeState.statusText;
+      subElem.textContent = `${wakeState.statusText} • ${wakeState.recTitle.replace('Next: ', '')}`;
       subElem.style.color = wakeState.remainingMinutes !== null && wakeState.remainingMinutes < 10 ? '#ef4444' : '#94a3b8';
     }
 
@@ -632,9 +920,36 @@
     const dayEvents = state.events.filter(e => e.babyProfileId === profile.id && e.startTime >= state.selectedDayStart && e.startTime <= getEndOfDay(state.selectedDayStart));
     document.getElementById('summary-today-logs').textContent = `${dayEvents.length} items`;
 
+    // Populate Little Ones Sleep Recommendation Card
+    const recCard = document.getElementById('recommendation-card');
+    if (recCard) {
+      document.getElementById('rec-title').textContent = wakeState.recTitle;
+      const badge = document.getElementById('rec-nap-badge');
+      if (wakeState.nextCategory === 'bedtime') {
+        badge.textContent = 'Bedtime';
+      } else if (wakeState.isSleeping) {
+        badge.textContent = 'Sleeping';
+      } else {
+        badge.textContent = `Nap ${wakeState.napsCount + 1}/${wakeState.targetNaps}`;
+      }
+      document.getElementById('rec-target-duration').textContent = `Target: ${wakeState.recDuration}`;
+      document.getElementById('rec-reason').textContent = wakeState.recReason;
+    }
+
+    // Populate Little Ones Pediatric Insight / Trivia Card
+    const triviaCard = document.getElementById('trivia-card');
+    if (triviaCard) {
+      const sched = getLittleOnesSchedule(ageWeeks);
+      document.getElementById('trivia-title').textContent = `${sched.label} Pediatric Insight`;
+      document.getElementById('trivia-text').textContent = wakeState.triviaTip;
+    }
+
     // Simulated alerts check
     if (profile.enablePushNotifications && wakeState.isAlert10m) {
-      triggerNotification('Activity Cycle Ending Soon', `${profile.name}'s wake window ends in ${wakeState.remainingMinutes} minutes. Time to start the wind-down ritual!`);
+      triggerNotification(
+        `Wake Window Ending: ${wakeState.recTitle}`,
+        `${profile.name}'s wake window ends in ${wakeState.remainingMinutes} min (${wakeState.recReason}).\n\n💡 Little Ones Tip: ${wakeState.triviaTip}`
+      );
     }
   }
 
@@ -723,22 +1038,35 @@
         sleep: sleepHours,
         wake: wakeWindow,
         feed: dayFeeds,
-        diaper: dayPee + dayPoo
+        diaper: dayPee + dayPoo,
+        hasSleep: dayTotalSleep > 0,
+        hasFeed: dayFeeds > 0,
+        hasDiaper: (dayPee + dayPoo) > 0,
+        hasAnyData: (dayTotalSleep > 0 || dayFeeds > 0 || (dayPee + dayPoo) > 0)
       });
     }
 
-    const n = daysToInclude;
-    const avgSleep = Math.round(totalSleepMin / n);
+    // Exclude missing days from averages (per requirement: missing data from past days shouldn't be counted towards average)
+    const daysWithSleep = dailyData.filter(d => d.hasSleep);
+    const nSleep = daysWithSleep.length > 0 ? daysWithSleep.length : 1;
+
+    const daysWithFeeds = dailyData.filter(d => d.hasFeed);
+    const nFeeds = daysWithFeeds.length > 0 ? daysWithFeeds.length : 1;
+
+    const daysWithDiapers = dailyData.filter(d => d.hasDiaper);
+    const nDiapers = daysWithDiapers.length > 0 ? daysWithDiapers.length : 1;
+
+    const avgSleep = Math.round(totalSleepMin / nSleep);
     const avgSleepH = Math.floor(avgSleep / 60);
     const avgSleepM = avgSleep % 60;
 
     document.getElementById('metric-total-sleep').textContent = `${avgSleepH}h ${avgSleepM}m`;
-    document.getElementById('metric-sleep-sub').textContent = `Day: ${Math.floor((daySleepMin / n) / 60)}h • Night: ${Math.floor((nightSleepMin / n) / 60)}h (${(napsCount / n).toFixed(1)} naps/day)`;
+    document.getElementById('metric-sleep-sub').textContent = `Day: ${Math.floor((daySleepMin / nSleep) / 60)}h • Night: ${Math.floor((nightSleepMin / nSleep) / 60)}h (${(napsCount / nSleep).toFixed(1)} naps/day)`;
     document.getElementById('metric-avg-wake').textContent = `${profile.customWakeWindowMinutes || getRecommendedWakeWindow(calculateAgeInWeeks(profile.birthTimestamp))} min`;
-    document.getElementById('metric-feedings-count').textContent = `${(feedsCount / n).toFixed(1)} sessions`;
-    document.getElementById('metric-feedings-sub').textContent = `${Math.round(feedsMin / n)}m total nursing time/day`;
-    document.getElementById('metric-diaper-count').textContent = `${((peeCount + pooCount) / n).toFixed(1)} changes`;
-    document.getElementById('metric-diaper-sub').textContent = `💧 Wet: ${(peeCount / n).toFixed(1)}  |  💩 Dirty: ${(pooCount / n).toFixed(1)}`;
+    document.getElementById('metric-feedings-count').textContent = `${(feedsCount / nFeeds).toFixed(1)} sessions`;
+    document.getElementById('metric-feedings-sub').textContent = `${Math.round(feedsMin / nFeeds)}m total nursing time/day`;
+    document.getElementById('metric-diaper-count').textContent = `${((peeCount + pooCount) / nDiapers).toFixed(1)} changes`;
+    document.getElementById('metric-diaper-sub').textContent = `💧 Wet: ${(peeCount / nDiapers).toFixed(1)}  |  💩 Dirty: ${(pooCount / nDiapers).toFixed(1)}`;
 
     // Highlight selected metric card
     const metric = state.selectedMetric || 'sleep';
@@ -822,9 +1150,38 @@
       const height = canvas.height;
       ctx.clearRect(0, 0, width, height);
 
-      const values = dailyData.map(d => metricConfig.getValue(d));
-      const maxVal = Math.max(1, Math.max(...values) * 1.15);
-      const minVal = Math.max(0, Math.min(...values) * 0.85);
+      // Check which days have logged data for this metric
+      const rawData = dailyData.map(d => {
+        const val = metricConfig.getValue(d);
+        const hasData = (metric === 'wake') ? d.hasAnyData : val > 0;
+        return { val, hasData };
+      });
+      const hasAnyData = rawData.some(r => r.hasData);
+
+      // Interpolate values across untracked / missing days so graph doesn't unrealistically plunge to 0
+      const interpolatedValues = rawData.map((item, idx) => {
+        if (item.hasData || !hasAnyData) return item.val;
+        let prevIdx = -1;
+        for (let j = idx - 1; j >= 0; j--) {
+          if (rawData[j].hasData) { prevIdx = j; break; }
+        }
+        let nextIdx = -1;
+        for (let j = idx + 1; j < rawData.length; j++) {
+          if (rawData[j].hasData) { nextIdx = j; break; }
+        }
+        if (prevIdx !== -1 && nextIdx !== -1) {
+          const ratio = (idx - prevIdx) / (nextIdx - prevIdx);
+          return rawData[prevIdx].val + ratio * (rawData[nextIdx].val - rawData[prevIdx].val);
+        } else if (prevIdx !== -1) {
+          return rawData[prevIdx].val;
+        } else if (nextIdx !== -1) {
+          return rawData[nextIdx].val;
+        }
+        return 0;
+      });
+
+      const maxVal = Math.max(1, Math.max(...interpolatedValues) * 1.15);
+      const minVal = Math.max(0, Math.min(...interpolatedValues) * 0.85);
       const range = (maxVal - minVal) || 1;
 
       const padTop = 16;
@@ -849,9 +1206,10 @@
 
       const points = dailyData.map((d, idx) => {
         const x = padLeft + idx * stepX;
-        const norm = (metricConfig.getValue(d) - minVal) / range;
+        const v = interpolatedValues[idx];
+        const norm = (v - minVal) / range;
         const y = padTop + chartH * (1 - norm);
-        return { x, y, val: metricConfig.getValue(d) };
+        return { x, y, val: v, hasData: rawData[idx].hasData };
       });
 
       if (points.length >= 2) {
@@ -888,17 +1246,19 @@
         ctx.lineCap = 'round';
         ctx.stroke();
 
-        // Data points
+        // Data points (only highlight days with actual tracked data)
         points.forEach((pt) => {
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 2.5, 0, 2 * Math.PI);
-          ctx.fillStyle = '#ffffff';
-          ctx.fill();
+          if (pt.hasData) {
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 2.5, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
 
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 1.5, 0, 2 * Math.PI);
-          ctx.fillStyle = metricConfig.color;
-          ctx.fill();
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 1.5, 0, 2 * Math.PI);
+            ctx.fillStyle = metricConfig.color;
+            ctx.fill();
+          }
         });
 
         // X-Axis date labels (5 dates evenly spaced)

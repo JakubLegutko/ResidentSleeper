@@ -9,15 +9,22 @@ import android.os.Build
 object BabyAlarmScheduler {
 
     const val EXTRA_ALERT_TYPE = "EXTRA_ALERT_TYPE"
+    const val EXTRA_ALERT_TITLE = "EXTRA_ALERT_TITLE"
+    const val EXTRA_ALERT_BODY = "EXTRA_ALERT_BODY"
     const val ALERT_TYPE_WAKE_WINDOW = "ALERT_TYPE_WAKE_WINDOW"
     const val ALERT_TYPE_FEEDING = "ALERT_TYPE_FEEDING"
 
     private const val REQUEST_CODE_WAKE = 1001
     private const val REQUEST_CODE_FEED = 1002
 
-    fun scheduleWakeWindowAlert(context: Context, triggerTimeMillis: Long) {
+    fun scheduleWakeWindowAlert(
+        context: Context,
+        triggerTimeMillis: Long,
+        customTitle: String? = null,
+        customBody: String? = null
+    ) {
         if (triggerTimeMillis <= System.currentTimeMillis()) return
-        scheduleAlarm(context, triggerTimeMillis, ALERT_TYPE_WAKE_WINDOW, REQUEST_CODE_WAKE)
+        scheduleAlarm(context, triggerTimeMillis, ALERT_TYPE_WAKE_WINDOW, REQUEST_CODE_WAKE, customTitle, customBody)
     }
 
     fun cancelWakeWindowAlert(context: Context) {
@@ -37,11 +44,15 @@ object BabyAlarmScheduler {
         context: Context,
         triggerTimeMillis: Long,
         alertType: String,
-        requestCode: Int
+        requestCode: Int,
+        customTitle: String? = null,
+        customBody: String? = null
     ) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra(EXTRA_ALERT_TYPE, alertType)
+            if (customTitle != null) putExtra(EXTRA_ALERT_TITLE, customTitle)
+            if (customBody != null) putExtra(EXTRA_ALERT_BODY, customBody)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             context,
