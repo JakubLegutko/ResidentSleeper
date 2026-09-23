@@ -200,47 +200,70 @@
             </div>
 
             <div class="review-metrics-container">
-              <div class="metric-card">
+              <div id="metric-card-sleep" class="metric-card selectable-metric-card active sleep" title="Click to view Sleep trend">
                 <div class="metric-icon indigo">🛏️</div>
                 <div class="metric-info">
-                  <span class="metric-title">Total Sleep</span>
+                  <div class="metric-header-row">
+                    <span class="metric-title">Total Sleep</span>
+                    <span class="metric-active-badge">Active</span>
+                  </div>
                   <strong id="metric-total-sleep" class="metric-value">14h 20m</strong>
                   <span id="metric-sleep-sub" class="metric-desc">Day: 4h 30m • Night: 9h 50m (5 naps)</span>
                 </div>
               </div>
 
-              <div class="metric-card">
+              <div id="metric-card-wake" class="metric-card selectable-metric-card" title="Click to view Wake Window trend">
                 <div class="metric-icon mint">⏱️</div>
                 <div class="metric-info">
-                  <span class="metric-title">Avg Wake Window</span>
+                  <div class="metric-header-row">
+                    <span class="metric-title">Avg Wake Window</span>
+                    <span class="metric-active-badge">Active</span>
+                  </div>
                   <strong id="metric-avg-wake" class="metric-value">52 min</strong>
                   <span class="metric-desc">Average activity cycle between naps</span>
                 </div>
               </div>
 
-              <div class="metric-card">
+              <div id="metric-card-feed" class="metric-card selectable-metric-card" title="Click to view Feedings trend">
                 <div class="metric-icon pink">🍼</div>
                 <div class="metric-info">
-                  <span class="metric-title">Feedings</span>
+                  <div class="metric-header-row">
+                    <span class="metric-title">Feedings</span>
+                    <span class="metric-active-badge">Active</span>
+                  </div>
                   <strong id="metric-feedings-count" class="metric-value">7 sessions</strong>
                   <span id="metric-feedings-sub" class="metric-desc">165m total nursing time</span>
                 </div>
               </div>
 
-              <div class="metric-card">
+              <div id="metric-card-diaper" class="metric-card selectable-metric-card" title="Click to view Diapers trend">
                 <div class="metric-icon cyan">💧</div>
                 <div class="metric-info">
-                  <span class="metric-title">Diapers</span>
+                  <div class="metric-header-row">
+                    <span class="metric-title">Diapers</span>
+                    <span class="metric-active-badge">Active</span>
+                  </div>
                   <strong id="metric-diaper-count" class="metric-value">8 changes</strong>
                   <span id="metric-diaper-sub" class="metric-desc">💧 Wet: 5  |  💩 Dirty: 3</span>
                 </div>
               </div>
 
-              <!-- Sleep Trend Chart (Mini Bar Chart) -->
+              <!-- Trend Chart Box (Graph for Monthly, Bars for Weekly) -->
               <div id="weekly-trend-box" class="trend-chart-box">
-                <h4>Sleep Trend (Hours / Day)</h4>
+                <div class="trend-chart-header">
+                  <h4 id="trend-chart-title">Sleep Trend (Hours / Day)</h4>
+                  <span id="trend-metric-badge" class="trend-badge">Sleep</span>
+                </div>
+                <!-- Bar Chart for Weekly -->
                 <div id="trend-bars-container" class="trend-bars">
                   <!-- Bars generated via JS -->
+                </div>
+                <!-- Smooth Graph for Monthly -->
+                <div id="trend-graph-container" class="trend-graph-wrapper hidden">
+                  <canvas id="monthly-trend-canvas" width="280" height="135"></canvas>
+                  <div id="graph-x-axis" class="graph-axis-labels">
+                    <!-- Date ticks generated via JS -->
+                  </div>
                 </div>
               </div>
             </div>

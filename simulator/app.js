@@ -11,6 +11,7 @@
     selectedDayStart: getStartOfDay(Date.now(), 7),
     activeView: 'dashboard', // 'dashboard', 'reviews', 'settings'
     reviewPeriod: 'daily',   // 'daily', 'weekly', 'monthly'
+    selectedMetric: 'sleep', // 'sleep', 'wake', 'feed', 'diaper'
     profiles: [
       {
         id: 1,
@@ -62,7 +63,7 @@
     }
     const prof = getActiveProfile();
     state.selectedDayStart = getStartOfDay(getSimulatedNow(), prof ? (prof.dayStartHour || 7) : 7);
-    if (state.events.length === 0) {
+    if (state.events.length < 20) {
       seedRealisticData();
     }
   }
@@ -97,90 +98,168 @@
     return s + (24 * 60 * 60 * 1000) - 1;
   }
 
-  // --- Seed Realistic 24-Hour Newborn Data ---
+  // --- Seed Realistic 30-Day Newborn Data ---
   function seedRealisticData() {
     const now = getSimulatedNow();
     const d = new Date(now);
     d.setHours(0, 0, 0, 0);
     const startOfCalendarDay = d.getTime();
 
-    state.events = [
-      // Night sleep: 21:00 yesterday to 07:00 today
-      {
-        id: 1,
+    const evs = [];
+    let idCounter = 1;
+
+    for (let day = 29; day >= 0; day--) {
+      const dayBase = startOfCalendarDay - (day * 24 * 60 * 60 * 1000);
+      const randOffset = Math.sin(day * 1.7) * 20 * 60 * 1000;
+
+      // Night sleep: 21:00 previous evening to 07:00 this morning
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'SLEEP',
-        startTime: startOfCalendarDay - (3 * 60 * 60 * 1000), // 21:00 yesterday
-        endTime: startOfCalendarDay + (7 * 60 * 60 * 1000)    // 07:00 today
-      },
-      // 07:00 Wakeup diaper & nursing
-      {
-        id: 2,
+        startTime: dayBase - (3 * 60 * 60 * 1000) + randOffset,
+        endTime: dayBase + (7 * 60 * 60 * 1000) + randOffset
+      });
+
+      // 07:15 Diaper Pee
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'DIAPER',
-        startTime: startOfCalendarDay + (7 * 60 * 60 * 1000) + (5 * 60 * 1000),
+        startTime: dayBase + (7 * 60 * 60 * 1000) + (15 * 60 * 1000),
         diaperType: 'PEE'
-      },
-      {
-        id: 3,
+      });
+
+      // 07:20 Nursing
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'NURSING',
-        startTime: startOfCalendarDay + (7 * 60 * 60 * 1000) + (10 * 60 * 1000),
-        endTime: startOfCalendarDay + (7 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        startTime: dayBase + (7 * 60 * 60 * 1000) + (20 * 60 * 1000),
+        endTime: dayBase + (7 * 60 * 60 * 1000) + (45 * 60 * 1000),
         nursingType: 'LEFT_BREAST'
-      },
-      // Nap 1: 08:00 to 09:30
-      {
-        id: 4,
+      });
+
+      // Nap 1: 08:30 to 10:00 (1.5h)
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'SLEEP',
-        startTime: startOfCalendarDay + (8 * 60 * 60 * 1000),
-        endTime: startOfCalendarDay + (9 * 60 * 60 * 1000) + (30 * 60 * 1000)
-      },
-      // 09:35 Diaper Poo
-      {
-        id: 5,
+        startTime: dayBase + (8 * 60 * 60 * 1000) + (30 * 60 * 1000) + randOffset,
+        endTime: dayBase + (10 * 60 * 60 * 1000) + randOffset
+      });
+
+      // 10:05 Diaper Poo
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'DIAPER',
-        startTime: startOfCalendarDay + (9 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        startTime: dayBase + (10 * 60 * 60 * 1000) + (5 * 60 * 1000),
         diaperType: 'POO'
-      },
-      // 09:40 Feeding (Right Breast)
-      {
-        id: 6,
+      });
+
+      // 10:10 Feeding
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'NURSING',
-        startTime: startOfCalendarDay + (9 * 60 * 60 * 1000) + (40 * 60 * 1000),
-        endTime: startOfCalendarDay + (10 * 60 * 60 * 1000) + (10 * 60 * 1000),
+        startTime: dayBase + (10 * 60 * 60 * 1000) + (10 * 60 * 1000),
+        endTime: dayBase + (10 * 60 * 60 * 1000) + (35 * 60 * 1000),
         nursingType: 'RIGHT_BREAST'
-      },
-      // Nap 2: 10:30 to 12:30
-      {
-        id: 7,
+      });
+
+      // Nap 2: 11:30 to 13:00 (1.5h)
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'SLEEP',
-        startTime: startOfCalendarDay + (10 * 60 * 60 * 1000) + (30 * 60 * 1000),
-        endTime: startOfCalendarDay + (12 * 60 * 60 * 1000) + (30 * 60 * 1000)
-      },
-      // 12:35 Diaper Pee
-      {
-        id: 8,
+        startTime: dayBase + (11 * 60 * 60 * 1000) + (30 * 60 * 1000),
+        endTime: dayBase + (13 * 60 * 60 * 1000)
+      });
+
+      // 13:05 Diaper Pee
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'DIAPER',
-        startTime: startOfCalendarDay + (12 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        startTime: dayBase + (13 * 60 * 60 * 1000) + (5 * 60 * 1000),
         diaperType: 'PEE'
-      },
-      // 12:40 Bottle Feeding (90ml)
-      {
-        id: 9,
+      });
+
+      // 13:10 Bottle
+      evs.push({
+        id: idCounter++,
         babyProfileId: 1,
         type: 'NURSING',
-        startTime: startOfCalendarDay + (12 * 60 * 60 * 1000) + (40 * 60 * 1000),
-        endTime: startOfCalendarDay + (13 * 60 * 60 * 1000) + (0 * 60 * 1000),
+        startTime: dayBase + (13 * 60 * 60 * 1000) + (10 * 60 * 1000),
+        endTime: dayBase + (13 * 60 * 60 * 1000) + (30 * 60 * 1000),
         nursingType: 'BOTTLE',
         amountMl: 90
-      }
-    ];
+      });
+
+      // Nap 3: 14:45 to 16:00
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'SLEEP',
+        startTime: dayBase + (14 * 60 * 60 * 1000) + (45 * 60 * 1000),
+        endTime: dayBase + (16 * 60 * 60 * 1000)
+      });
+
+      // 16:15 Diapers
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'DIAPER',
+        startTime: dayBase + (16 * 60 * 60 * 1000) + (15 * 60 * 1000),
+        diaperType: 'PEE'
+      });
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'DIAPER',
+        startTime: dayBase + (16 * 60 * 60 * 1000) + (16 * 60 * 1000),
+        diaperType: 'POO'
+      });
+
+      // 16:20 Nursing
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'NURSING',
+        startTime: dayBase + (16 * 60 * 60 * 1000) + (20 * 60 * 1000),
+        endTime: dayBase + (16 * 60 * 60 * 1000) + (45 * 60 * 1000),
+        nursingType: 'LEFT_BREAST'
+      });
+
+      // Nap 4: 17:45 to 18:30 (catnap)
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'SLEEP',
+        startTime: dayBase + (17 * 60 * 60 * 1000) + (45 * 60 * 1000),
+        endTime: dayBase + (18 * 60 * 60 * 1000) + (30 * 60 * 1000)
+      });
+
+      // 19:00 Diaper & Feed
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'DIAPER',
+        startTime: dayBase + (19 * 60 * 60 * 1000),
+        diaperType: 'PEE'
+      });
+      evs.push({
+        id: idCounter++,
+        babyProfileId: 1,
+        type: 'NURSING',
+        startTime: dayBase + (19 * 60 * 60 * 1000) + (10 * 60 * 1000),
+        endTime: dayBase + (19 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        nursingType: 'RIGHT_BREAST'
+      });
+    }
+
+    state.events = evs;
     saveState();
   }
 
@@ -596,7 +675,7 @@
     let peeCount = 0;
     let pooCount = 0;
 
-    const dailyBars = [];
+    const dailyData = [];
     const now = getSimulatedNow();
 
     for (let i = daysToInclude - 1; i >= 0; i--) {
@@ -605,9 +684,15 @@
       const dayEvs = profileEvents.filter(e => e.startTime >= dStart && e.startTime <= dEnd);
 
       let dayTotalSleep = 0;
+      let dayNaps = 0;
+      let dayFeeds = 0;
+      let dayPee = 0;
+      let dayPoo = 0;
+
       dayEvs.forEach(e => {
         if (e.type === 'SLEEP') {
           napsCount++;
+          dayNaps++;
           const dur = Math.floor(Math.max(0, (e.endTime || now) - e.startTime) / 60000);
           totalSleepMin += dur;
           dayTotalSleep += dur;
@@ -615,16 +700,31 @@
           if (h >= 19 || h < 7) nightSleepMin += dur; else daySleepMin += dur;
         } else if (e.type === 'NURSING') {
           feedsCount++;
+          dayFeeds++;
           feedsMin += Math.floor(Math.max(0, (e.endTime || e.startTime) - e.startTime) / 60000);
         } else if (e.type === 'DIAPER') {
-          if (e.diaperType === 'PEE') peeCount++;
-          else if (e.diaperType === 'POO') pooCount++;
-          else { peeCount++; pooCount++; }
+          if (e.diaperType === 'PEE') { peeCount++; dayPee++; }
+          else if (e.diaperType === 'POO') { pooCount++; dayPoo++; }
+          else { peeCount++; dayPee++; pooCount++; dayPoo++; }
         }
       });
 
       const dayName = new Date(dStart).toLocaleDateString('en-GB', { weekday: 'narrow' });
-      dailyBars.push({ day: dayName, hours: (dayTotalSleep / 60).toFixed(1) });
+      const dateLabel = new Date(dStart).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      const sleepHours = dayTotalSleep / 60;
+      const wakeWindow = (dayNaps > 0)
+        ? Math.round(Math.max(30, (1440 - dayTotalSleep) / (dayNaps + 1)))
+        : (profile.customWakeWindowMinutes || 60);
+
+      dailyData.push({
+        dateEpoch: dStart,
+        dayName,
+        dateLabel,
+        sleep: sleepHours,
+        wake: wakeWindow,
+        feed: dayFeeds,
+        diaper: dayPee + dayPoo
+      });
     }
 
     const n = daysToInclude;
@@ -640,21 +740,200 @@
     document.getElementById('metric-diaper-count').textContent = `${((peeCount + pooCount) / n).toFixed(1)} changes`;
     document.getElementById('metric-diaper-sub').textContent = `💧 Wet: ${(peeCount / n).toFixed(1)}  |  💩 Dirty: ${(pooCount / n).toFixed(1)}`;
 
-    // Render trend bars
-    const barsContainer = document.getElementById('trend-bars-container');
-    barsContainer.innerHTML = '';
-    const maxH = Math.max(1, ...dailyBars.map(b => parseFloat(b.hours)));
-    dailyBars.slice(-7).forEach(b => {
-      const heightPercent = Math.max(10, (parseFloat(b.hours) / maxH) * 100);
-      const col = document.createElement('div');
-      col.className = 'trend-bar-col';
-      col.innerHTML = `
-        <span class="bar-val">${b.hours}h</span>
-        <div class="bar-pillar" style="height: ${heightPercent}%;"></div>
-        <span class="bar-day">${b.day}</span>
-      `;
-      barsContainer.appendChild(col);
+    // Highlight selected metric card
+    const metric = state.selectedMetric || 'sleep';
+    const cardMap = {
+      sleep: document.getElementById('metric-card-sleep'),
+      wake: document.getElementById('metric-card-wake'),
+      feed: document.getElementById('metric-card-feed'),
+      diaper: document.getElementById('metric-card-diaper')
+    };
+
+    Object.keys(cardMap).forEach(key => {
+      const card = cardMap[key];
+      if (card) {
+        card.classList.remove('active', 'sleep', 'wake', 'feed', 'diaper');
+        if (key === metric) {
+          card.classList.add('active', key);
+        }
+      }
     });
+
+    // Metric configuration
+    const metricConfig = {
+      sleep: {
+        title: 'Sleep Trend (Hours / Day)',
+        badge: 'Sleep',
+        color: '#6366f1',
+        grad0: 'rgba(99, 102, 241, 0.45)',
+        grad1: 'rgba(99, 102, 241, 0.02)',
+        unit: 'h',
+        getValue: d => d.sleep,
+        formatVal: v => v.toFixed(1) + 'h'
+      },
+      wake: {
+        title: 'Wake Window Trend (Minutes / Day)',
+        badge: 'Wake Window',
+        color: '#10b981',
+        grad0: 'rgba(16, 185, 129, 0.45)',
+        grad1: 'rgba(16, 185, 129, 0.02)',
+        unit: 'm',
+        getValue: d => d.wake,
+        formatVal: v => Math.round(v) + 'm'
+      },
+      feed: {
+        title: 'Feedings Trend (Sessions / Day)',
+        badge: 'Feedings',
+        color: '#ec4899',
+        grad0: 'rgba(236, 72, 153, 0.45)',
+        grad1: 'rgba(236, 72, 153, 0.02)',
+        unit: '',
+        getValue: d => d.feed,
+        formatVal: v => Math.round(v)
+      },
+      diaper: {
+        title: 'Diapers Trend (Changes / Day)',
+        badge: 'Diapers',
+        color: '#38bdf8',
+        grad0: 'rgba(56, 189, 248, 0.45)',
+        grad1: 'rgba(56, 189, 248, 0.02)',
+        unit: '',
+        getValue: d => d.diaper,
+        formatVal: v => Math.round(v)
+      }
+    }[metric];
+
+    document.getElementById('trend-chart-title').textContent = metricConfig.title;
+    const badgeElem = document.getElementById('trend-metric-badge');
+    badgeElem.textContent = `${metricConfig.badge} • ${state.reviewPeriod === 'monthly' ? '30 Days Graph' : (state.reviewPeriod === 'weekly' ? '7 Days' : 'Daily')}`;
+    badgeElem.style.color = metricConfig.color;
+
+    const barsContainer = document.getElementById('trend-bars-container');
+    const graphWrapper = document.getElementById('trend-graph-container');
+
+    if (state.reviewPeriod === 'monthly') {
+      // Monthly View: Smooth Continuous Line Graph instead of a bar chart
+      barsContainer.classList.add('hidden');
+      graphWrapper.classList.remove('hidden');
+
+      const canvas = document.getElementById('monthly-trend-canvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const values = dailyData.map(d => metricConfig.getValue(d));
+      const maxVal = Math.max(1, Math.max(...values) * 1.15);
+      const minVal = Math.max(0, Math.min(...values) * 0.85);
+      const range = (maxVal - minVal) || 1;
+
+      const padTop = 16;
+      const padBottom = 22;
+      const padLeft = 14;
+      const padRight = 14;
+      const chartW = width - padLeft - padRight;
+      const chartH = height - padTop - padBottom;
+      const stepX = chartW / Math.max(1, dailyData.length - 1);
+
+      // Horizontal reference grid lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.lineWidth = 1;
+
+      [0, 0.5, 1].forEach(ratio => {
+        const y = padTop + chartH * (1 - ratio);
+        ctx.beginPath();
+        ctx.moveTo(padLeft, y);
+        ctx.lineTo(width - padRight, y);
+        ctx.stroke();
+      });
+
+      const points = dailyData.map((d, idx) => {
+        const x = padLeft + idx * stepX;
+        const norm = (metricConfig.getValue(d) - minVal) / range;
+        const y = padTop + chartH * (1 - norm);
+        return { x, y, val: metricConfig.getValue(d) };
+      });
+
+      if (points.length >= 2) {
+        // Gradient Area Fill under smooth curve
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, padTop + chartH);
+        ctx.lineTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const cx = (p0.x + p1.x) / 2;
+          ctx.bezierCurveTo(cx, p0.y, cx, p1.y, p1.x, p1.y);
+        }
+        ctx.lineTo(points[points.length - 1].x, padTop + chartH);
+        ctx.closePath();
+
+        const areaGrad = ctx.createLinearGradient(0, padTop, 0, padTop + chartH);
+        areaGrad.addColorStop(0, metricConfig.grad0);
+        areaGrad.addColorStop(1, metricConfig.grad1);
+        ctx.fillStyle = areaGrad;
+        ctx.fill();
+
+        // Stroke line
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 0; i < points.length - 1; i++) {
+          const p0 = points[i];
+          const p1 = points[i + 1];
+          const cx = (p0.x + p1.x) / 2;
+          ctx.bezierCurveTo(cx, p0.y, cx, p1.y, p1.x, p1.y);
+        }
+        ctx.strokeStyle = metricConfig.color;
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Data points
+        points.forEach((pt) => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 2.5, 0, 2 * Math.PI);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 1.5, 0, 2 * Math.PI);
+          ctx.fillStyle = metricConfig.color;
+          ctx.fill();
+        });
+
+        // X-Axis date labels (5 dates evenly spaced)
+        const axisContainer = document.getElementById('graph-x-axis');
+        axisContainer.innerHTML = '';
+        const labelIndices = [0, Math.floor(dailyData.length / 4), Math.floor(dailyData.length / 2), Math.floor((3 * dailyData.length) / 4), dailyData.length - 1];
+        labelIndices.forEach(idx => {
+          const span = document.createElement('span');
+          span.textContent = dailyData[idx].dateLabel;
+          axisContainer.appendChild(span);
+        });
+      }
+    } else {
+      // Weekly View (or Daily): Discrete Bar Chart for 7 days
+      graphWrapper.classList.add('hidden');
+      barsContainer.classList.remove('hidden');
+      barsContainer.innerHTML = '';
+
+      const subset = dailyData.slice(-7);
+      const values = subset.map(b => metricConfig.getValue(b));
+      const maxVal = Math.max(1, Math.max(...values));
+
+      subset.forEach(b => {
+        const val = metricConfig.getValue(b);
+        const heightPercent = Math.max(8, (val / maxVal) * 100);
+        const col = document.createElement('div');
+        col.className = 'trend-bar-col';
+        col.innerHTML = `
+          <span class="bar-val" style="color: ${metricConfig.color};">${metricConfig.formatVal(val)}</span>
+          <div class="bar-pillar" style="height: ${heightPercent}%; background: linear-gradient(180deg, ${metricConfig.color} 0%, rgba(30, 41, 59, 0.8) 100%);"></div>
+          <span class="bar-day">${b.dayName}</span>
+        `;
+        barsContainer.appendChild(col);
+      });
+    }
   }
 
   // --- Settings View Rendering ---
@@ -768,6 +1047,17 @@
       state.reviewPeriod = e.target.id.replace('tab-review-', '');
       updateReviewsView();
     });
+  });
+
+  // Selectable Metric Cards in Reviews
+  ['sleep', 'wake', 'feed', 'diaper'].forEach(m => {
+    const card = document.getElementById(`metric-card-${m}`);
+    if (card) {
+      card.addEventListener('click', () => {
+        state.selectedMetric = m;
+        updateReviewsView();
+      });
+    }
   });
 
   // --- Action Button Handlers (Tap = Immediate, Hold / Long-press = Edit Time) ---
