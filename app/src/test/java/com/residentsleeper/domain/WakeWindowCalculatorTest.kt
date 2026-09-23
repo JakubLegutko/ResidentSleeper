@@ -55,8 +55,12 @@ class WakeWindowCalculatorTest {
 
     @Test
     fun computeState_withShortNap_tightensWakeWindow() {
-        val now = 2_000_000_000L
-        val birth = now - TimeUnit.DAYS.toMillis(16 * 7) // 16 weeks old (4 months, morning base window 105 min)
+        val cal = Calendar.getInstance().apply {
+            set(2024, Calendar.OCTOBER, 15, 10, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val now = cal.timeInMillis
+        val birth = now - TimeUnit.DAYS.toMillis(16 * 7) // 16 weeks old (4 months)
         val profile = BabyProfile(birthTimestamp = birth, notifyBeforeMinutes = 10)
 
         val wakeStart = now - TimeUnit.MINUTES.toMillis(20)
@@ -70,14 +74,18 @@ class WakeWindowCalculatorTest {
         val state = WakeWindowCalculator.computeState(profile, lastShortSleep, null, now)
 
         assertThat(state.isSleeping).isFalse()
-        // Window should be reduced by ~18% from base 105 min
+        // Window should be reduced by ~18% from base window
         assertThat(state.recommendedWakeWindowMinutes).isLessThan(state.baseWakeWindowMinutes)
         assertThat(state.recommendationReason).contains("short")
     }
 
     @Test
     fun computeState_withManualWakeWindowOverride_usesOverride() {
-        val now = 3_000_000_000L
+        val cal = Calendar.getInstance().apply {
+            set(2024, Calendar.OCTOBER, 15, 10, 0, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val now = cal.timeInMillis
         val birth = now - TimeUnit.DAYS.toMillis(14)
         val profile = BabyProfile(
             birthTimestamp = birth,

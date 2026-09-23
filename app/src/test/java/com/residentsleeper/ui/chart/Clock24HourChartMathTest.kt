@@ -8,17 +8,17 @@ class Clock24HourChartMathTest {
 
     @Test
     fun minuteToAngle_mapsKeyHoursCorrectly() {
-        // 00:00 (midnight) should be at top (-90 degrees / 270 degrees)
-        assertThat(ClockChartMath.minuteToAngle(0)).isEqualTo(270f)
+        // When startHour is 0 (midnight at top of clock: -90 / 270 deg)
+        assertThat(ClockChartMath.minuteToAngle(0, startHour = 0)).isEqualTo(270f)
+        assertThat(ClockChartMath.minuteToAngle(360, startHour = 0)).isEqualTo(0f)
+        assertThat(ClockChartMath.minuteToAngle(720, startHour = 0)).isEqualTo(90f)
+        assertThat(ClockChartMath.minuteToAngle(1080, startHour = 0)).isEqualTo(180f)
 
-        // 06:00 (6 * 60 = 360 min) -> 360 * 0.25 - 90 = 0 degrees (3 o'clock)
-        assertThat(ClockChartMath.minuteToAngle(360)).isEqualTo(0f)
-
-        // 12:00 (12 * 60 = 720 min) -> 720 * 0.25 - 90 = 90 degrees (6 o'clock)
-        assertThat(ClockChartMath.minuteToAngle(720)).isEqualTo(90f)
-
-        // 18:00 (18 * 60 = 1080 min) -> 1080 * 0.25 - 90 = 180 degrees (9 o'clock)
-        assertThat(ClockChartMath.minuteToAngle(1080)).isEqualTo(180f)
+        // When startHour is 7 (default 07:00 at top of clock: 270 deg)
+        assertThat(ClockChartMath.minuteToAngle(420, startHour = 7)).isEqualTo(270f)
+        assertThat(ClockChartMath.minuteToAngle(780, startHour = 7)).isEqualTo(0f)
+        assertThat(ClockChartMath.minuteToAngle(1140, startHour = 7)).isEqualTo(90f)
+        assertThat(ClockChartMath.minuteToAngle(60, startHour = 7)).isEqualTo(180f)
     }
 
     @Test
