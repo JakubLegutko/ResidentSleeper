@@ -412,10 +412,36 @@ body {
 /* 24-Hour Donut Chart */
 .chart-section {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 6px 0;
 }
+.chart-color-legend {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.dot-sleep { background: var(--sleep-indigo); }
+.dot-activity { background: var(--wake-mint); }
+.dot-nursing { background: var(--nursing-teal); }
+.dot-diaper { background: var(--diaper-pee); }
+
 .canvas-container {
   position: relative;
   width: 250px;

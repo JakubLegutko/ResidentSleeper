@@ -98,4 +98,107 @@ object ClockChartMath {
         val minute = getMinuteOfDay(timestamp)
         return minuteToAngle(minute)
     }
+
+    /**
+     * Computes all arcs for the day, distinguishing between Sleep intervals and Activity/Wake intervals.
+     */
+    fun computeDayCycleArcs(
+        dayStartMillis: Long,
+        dayEndMillis: Long,
+        events: List<com.residentsleeper.data.model.BabyEvent>,
+        currentTime: Long = System.currentTimeMillis()
+    ): List<ChartArc> {
+        val sleepEvents = events
+            .filter { it.type == com.residentsleeper.data.model.EventType.SLEEP }
+            .sortedBy { it.startTime }
+
+        val arcs = mutableListOf<ChartArc>()
+
+        // 1. Generate Sleep Arcs
+        for (s in sleepEvents) {
+            val end = s.endTime ?: currentTime
+            arcs.addAll(
+                computeArcsForInterval(
+                    dayStartMillis = dayStartMillis,
+                    dayEndMillis = dayEndMillis,
+                    eventStart = s.startTime,
+                    eventEnd = end,
+                    isSleep = true
+                )
+            )
+        }
+
+        // 2. Generate Activity / Wake Window Arcs between sleeps
+        val effectiveLimit = minOf(dayEndMillis, if (dayEndMillis > currentTime) currentTime else dayEndMillis)
+
+        if (sleepEvents.isEmpty()) {
+            // No sleep recorded: awake from start of day to effective limit
+            if (dayStartMillis < effectiveLimit) {
+                arcs.addAll(
+                    computeArcsForInterval(
+                        dayStartMillis = dayStartMillis,
+                        dayEndMillis = dayEndMillis,
+                        eventStart = dayStartMillis,
+                        eventEnd = effectiveLimit,
+                        isSleep = false
+                    )
+                )
+            }
+        } else {
+            // Wake window before first sleep of the day (if first sleep started after dayStart)
+            val firstSleep = sleepEvents.first()
+            if (firstSleep.startTime > dayStartMillis) {
+                val wakeEnd = minOf(firstSleep.startTime, effectiveLimit)
+                if (dayStartMillis < wakeEnd) {
+                    arcs.addAll(
+                        computeArcsForInterval(
+                            dayStartMillis = dayStartMillis,
+                            dayEndMillis = dayEndMillis,
+                            eventStart = dayStartMillis,
+                            eventEnd = wakeEnd,
+                            isSleep = false
+                        )
+                    )
+                }
+            }
+
+            // Wake windows between consecutive sleeps
+            for (i in 0 until sleepEvents.size - 1) {
+                val currentEnd = sleepEvents[i].endTime ?: currentTime
+                val nextStart = sleepEvents[i + 1].startTime
+                if (nextStart > currentEnd) {
+                    val wakeEnd = minOf(nextStart, effectiveLimit)
+                    if (currentEnd < wakeEnd) {
+                        arcs.addAll(
+                            computeArcsForInterval(
+                                dayStartMillis = dayStartMillis,
+                                dayEndMillis = dayEndMillis,
+                                eventStart = currentEnd,
+                                eventEnd = wakeEnd,
+                                isSleep = false
+                            )
+                        )
+                    }
+                }
+            }
+
+            // Wake window after last sleep up to effective limit
+            val lastSleep = sleepEvents.last()
+            val lastEnd = lastSleep.endTime
+            if (lastEnd != null && lastEnd < effectiveLimit) {
+                arcs.addAll(
+                    computeArcsForInterval(
+                        dayStartMillis = dayStartMillis,
+                        dayEndMillis = dayEndMillis,
+                        eventStart = lastEnd,
+                        eventEnd = effectiveLimit,
+                        isSleep = false
+                    )
+                )
+            }
+        }
+
+        return arcs
+    }
 }
+

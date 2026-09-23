@@ -176,7 +176,17 @@ fun DashboardScreen(
                 strokeWidthDp = 32.dp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // Color Legend
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 6.dp, bottom = 10.dp)
+            ) {
+                ChartLegendItem(color = SleepIndigo, label = "Sleep")
+                ChartLegendItem(color = WakeMint, label = "Activity")
+                ChartLegendItem(color = NursingTeal, label = "Nursing")
+                ChartLegendItem(color = DiaperPeeCyan, label = "Diaper")
+            }
 
             // 4 ACTION BUTTONS GRID
             // Row 1: Sleep & Nursing
@@ -410,3 +420,28 @@ private fun ActionButtonCard(
         }
     }
 }
+
+@Composable
+private fun ChartLegendItem(
+    color: Color,
+    label: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .androidx.compose.foundation.background(color)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 11.sp
+        )
+    }
+}
+

@@ -56,4 +56,53 @@ class Clock24HourChartMathTest {
         assertThat(arcs[0].sweepAngle).isEqualTo(30f)
         assertThat(arcs[0].isSleep).isTrue()
     }
+
+    @Test
+    fun computeDayCycleArcs_generatesBothSleepAndActivityArcsWithCorrectFlags() {
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val dayStart = cal.timeInMillis
+
+        cal.set(Calendar.HOUR_OF_DAY, 23)
+        cal.set(Calendar.MINUTE, 59)
+        val dayEnd = cal.timeInMillis
+
+        // Sleep from 08:00 to 10:00
+        cal.set(Calendar.HOUR_OF_DAY, 8)
+        cal.set(Calendar.MINUTE, 0)
+        val sleepStart = cal.timeInMillis
+
+        cal.set(Calendar.HOUR_OF_DAY, 10)
+        val sleepEnd = cal.timeInMillis
+
+        val sleepEvent = com.residentsleeper.data.model.BabyEvent(
+            type = com.residentsleeper.data.model.EventType.SLEEP,
+            startTime = sleepStart,
+            endTime = sleepEnd
+        )
+
+        // Mock current time at 12:00
+        cal.set(Calendar.HOUR_OF_DAY, 12)
+        val currentTime = cal.timeInMillis
+
+        val arcs = ClockChartMath.computeDayCycleArcs(
+            dayStartMillis = dayStart,
+            dayEndMillis = dayEnd,
+            events = listOf(sleepEvent),
+            currentTime = currentTime
+        )
+
+        val sleepArcs = arcs.filter { it.isSleep }
+        val activityArcs = arcs.filter { !it.isSleep }
+
+        assertThat(sleepArcs).isNotEmpty()
+        assertThat(activityArcs).isNotEmpty()
+        // 08:00 to 10:00 is 120 min = 30 degrees
+        assertThat(sleepArcs.first().sweepAngle).isEqualTo(30f)
+    }
 }
+

@@ -316,43 +316,74 @@
       }
     }
 
-    // 3. Draw Sleep Intervals (Indigo Arcs)
-    const sleepEvents = profileEvents.filter(e => e.type === 'SLEEP');
-    for (const s of sleepEvents) {
-      const end = s.endTime || getSimulatedNow();
-      const clampedStart = Math.max(dayStart, s.startTime);
-      const clampedEnd = Math.min(dayEnd, end);
+    // Helper to draw an arc between two timestamps
+    function drawTimeArc(startTime, endTime, color) {
+      const clampedStart = Math.max(dayStart, startTime);
+      const clampedEnd = Math.min(dayEnd, endTime);
+      if (clampedStart >= clampedEnd) return;
 
-      if (clampedStart < clampedEnd) {
-        const startMin = (new Date(clampedStart).getHours() * 60) + new Date(clampedStart).getMinutes();
-        const endMin = (new Date(clampedEnd).getHours() * 60) + new Date(clampedEnd).getMinutes();
+      const startMin = (new Date(clampedStart).getHours() * 60) + new Date(clampedStart).getMinutes();
+      const endMin = (new Date(clampedEnd).getHours() * 60) + new Date(clampedEnd).getMinutes();
 
-        ctx.strokeStyle = '#4f46e5';
-        ctx.lineWidth = strokeWidth;
-        ctx.lineCap = 'round';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = strokeWidth;
+      ctx.lineCap = 'round';
 
-        if (endMin >= startMin) {
-          const startAngle = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
-          const endAngle = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-          ctx.stroke();
-        } else {
-          // Wrapped around midnight
-          const a1 = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
-          const a2 = 2 * Math.PI - Math.PI / 2;
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, a1, a2);
-          ctx.stroke();
+      if (endMin >= startMin) {
+        const startAngle = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
+        const endAngle = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.stroke();
+      } else {
+        const a1 = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
+        const a2 = 2 * Math.PI - Math.PI / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, a1, a2);
+        ctx.stroke();
 
-          const b1 = -Math.PI / 2;
-          const b2 = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, b1, b2);
-          ctx.stroke();
-        }
+        const b1 = -Math.PI / 2;
+        const b2 = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, b1, b2);
+        ctx.stroke();
       }
     }
+
+    // 3. Draw Activity & Sleep Intervals
+    const sleepEvents = profileEvents.filter(e => e.type === 'SLEEP');
+
+    // 3A. Draw Activity / Wake Intervals in Mint (#10b981)
+    const effectiveLimit = Math.min(dayEnd, dayEnd > getSimulatedNow() ? getSimulatedNow() : dayEnd);
+    const sortedSleeps = sleepEvents.slice().sort((a, b) => a.startTime - b.startTime);
+
+    if (sortedSleeps.length === 0) {
+      if (dayStart < effectiveLimit) {
+        drawTimeArc(dayStart, effectiveLimit, '#10b981');
+      }
+    } else {
+      if (sortedSleeps[0].startTime > dayStart) {
+        drawTimeArc(dayStart, Math.min(sortedSleeps[0].startTime, effectiveLimit), '#10b981');
+      }
+      for (let i = 0; i < sortedSleeps.length - 1; i++) {
+        const currentEnd = sortedSleeps[i].endTime || getSimulatedNow();
+        const nextStart = sortedSleeps[i + 1].startTime;
+        if (nextStart > currentEnd && currentEnd < effectiveLimit) {
+          drawTimeArc(currentEnd, Math.min(nextStart, effectiveLimit), '#10b981');
+        }
+      }
+      const lastSleep = sortedSleeps[sortedSleeps.length - 1];
+      const lastEnd = lastSleep.endTime;
+      if (lastEnd && lastEnd < effectiveLimit) {
+        drawTimeArc(lastEnd, effectiveLimit, '#10b981');
+      }
+    }
+
+    // 3B. Draw Sleep Intervals in Indigo (#4f46e5)
+    for (const s of sleepEvents) {
+      drawTimeArc(s.startTime, s.endTime || getSimulatedNow(), '#4f46e5');
+    }
+
 
     // 4. Draw Markers (Nursing & Diapers)
     for (const e of profileEvents) {

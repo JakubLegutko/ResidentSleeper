@@ -79,28 +79,41 @@ fun Clock24HourChart(
             // 2. Draw 24-hour hour ticks & labels
             drawHourTicksAndLabels(center, radius, strokePx, textColor)
 
-            // 3. Draw Sleep and Activity Arcs on the ring
-            for (event in events) {
-                if (event.type == EventType.SLEEP) {
-                    val end = event.endTime ?: System.currentTimeMillis()
-                    val arcs = ClockChartMath.computeArcsForInterval(
-                        dayStartMillis = dayStartMillis,
-                        dayEndMillis = dayEndMillis,
-                        eventStart = event.startTime,
-                        eventEnd = end,
-                        isSleep = true
+            // 3. Draw Sleep and Activity Arcs on the ring with distinct colors
+            val cycleArcs = ClockChartMath.computeDayCycleArcs(
+                dayStartMillis = dayStartMillis,
+                dayEndMillis = dayEndMillis,
+                events = events,
+                currentTime = System.currentTimeMillis()
+            )
+
+            // Draw Activity / Wake Arcs first
+            for (arc in cycleArcs) {
+                if (!arc.isSleep) {
+                    drawArc(
+                        color = WakeMint,
+                        startAngle = arc.startAngle,
+                        sweepAngle = arc.sweepAngle,
+                        useCenter = false,
+                        topLeft = Offset(center.x - radius, center.y - radius),
+                        size = Size(radius * 2, radius * 2),
+                        style = Stroke(width = strokePx, cap = StrokeCap.Round)
                     )
-                    for (arc in arcs) {
-                        drawArc(
-                            color = SleepIndigo,
-                            startAngle = arc.startAngle,
-                            sweepAngle = arc.sweepAngle,
-                            useCenter = false,
-                            topLeft = Offset(center.x - radius, center.y - radius),
-                            size = Size(radius * 2, radius * 2),
-                            style = Stroke(width = strokePx, cap = StrokeCap.Round)
-                        )
-                    }
+                }
+            }
+
+            // Draw Sleep Arcs on top
+            for (arc in cycleArcs) {
+                if (arc.isSleep) {
+                    drawArc(
+                        color = SleepIndigo,
+                        startAngle = arc.startAngle,
+                        sweepAngle = arc.sweepAngle,
+                        useCenter = false,
+                        topLeft = Offset(center.x - radius, center.y - radius),
+                        size = Size(radius * 2, radius * 2),
+                        style = Stroke(width = strokePx, cap = StrokeCap.Round)
+                    )
                 }
             }
 
