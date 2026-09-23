@@ -44,7 +44,12 @@ jobs:
           retention-days: 14
 
       - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --info
+        run: |
+          ./gradlew testDebugUnitTest --continue || {
+            echo "::error::Unit tests failed! Displaying failure details:"
+            find app/build/test-results/testDebugUnitTest/ -name "*.xml" -exec grep -H -n -C 5 "<failure" {} + || true
+            exit 1
+          }
 
       - name: Upload Test Report
         if: always()
