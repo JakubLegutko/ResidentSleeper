@@ -42,26 +42,29 @@ object ClockChartMath {
      * Converts a minute of the day (0..1439) to a Canvas start angle in degrees,
      * where 00:00 is at top (-90 degrees) and moves clockwise.
      */
-    fun minuteToAngle(minuteOfDay: Int): Float {
-        return (minuteOfDay * DEGREES_PER_MINUTE + TOP_CLOCK_OFFSET + 360f) % 360f
+    fun minuteToAngle(minuteOfDay: Int, startHour: Int = 7): Float {
+        val startMinute = startHour * 60
+        val relativeMinute = (minuteOfDay - startMinute + 1440) % 1440
+        return (relativeMinute * DEGREES_PER_MINUTE + TOP_CLOCK_OFFSET + 360f) % 360f
     }
 
     /**
-     * Converts a start timestamp and end timestamp on a given day into one or two drawing arcs
-     * (handling wrap-around at midnight).
+     * Converts a start timestamp and end timestamp on a given day into a drawing arc.
      *
-     * @param dayStartMillis Start of the selected day (00:00:00)
-     * @param dayEndMillis End of the selected day (23:59:59.999)
+     * @param dayStartMillis Start of the selected day (e.g. 07:00)
+     * @param dayEndMillis End of the selected day (e.g. 06:59:59 next day)
      * @param eventStart Start time of event
      * @param eventEnd End time of event
      * @param isSleep Whether this interval is a sleep interval
+     * @param startHour Hour of starting the day (default 7:00 AM)
      */
     fun computeArcsForInterval(
         dayStartMillis: Long,
         dayEndMillis: Long,
         eventStart: Long,
         eventEnd: Long,
-        isSleep: Boolean
+        isSleep: Boolean,
+        startHour: Int = 7
     ): List<ChartArc> {
         // Clamp to current day window
         val clampedStart = maxOf(dayStartMillis, eventStart)
@@ -69,34 +72,21 @@ object ClockChartMath {
 
         if (clampedStart >= clampedEnd) return emptyList()
 
-        val startMinute = getMinuteOfDay(clampedStart)
-        val endMinute = getMinuteOfDay(clampedEnd)
+        val offsetStart = (clampedStart - dayStartMillis) / 60000f
+        val offsetEnd = (clampedEnd - dayStartMillis) / 60000f
 
-        return if (endMinute >= startMinute) {
-            val sweep = (endMinute - startMinute) * DEGREES_PER_MINUTE
-            val angle = minuteToAngle(startMinute)
-            listOf(ChartArc(startAngle = angle, sweepAngle = sweep, isSleep = isSleep))
-        } else {
-            // Crossed midnight within the day range
-            val sweep1 = (1440 - startMinute) * DEGREES_PER_MINUTE
-            val angle1 = minuteToAngle(startMinute)
+        val sweep = (offsetEnd - offsetStart) * DEGREES_PER_MINUTE
+        val startAngle = (offsetStart * DEGREES_PER_MINUTE + TOP_CLOCK_OFFSET + 360f) % 360f
 
-            val sweep2 = endMinute * DEGREES_PER_MINUTE
-            val angle2 = minuteToAngle(0)
-
-            listOf(
-                ChartArc(startAngle = angle1, sweepAngle = sweep1, isSleep = isSleep),
-                ChartArc(startAngle = angle2, sweepAngle = sweep2, isSleep = isSleep)
-            )
-        }
+        return listOf(ChartArc(startAngle = startAngle, sweepAngle = sweep, isSleep = isSleep))
     }
 
     /**
      * Computes the angle for a point-in-time marker (nursing or diaper).
      */
-    fun computeMarkerAngle(timestamp: Long): Float {
+    fun computeMarkerAngle(timestamp: Long, startHour: Int = 7): Float {
         val minute = getMinuteOfDay(timestamp)
-        return minuteToAngle(minute)
+        return minuteToAngle(minute, startHour)
     }
 
     /**
@@ -106,7 +96,8 @@ object ClockChartMath {
         dayStartMillis: Long,
         dayEndMillis: Long,
         events: List<com.residentsleeper.data.model.BabyEvent>,
-        currentTime: Long = System.currentTimeMillis()
+        currentTime: Long = System.currentTimeMillis(),
+        startHour: Int = 7
     ): List<ChartArc> {
         val sleepEvents = events
             .filter { it.type == com.residentsleeper.data.model.EventType.SLEEP }
@@ -123,7 +114,8 @@ object ClockChartMath {
                     dayEndMillis = dayEndMillis,
                     eventStart = s.startTime,
                     eventEnd = end,
-                    isSleep = true
+                    isSleep = true,
+                    startHour = startHour
                 )
             )
         }
@@ -140,7 +132,8 @@ object ClockChartMath {
                         dayEndMillis = dayEndMillis,
                         eventStart = dayStartMillis,
                         eventEnd = effectiveLimit,
-                        isSleep = false
+                        isSleep = false,
+                        startHour = startHour
                     )
                 )
             }
@@ -156,7 +149,8 @@ object ClockChartMath {
                             dayEndMillis = dayEndMillis,
                             eventStart = dayStartMillis,
                             eventEnd = wakeEnd,
-                            isSleep = false
+                            isSleep = false,
+                            startHour = startHour
                         )
                     )
                 }
@@ -175,7 +169,8 @@ object ClockChartMath {
                                 dayEndMillis = dayEndMillis,
                                 eventStart = currentEnd,
                                 eventEnd = wakeEnd,
-                                isSleep = false
+                                isSleep = false,
+                                startHour = startHour
                             )
                         )
                     }
@@ -192,7 +187,8 @@ object ClockChartMath {
                         dayEndMillis = dayEndMillis,
                         eventStart = lastEnd,
                         eventEnd = effectiveLimit,
-                        isSleep = false
+                        isSleep = false,
+                        startHour = startHour
                     )
                 )
             }

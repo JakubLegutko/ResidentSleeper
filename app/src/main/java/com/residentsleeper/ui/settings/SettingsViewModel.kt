@@ -93,6 +93,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         updateActiveProfile { it.copy(feedingIntervalMinutes = minutes) }
     }
 
+    fun updateDayStartHour(hour: Int) {
+        updateActiveProfile { it.copy(dayStartHour = hour) }
+    }
+
     fun toggleCalendarSync(enabled: Boolean) {
         updateActiveProfile { it.copy(enableCalendarSync = enabled) }
     }

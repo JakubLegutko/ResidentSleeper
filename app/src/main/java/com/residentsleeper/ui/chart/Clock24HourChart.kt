@@ -54,6 +54,7 @@ fun Clock24HourChart(
     events: List<BabyEvent>,
     wakeState: WakeWindowState,
     feedingState: FeedingState,
+    dayStartHour: Int = 7,
     modifier: Modifier = Modifier,
     sizeDp: Dp = 290.dp,
     strokeWidthDp: Dp = 34.dp
@@ -80,15 +81,16 @@ fun Clock24HourChart(
                 style = Stroke(width = strokePx)
             )
 
-            // 2. Draw 24-hour hour ticks & labels
-            drawHourTicksAndLabels(center, radius, strokePx, textColor)
+            // 2. Draw 24-hour hour ticks & labels (shifted with dayStartHour at the top)
+            drawHourTicksAndLabels(center, radius, strokePx, textColor, dayStartHour)
 
             // 3. Draw Sleep and Activity Arcs on the ring with distinct colors
             val cycleArcs = ClockChartMath.computeDayCycleArcs(
                 dayStartMillis = dayStartMillis,
                 dayEndMillis = dayEndMillis,
                 events = events,
-                currentTime = System.currentTimeMillis()
+                currentTime = System.currentTimeMillis(),
+                startHour = dayStartHour
             )
 
             // Draw Activity / Wake Arcs first
@@ -143,7 +145,7 @@ fun Clock24HourChart(
             for (event in events) {
                 when (event.type) {
                     EventType.NURSING -> {
-                        val angle = ClockChartMath.computeMarkerAngle(event.startTime)
+                        val angle = ClockChartMath.computeMarkerAngle(event.startTime, dayStartHour)
                         val angleRad = (angle * PI / 180f).toFloat()
                         val markerPos = Offset(
                             x = center.x + radius * cos(angleRad),
@@ -171,7 +173,7 @@ fun Clock24HourChart(
                         )
                     }
                     EventType.DIAPER -> {
-                        val angle = ClockChartMath.computeMarkerAngle(event.startTime)
+                        val angle = ClockChartMath.computeMarkerAngle(event.startTime, dayStartHour)
                         val angleRad = (angle * PI / 180f).toFloat()
                         // Offset slightly to outer edge of ring
                         val outerRadius = radius + (strokePx / 2f) - 3.dp.toPx()
@@ -217,7 +219,7 @@ fun Clock24HourChart(
 
             // 5. Draw current time indicator needle
             val nowMinute = ClockChartMath.getMinuteOfDay(System.currentTimeMillis())
-            val nowAngle = ClockChartMath.minuteToAngle(nowMinute)
+            val nowAngle = ClockChartMath.minuteToAngle(nowMinute, dayStartHour)
             val nowAngleRad = (nowAngle * PI / 180f).toFloat()
             val needleEnd = Offset(
                 x = center.x + (radius + strokePx / 2f + 4.dp.toPx()) * cos(nowAngleRad),
@@ -303,16 +305,18 @@ private fun DrawScope.drawHourTicksAndLabels(
     center: Offset,
     radius: Float,
     strokePx: Float,
-    textColor: Color
+    textColor: Color,
+    dayStartHour: Int
 ) {
     val tickRadiusInner = radius - (strokePx / 2f)
     val majorTickRadiusInner = radius - (strokePx / 2f) - 6.dp.toPx()
 
-    for (hour in 0 until 24) {
-        val angle = ClockChartMath.minuteToAngle(hour * 60)
+    for (i in 0 until 24) {
+        val hourOfDay = (dayStartHour + i) % 24
+        val angle = ClockChartMath.minuteToAngle(hourOfDay * 60, dayStartHour)
         val angleRad = (angle * PI / 180f).toFloat()
 
-        val isMajor = hour % 3 == 0
+        val isMajor = i % 3 == 0
         val innerR = if (isMajor) majorTickRadiusInner else tickRadiusInner
         val outerR = radius - (strokePx / 2f) + 2.dp.toPx()
 
@@ -332,19 +336,13 @@ private fun DrawScope.drawHourTicksAndLabels(
             strokeWidth = if (isMajor) 2.dp.toPx() else 1.dp.toPx()
         )
 
-        // Draw hour numbers for 00, 06, 12, 18
-        if (hour % 6 == 0) {
+        // Draw hour numbers for 4 cardinal points (Top: startHour, Right: +6h, Bottom: +12h, Left: +18h)
+        if (i % 6 == 0) {
             val labelR = radius + (strokePx / 2f) + 12.dp.toPx()
             val labelX = center.x + labelR * cos(angleRad)
             val labelY = center.y + labelR * sin(angleRad) + 4.dp.toPx()
 
-            val text = when (hour) {
-                0 -> "00"
-                6 -> "06"
-                12 -> "12"
-                18 -> "18"
-                else -> ""
-            }
+            val text = java.lang.String.format(java.util.Locale.getDefault(), "%02d", hourOfDay)
 
             drawContext.canvas.nativeCanvas.apply {
                 val paint = android.graphics.Paint().apply {

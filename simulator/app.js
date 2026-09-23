@@ -8,7 +8,7 @@
   let state = {
     activeProfileId: 1,
     simTimeOffsetMs: 0,
-    selectedDayStart: getStartOfDay(Date.now()),
+    selectedDayStart: getStartOfDay(Date.now(), 7),
     activeView: 'dashboard', // 'dashboard', 'reviews', 'settings'
     reviewPeriod: 'daily',   // 'daily', 'weekly', 'monthly'
     profiles: [
@@ -17,6 +17,7 @@
         name: 'Emma',
         birthTimestamp: Date.now() - (28 * 24 * 60 * 60 * 1000), // 4 weeks old
         isActive: true,
+        dayStartHour: 7,
         customWakeWindowMinutes: null,
         feedingIntervalMinutes: 150,
         selectedCalendarId: 1,
@@ -29,6 +30,7 @@
         name: 'Lucas',
         birthTimestamp: Date.now() - (60 * 24 * 60 * 60 * 1000), // ~8 weeks old
         isActive: false,
+        dayStartHour: 7,
         customWakeWindowMinutes: null,
         feedingIntervalMinutes: 180,
         selectedCalendarId: null,
@@ -47,7 +49,10 @@
       try {
         const saved = JSON.parse(raw);
         if (saved && saved.profiles && saved.profiles.length) {
-          state.profiles = saved.profiles;
+          state.profiles = saved.profiles.map(p => ({
+            ...p,
+            dayStartHour: (p.dayStartHour !== undefined) ? p.dayStartHour : 7
+          }));
           state.events = saved.events || [];
           state.activeProfileId = saved.activeProfileId || 1;
         }
@@ -55,6 +60,8 @@
         console.error('Failed to parse saved state:', e);
       }
     }
+    const prof = getActiveProfile();
+    state.selectedDayStart = getStartOfDay(getSimulatedNow(), prof ? (prof.dayStartHour || 7) : 7);
     if (state.events.length === 0) {
       seedRealisticData();
     }
@@ -76,46 +83,50 @@
     return state.profiles.find(p => p.id === state.activeProfileId) || state.profiles[0];
   }
 
-  function getStartOfDay(timestamp) {
+  function getStartOfDay(timestamp, startHour = 7) {
     const d = new Date(timestamp);
-    d.setHours(0, 0, 0, 0);
+    if (d.getHours() < startHour) {
+      d.setDate(d.getDate() - 1);
+    }
+    d.setHours(startHour, 0, 0, 0);
     return d.getTime();
   }
 
-  function getEndOfDay(timestamp) {
-    const d = new Date(timestamp);
-    d.setHours(23, 59, 59, 999);
-    return d.getTime();
+  function getEndOfDay(timestamp, startHour = 7) {
+    const s = getStartOfDay(timestamp, startHour);
+    return s + (24 * 60 * 60 * 1000) - 1;
   }
 
   // --- Seed Realistic 24-Hour Newborn Data ---
   function seedRealisticData() {
     const now = getSimulatedNow();
-    const startOfToday = getStartOfDay(now);
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    const startOfCalendarDay = d.getTime();
 
     state.events = [
-      // Night sleep: 21:00 yesterday to 07:00 today (split at midnight)
+      // Night sleep: 21:00 yesterday to 07:00 today
       {
         id: 1,
         babyProfileId: 1,
         type: 'SLEEP',
-        startTime: startOfToday - (3 * 60 * 60 * 1000), // 21:00 yesterday
-        endTime: startOfToday + (7 * 60 * 60 * 1000)    // 07:00 today
+        startTime: startOfCalendarDay - (3 * 60 * 60 * 1000), // 21:00 yesterday
+        endTime: startOfCalendarDay + (7 * 60 * 60 * 1000)    // 07:00 today
       },
       // 07:00 Wakeup diaper & nursing
       {
         id: 2,
         babyProfileId: 1,
         type: 'DIAPER',
-        startTime: startOfToday + (7 * 60 * 60 * 1000) + (5 * 60 * 1000),
+        startTime: startOfCalendarDay + (7 * 60 * 60 * 1000) + (5 * 60 * 1000),
         diaperType: 'PEE'
       },
       {
         id: 3,
         babyProfileId: 1,
         type: 'NURSING',
-        startTime: startOfToday + (7 * 60 * 60 * 1000) + (10 * 60 * 1000),
-        endTime: startOfToday + (7 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        startTime: startOfCalendarDay + (7 * 60 * 60 * 1000) + (10 * 60 * 1000),
+        endTime: startOfCalendarDay + (7 * 60 * 60 * 1000) + (35 * 60 * 1000),
         nursingType: 'LEFT_BREAST'
       },
       // Nap 1: 08:00 to 09:30
@@ -123,15 +134,15 @@
         id: 4,
         babyProfileId: 1,
         type: 'SLEEP',
-        startTime: startOfToday + (8 * 60 * 60 * 1000),
-        endTime: startOfToday + (9 * 60 * 60 * 1000) + (30 * 60 * 1000)
+        startTime: startOfCalendarDay + (8 * 60 * 60 * 1000),
+        endTime: startOfCalendarDay + (9 * 60 * 60 * 1000) + (30 * 60 * 1000)
       },
       // 09:35 Diaper Poo
       {
         id: 5,
         babyProfileId: 1,
         type: 'DIAPER',
-        startTime: startOfToday + (9 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        startTime: startOfCalendarDay + (9 * 60 * 60 * 1000) + (35 * 60 * 1000),
         diaperType: 'POO'
       },
       // 09:40 Feeding (Right Breast)
@@ -139,8 +150,8 @@
         id: 6,
         babyProfileId: 1,
         type: 'NURSING',
-        startTime: startOfToday + (9 * 60 * 60 * 1000) + (40 * 60 * 1000),
-        endTime: startOfToday + (10 * 60 * 60 * 1000) + (10 * 60 * 1000),
+        startTime: startOfCalendarDay + (9 * 60 * 60 * 1000) + (40 * 60 * 1000),
+        endTime: startOfCalendarDay + (10 * 60 * 60 * 1000) + (10 * 60 * 1000),
         nursingType: 'RIGHT_BREAST'
       },
       // Nap 2: 10:30 to 12:30
@@ -148,15 +159,15 @@
         id: 7,
         babyProfileId: 1,
         type: 'SLEEP',
-        startTime: startOfToday + (10 * 60 * 60 * 1000) + (30 * 60 * 1000),
-        endTime: startOfToday + (12 * 60 * 60 * 1000) + (30 * 60 * 1000)
+        startTime: startOfCalendarDay + (10 * 60 * 60 * 1000) + (30 * 60 * 1000),
+        endTime: startOfCalendarDay + (12 * 60 * 60 * 1000) + (30 * 60 * 1000)
       },
       // 12:35 Diaper Pee
       {
         id: 8,
         babyProfileId: 1,
         type: 'DIAPER',
-        startTime: startOfToday + (12 * 60 * 60 * 1000) + (35 * 60 * 1000),
+        startTime: startOfCalendarDay + (12 * 60 * 60 * 1000) + (35 * 60 * 1000),
         diaperType: 'PEE'
       },
       // 12:40 Bottle Feeding (90ml)
@@ -164,8 +175,8 @@
         id: 9,
         babyProfileId: 1,
         type: 'NURSING',
-        startTime: startOfToday + (12 * 60 * 60 * 1000) + (40 * 60 * 1000),
-        endTime: startOfToday + (13 * 60 * 60 * 1000) + (0 * 60 * 1000),
+        startTime: startOfCalendarDay + (12 * 60 * 60 * 1000) + (40 * 60 * 1000),
+        endTime: startOfCalendarDay + (13 * 60 * 60 * 1000) + (0 * 60 * 1000),
         nursingType: 'BOTTLE',
         amountMl: 90
       }
@@ -263,10 +274,11 @@
 
   function renderClockChart() {
     const profile = getActiveProfile();
+    const startHour = (profile && profile.dayStartHour !== undefined) ? profile.dayStartHour : 7;
     const profileEvents = state.events.filter(e => e.babyProfileId === profile.id);
 
     const dayStart = state.selectedDayStart;
-    const dayEnd = getEndOfDay(dayStart);
+    const dayEnd = dayStart + (24 * 60 * 60 * 1000) - 1;
 
     const width = canvas.width;
     const height = canvas.height;
@@ -285,11 +297,11 @@
     ctx.lineCap = 'butt';
     ctx.stroke();
 
-    // 2. Draw Hour Ticks & Labels (00, 06, 12, 18)
-    for (let h = 0; h < 24; h++) {
-      // 00:00 at top (-PI/2), moving clockwise
-      const angle = (h / 24) * 2 * Math.PI - Math.PI / 2;
-      const isMajor = h % 3 === 0;
+    // 2. Draw Hour Ticks & Labels (startHour at top, +6 at right, +12 at bottom, +18 at left)
+    for (let step = 0; step < 24; step++) {
+      const h = (startHour + step) % 24;
+      const angle = (step / 24) * 2 * Math.PI - Math.PI / 2;
+      const isMajor = step % 3 === 0;
       const innerR = isMajor ? radius - strokeWidth / 2 - 6 : radius - strokeWidth / 2 - 2;
       const outerR = radius - strokeWidth / 2 + 1;
 
@@ -305,7 +317,7 @@
       ctx.lineWidth = isMajor ? 2 : 1;
       ctx.stroke();
 
-      if (h % 6 === 0) {
+      if (step % 6 === 0) {
         const labelR = radius + strokeWidth / 2 + 10;
         const lx = centerX + labelR * Math.cos(angle);
         const ly = centerY + labelR * Math.sin(angle) + 4;
@@ -322,79 +334,34 @@
       const clampedEnd = Math.min(dayEnd, endTime);
       if (clampedStart >= clampedEnd) return;
 
-      const startMin = (new Date(clampedStart).getHours() * 60) + new Date(clampedStart).getMinutes();
-      const endMin = (new Date(clampedEnd).getHours() * 60) + new Date(clampedEnd).getMinutes();
+      const startOffsetMin = (clampedStart - dayStart) / 60000;
+      const endOffsetMin = (clampedEnd - dayStart) / 60000;
+
+      const startAngle = (startOffsetMin / 1440) * 2 * Math.PI - Math.PI / 2;
+      const endAngle = (endOffsetMin / 1440) * 2 * Math.PI - Math.PI / 2;
 
       ctx.lineWidth = strokeWidth;
       ctx.lineCap = 'butt';
 
+      const p1X = centerX + radius * Math.cos(startAngle);
+      const p1Y = centerY + radius * Math.sin(startAngle);
+      const p2X = centerX + radius * Math.cos(endAngle);
+      const p2Y = centerY + radius * Math.sin(endAngle);
+
+      const grad = ctx.createLinearGradient(p1X, p1Y, p2X, p2Y);
       const sleepGrad = isSleep || color === '#4f46e5';
-
-      if (endMin >= startMin) {
-        const startAngle = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
-        const endAngle = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
-
-        const p1X = centerX + radius * Math.cos(startAngle);
-        const p1Y = centerY + radius * Math.sin(startAngle);
-        const p2X = centerX + radius * Math.cos(endAngle);
-        const p2Y = centerY + radius * Math.sin(endAngle);
-
-        const grad = ctx.createLinearGradient(p1X, p1Y, p2X, p2Y);
-        if (sleepGrad) {
-          grad.addColorStop(0, '#6366f1'); // Luminous smooth indigo
-          grad.addColorStop(1, '#3730a3'); // Deep night indigo
-        } else {
-          grad.addColorStop(0, '#34d399'); // Vibrant emerald mint
-          grad.addColorStop(1, '#059669'); // Rich deep mint
-        }
-
-        ctx.strokeStyle = grad;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.stroke();
+      if (sleepGrad) {
+        grad.addColorStop(0, '#6366f1'); // Luminous smooth indigo
+        grad.addColorStop(1, '#3730a3'); // Deep night indigo
       } else {
-        const a1 = (startMin / 1440) * 2 * Math.PI - Math.PI / 2;
-        const a2 = 2 * Math.PI - Math.PI / 2;
-        const p1X = centerX + radius * Math.cos(a1);
-        const p1Y = centerY + radius * Math.sin(a1);
-        const p2X = centerX + radius * Math.cos(a2);
-        const p2Y = centerY + radius * Math.sin(a2);
-
-        const grad1 = ctx.createLinearGradient(p1X, p1Y, p2X, p2Y);
-        if (sleepGrad) {
-          grad1.addColorStop(0, '#6366f1');
-          grad1.addColorStop(1, '#4338ca');
-        } else {
-          grad1.addColorStop(0, '#34d399');
-          grad1.addColorStop(1, '#059669');
-        }
-
-        ctx.strokeStyle = grad1;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, a1, a2);
-        ctx.stroke();
-
-        const b1 = -Math.PI / 2;
-        const b2 = (endMin / 1440) * 2 * Math.PI - Math.PI / 2;
-        const pb1X = centerX + radius * Math.cos(b1);
-        const pb1Y = centerY + radius * Math.sin(b1);
-        const pb2X = centerX + radius * Math.cos(b2);
-        const pb2Y = centerY + radius * Math.sin(b2);
-
-        const grad2 = ctx.createLinearGradient(pb1X, pb1Y, pb2X, pb2Y);
-        if (sleepGrad) {
-          grad2.addColorStop(0, '#4338ca');
-          grad2.addColorStop(1, '#3730a3');
-        } else {
-          grad2.addColorStop(0, '#10b981');
-          grad2.addColorStop(1, '#047857');
-        }
-
-        ctx.strokeStyle = grad2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, b1, b2);
-        ctx.stroke();
+        grad.addColorStop(0, '#34d399'); // Vibrant emerald mint
+        grad.addColorStop(1, '#059669'); // Rich deep mint
       }
+
+      ctx.strokeStyle = grad;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+      ctx.stroke();
     }
 
     // 3. Draw Activity & Sleep Intervals
@@ -428,16 +395,14 @@
 
     // 3B. Draw Sleep Intervals in Indigo (#4f46e5)
     for (const s of sleepEvents) {
-      drawTimeArc(s.startTime, s.endTime || getSimulatedNow(), '#4f46e5');
+      drawTimeArc(s.startTime, s.endTime || getSimulatedNow(), '#4f46e5', true);
     }
-
 
     // 4. Draw Markers (Nursing & Diapers)
     for (const e of profileEvents) {
       if (e.startTime >= dayStart && e.startTime <= dayEnd) {
-        const d = new Date(e.startTime);
-        const min = d.getHours() * 60 + d.getMinutes();
-        const angle = (min / 1440) * 2 * Math.PI - Math.PI / 2;
+        const offsetMin = (e.startTime - dayStart) / 60000;
+        const angle = (offsetMin / 1440) * 2 * Math.PI - Math.PI / 2;
 
         if (e.type === 'NURSING') {
           const markerX = centerX + radius * Math.cos(angle);
@@ -491,24 +456,26 @@
     }
 
     // 5. Draw Current Time Needle (Red Needle)
-    const simNow = new Date(getSimulatedNow());
-    const nowMin = simNow.getHours() * 60 + simNow.getMinutes() + (simNow.getSeconds() / 60);
-    const nowAngle = (nowMin / 1440) * 2 * Math.PI - Math.PI / 2;
+    const simNow = getSimulatedNow();
+    if (simNow >= dayStart && simNow <= dayEnd) {
+      const nowOffsetMin = (simNow - dayStart) / 60000;
+      const nowAngle = (nowOffsetMin / 1440) * 2 * Math.PI - Math.PI / 2;
 
-    const needleInner = radius - strokeWidth / 2 - 4;
-    const needleOuter = radius + strokeWidth / 2 + 5;
-    const nx1 = centerX + needleInner * Math.cos(nowAngle);
-    const ny1 = centerY + needleInner * Math.sin(nowAngle);
-    const nx2 = centerX + needleOuter * Math.cos(nowAngle);
-    const ny2 = centerY + needleOuter * Math.sin(nowAngle);
+      const needleInner = radius - strokeWidth / 2 - 4;
+      const needleOuter = radius + strokeWidth / 2 + 5;
+      const nx1 = centerX + needleInner * Math.cos(nowAngle);
+      const ny1 = centerY + needleInner * Math.sin(nowAngle);
+      const nx2 = centerX + needleOuter * Math.cos(nowAngle);
+      const ny2 = centerY + needleOuter * Math.sin(nowAngle);
 
-    ctx.beginPath();
-    ctx.moveTo(nx1, ny1);
-    ctx.lineTo(nx2, ny2);
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(nx1, ny1);
+      ctx.lineTo(nx2, ny2);
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
 
     // 6. Update Center Overlay & Statuses
     updateDashboardUI();
@@ -531,7 +498,7 @@
 
     // Date Label
     const selectedDate = new Date(state.selectedDayStart);
-    const isToday = state.selectedDayStart === getStartOfDay(getSimulatedNow());
+    const isToday = state.selectedDayStart === getStartOfDay(getSimulatedNow(), profile.dayStartHour || 7);
     const dateStr = selectedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
     document.getElementById('date-display-label').textContent = isToday ? `Today, ${dateStr}` : dateStr;
 
@@ -633,8 +600,8 @@
     const now = getSimulatedNow();
 
     for (let i = daysToInclude - 1; i >= 0; i--) {
-      const dStart = getStartOfDay(now - (i * 24 * 60 * 60 * 1000));
-      const dEnd = getEndOfDay(dStart);
+      const dStart = getStartOfDay(now - (i * 24 * 60 * 60 * 1000), profile.dayStartHour || 7);
+      const dEnd = dStart + (24 * 60 * 60 * 1000) - 1;
       const dayEvs = profileEvents.filter(e => e.startTime >= dStart && e.startTime <= dEnd);
 
       let dayTotalSleep = 0;
@@ -754,6 +721,23 @@
         chip.classList.remove('active');
       }
     });
+
+    // Day Start Hour Select
+    const hourSelect = document.getElementById('select-day-start-hour');
+    if (hourSelect) {
+      hourSelect.innerHTML = '';
+      const currentStartHour = (profile && profile.dayStartHour !== undefined) ? profile.dayStartHour : 7;
+      for (let h = 0; h < 24; h++) {
+        const opt = document.createElement('option');
+        opt.value = h;
+        const hStr = (h < 10 ? '0' : '') + h + ':00';
+        opt.textContent = `${hStr}${h === 7 ? ' (Default)' : ''}`;
+        if (h === currentStartHour) {
+          opt.selected = true;
+        }
+        hourSelect.appendChild(opt);
+      }
+    }
 
     // Switches
     document.getElementById('toggle-push-notifs').checked = profile.enablePushNotifications;
@@ -1138,6 +1122,7 @@
         name,
         birthTimestamp: birth,
         isActive: true,
+        dayStartHour: 7,
         customWakeWindowMinutes: null,
         feedingIntervalMinutes: 150,
         selectedCalendarId: null,
@@ -1283,12 +1268,79 @@
     renderClockChart();
   });
   document.getElementById('btn-date-next').addEventListener('click', () => {
+    const profile = getActiveProfile();
     const next = state.selectedDayStart + 24 * 60 * 60 * 1000;
-    if (next <= getStartOfDay(getSimulatedNow())) {
+    if (next <= getStartOfDay(getSimulatedNow(), profile.dayStartHour || 7)) {
       state.selectedDayStart = next;
       renderClockChart();
     }
   });
+
+  // Settings Controls Event Listeners
+  document.querySelectorAll('#wake-window-chips .choice-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      const profile = getActiveProfile();
+      const val = e.target.dataset.val;
+      profile.customWakeWindowMinutes = val === 'auto' ? null : parseInt(val, 10);
+      saveState();
+      updateDashboardUI();
+      updateSettingsView();
+    });
+  });
+
+  document.querySelectorAll('#feed-interval-chips .choice-chip').forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      const profile = getActiveProfile();
+      profile.feedingIntervalMinutes = parseInt(e.target.dataset.val, 10);
+      saveState();
+      updateDashboardUI();
+      updateSettingsView();
+    });
+  });
+
+  const hourSelectElem = document.getElementById('select-day-start-hour');
+  if (hourSelectElem) {
+    hourSelectElem.addEventListener('change', (e) => {
+      const val = parseInt(e.target.value, 10);
+      const profile = getActiveProfile();
+      profile.dayStartHour = val;
+      state.selectedDayStart = getStartOfDay(getSimulatedNow(), val);
+      saveState();
+      renderClockChart();
+      updateSettingsView();
+    });
+  }
+
+  const birthInput = document.getElementById('input-profile-birthdate');
+  if (birthInput) {
+    birthInput.addEventListener('change', (e) => {
+      const profile = getActiveProfile();
+      if (e.target.value) {
+        profile.birthTimestamp = new Date(e.target.value).getTime();
+        saveState();
+        updateDashboardUI();
+        updateSettingsView();
+      }
+    });
+  }
+
+  const notifToggle = document.getElementById('toggle-push-notifs');
+  if (notifToggle) {
+    notifToggle.addEventListener('change', (e) => {
+      const profile = getActiveProfile();
+      profile.enablePushNotifications = e.target.checked;
+      saveState();
+    });
+  }
+
+  const calToggle = document.getElementById('toggle-calendar-sync');
+  if (calToggle) {
+    calToggle.addEventListener('change', (e) => {
+      const profile = getActiveProfile();
+      profile.enableCalendarSync = e.target.checked;
+      saveState();
+    });
+  }
 
   // Live Timer Ticker every 5 seconds
   setInterval(() => {

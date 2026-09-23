@@ -85,6 +85,7 @@ fun SettingsScreen(
     val dateFormatter = remember { SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()) }
 
     var showDatePicker by remember { mutableStateOf(false) }
+    var showDayStartHourDialog by remember { mutableStateOf(false) }
     var calendarMenuExpanded by remember { mutableStateOf(false) }
     var showProfileSwitcher by remember { mutableStateOf(false) }
     var pendingImportJson by remember { mutableStateOf<String?>(null) }
@@ -316,6 +317,28 @@ fun SettingsScreen(
                             selected = state.activeProfile.feedingIntervalMinutes == 180,
                             onClick = { viewModel.updateFeedingInterval(180) },
                             label = { Text("3.0 hours") }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = stringResource(R.string.settings_day_start_hour),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedButton(
+                        onClick = { showDayStartHourDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = String.format(
+                                Locale.getDefault(),
+                                "%02d:00%s",
+                                state.activeProfile.dayStartHour,
+                                if (state.activeProfile.dayStartHour == 7) " (Default)" else ""
+                            )
                         )
                     }
                 }
@@ -603,6 +626,53 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { pendingImportJson = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Day Start Hour Picker Dialog
+    if (showDayStartHourDialog) {
+        AlertDialog(
+            onDismissRequest = { showDayStartHourDialog = false },
+            title = { Text(stringResource(R.string.settings_day_start_dialog_title)) },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    for (rowStart in 0 until 24 step 4) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            for (h in rowStart until (rowStart + 4)) {
+                                val isSelected = state.activeProfile.dayStartHour == h
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        viewModel.updateDayStartHour(h)
+                                        showDayStartHourDialog = false
+                                    },
+                                    label = {
+                                        Text(
+                                            text = String.format(Locale.getDefault(), "%02d:00", h),
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDayStartHourDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }

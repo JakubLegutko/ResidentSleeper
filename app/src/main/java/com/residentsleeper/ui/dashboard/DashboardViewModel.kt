@@ -65,27 +65,24 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun getStartOfDay(timestamp: Long): Long {
+    private fun getStartOfDay(timestamp: Long, startHour: Int = 7): Long {
         return Calendar.getInstance().apply {
             timeInMillis = timestamp
-            set(Calendar.HOUR_OF_DAY, 0)
+            if (get(Calendar.HOUR_OF_DAY) < startHour) {
+                add(Calendar.DAY_OF_YEAR, -1)
+            }
+            set(Calendar.HOUR_OF_DAY, startHour)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }.timeInMillis
     }
 
-    private fun getEndOfDay(timestamp: Long): Long {
-        return Calendar.getInstance().apply {
-            timeInMillis = timestamp
-            set(Calendar.HOUR_OF_DAY, 23)
-            set(Calendar.MINUTE, 59)
-            set(Calendar.SECOND, 59)
-            set(Calendar.MILLISECOND, 999)
-        }.timeInMillis
+    private fun getEndOfDay(dayStartMillis: Long): Long {
+        return dayStartMillis + (24 * 60 * 60 * 1000) - 1
     }
 
-    private fun getStartOfToday(): Long = getStartOfDay(System.currentTimeMillis())
+    private fun getStartOfToday(startHour: Int = 7): Long = getStartOfDay(System.currentTimeMillis(), startHour)
 
     val uiState: StateFlow<DashboardUiState> = repository.activeProfileFlow.flatMapLatest { profile ->
         val safeProfile = profile ?: BabyProfile()
@@ -109,7 +106,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val now = params[6] as Long
 
             val dayEnd = getEndOfDay(dayStart)
-            val isToday = dayStart == getStartOfToday()
+            val isToday = dayStart == getStartOfToday(safeProfile.dayStartHour)
 
             val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now)
             val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now)
@@ -132,8 +129,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
         DashboardUiState(
-            selectedDayStart = getStartOfToday(),
-            selectedDayEnd = getEndOfDay(getStartOfToday()),
+            selectedDayStart = getStartOfToday(7),
+            selectedDayEnd = getEndOfDay(getStartOfToday(7)),
             isToday = true,
             wakeWindowState = WakeWindowCalculator.computeState(BabyProfile(), null, null),
             feedingState = FeedingPredictor.computeState(BabyProfile(), null, null)

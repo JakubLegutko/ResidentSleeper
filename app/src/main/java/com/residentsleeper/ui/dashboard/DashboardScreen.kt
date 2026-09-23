@@ -174,6 +174,7 @@ fun DashboardScreen(
                 events = state.events,
                 wakeState = state.wakeWindowState,
                 feedingState = state.feedingState,
+                dayStartHour = state.activeProfile.dayStartHour,
                 sizeDp = 280.dp,
                 strokeWidthDp = 32.dp
             )

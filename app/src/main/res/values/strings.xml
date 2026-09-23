@@ -67,6 +67,8 @@
     <string name="settings_wake_window_auto">Automatic (Based on age: %1$d min)</string>
     <string name="settings_wake_window_manual">Manual override (%1$d min)</string>
     <string name="settings_feeding_interval">Feeding Interval</string>
+    <string name="settings_day_start_hour">Day Start Hour (Clock Top)</string>
+    <string name="settings_day_start_dialog_title">Select Day Start Hour</string>
     <string name="settings_calendar_sync">Google Calendar Sync</string>
     <string name="settings_choose_calendar">Choose Calendar</string>
     <string name="settings_notifications">Push Notifications</string>
