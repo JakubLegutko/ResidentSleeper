@@ -97,6 +97,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         updateActiveProfile { it.copy(dayStartHour = hour) }
     }
 
+    fun updateMaxRecommendedNightFeeds(count: Int) {
+        updateActiveProfile { it.copy(maxRecommendedNightFeeds = count) }
+    }
+
+    fun toggleNotifyForOptionalNightFeeds(enabled: Boolean) {
+        updateActiveProfile { it.copy(notifyForOptionalNightFeeds = enabled) }
+    }
+
     fun toggleCalendarSync(enabled: Boolean) {
         updateActiveProfile { it.copy(enableCalendarSync = enabled) }
     }

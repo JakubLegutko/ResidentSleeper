@@ -67,6 +67,8 @@
     <string name="settings_wake_window_auto">Automatycznie wg wieku (%1$d min)</string>
     <string name="settings_wake_window_manual">Własny limit (%1$d min)</string>
     <string name="settings_feeding_interval">Odstęp między karmieniami</string>
+    <string name="settings_day_start_hour">Początek dnia (Góra zegara)</string>
+    <string name="settings_day_start_dialog_title">Wybierz godzinę rozpoczęcia dnia</string>
     <string name="settings_calendar_sync">Synchronizacja z Kalendarzem Google</string>
     <string name="settings_choose_calendar">Wybierz kalendarz</string>
     <string name="settings_notifications">Powiadomienia push</string>
@@ -91,4 +93,37 @@
     <string name="notif_wake_window_body">Koniec okna czuwania za 10 minut. Pora na wyciszenie i ułożenie do snu!</string>
     <string name="notif_feeding_title">Zbliża się pora karmienia</string>
     <string name="notif_feeding_body">Przybliżony czas kolejnego posiłku za 10 minut.</string>
+    <string name="stat_night_feedings">%1$d karmień (%2$d w nocy)</string>
+    <string name="status_next_feed_optional">Kolejne karmienie: za %1$s (Opcjonalne)</string>
+    <string name="status_night_feed_optional_due">Karmienie nocne: Opcjonalne (Na żądanie)</string>
+    <string name="btn_nursing_optional_night_subtitle">🌙 Opcjonalne karmienie nocne</string>
+
+    <!-- Language -->
+    <string name="settings_language">Język / Language</string>
+    <string name="lang_en">English 🇺🇸</string>
+    <string name="lang_pl">Polski 🇵🇱</string>
+    <string name="lang_system">Domyślny systemu ⚙️</string>
+
+    <!-- Night Nursing Settings -->
+    <string name="settings_night_feeding">Nocne karmienia</string>
+    <string name="settings_night_feeding_desc">Pierwsze karmienie nocne jest planowane; kolejne są traktowane jako opcjonalne (na żądanie).</string>
+    <string name="settings_notify_optional_night">Powiadamiaj o opcjonalnych karmieniach nocnych</string>
+
+    <!-- Day Timeline & Entry List -->
+    <string name="section_timeline">Wpisy i oś czasu dnia</string>
+    <string name="timeline_empty">Brak wpisów dla tego dnia.</string>
+    <string name="timeline_items_count">%1$d zarejestrowanych zdarzeń</string>
+    <string name="timeline_overnight_tag">Sen nocny z wczoraj</string>
+    <string name="btn_edit_entry">Edytuj</string>
+    <string name="btn_delete_entry">Usuń</string>
+    <string name="btn_save_changes">Zapisz zmiany</string>
+    <string name="dialog_edit_entry_title">Edytuj wpis</string>
+    <string name="dialog_delete_confirm_title">Usunąć wpis?</string>
+    <string name="dialog_delete_confirm_message">Czy na pewno chcesz usunąć ten wpis? Tej operacji nie można cofnąć.</string>
+    <string name="entry_start_time">Czas rozpoczęcia</string>
+    <string name="entry_end_time">Czas zakończenia</string>
+    <string name="entry_ongoing">W trakcie trwania</string>
+    <string name="entry_notes">Notatki</string>
+    <string name="entry_notes_hint">Opcjonalna notatka...</string>
+    <string name="entry_duration">Czas trwania: %1$s</string>
 </resources>

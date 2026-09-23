@@ -18,10 +18,10 @@ interface BabyEventDao {
     @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND (startTime <= :endOfDay AND (endTime IS NULL OR endTime >= :startOfDay)) ORDER BY startTime ASC")
     fun getEventsForDay(profileId: Long, startOfDay: Long, endOfDay: Long): Flow<List<BabyEvent>>
 
-    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND startTime >= :fromTimestamp AND startTime <= :toTimestamp ORDER BY startTime ASC")
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND startTime <= :toTimestamp AND (endTime IS NULL OR endTime >= :fromTimestamp) ORDER BY startTime ASC")
     fun getEventsInRange(profileId: Long, fromTimestamp: Long, toTimestamp: Long): Flow<List<BabyEvent>>
 
-    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND startTime >= :fromTimestamp AND startTime <= :toTimestamp ORDER BY startTime ASC")
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND startTime <= :toTimestamp AND (endTime IS NULL OR endTime >= :fromTimestamp) ORDER BY startTime ASC")
     suspend fun getEventsInRangeSync(profileId: Long, fromTimestamp: Long, toTimestamp: Long): List<BabyEvent>
 
     @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND type = :type ORDER BY startTime DESC LIMIT 1")

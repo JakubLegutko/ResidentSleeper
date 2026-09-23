@@ -10,7 +10,7 @@ import com.residentsleeper.data.model.BabyProfile
 
 @Database(
     entities = [BabyEvent::class, BabyProfile::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

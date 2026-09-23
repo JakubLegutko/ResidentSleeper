@@ -16,5 +16,7 @@ data class BabyProfile(
     val notifyBeforeMinutes: Int = 10,        // Push notifications X minutes before event
     val enableCalendarSync: Boolean = false,
     val enablePushNotifications: Boolean = true,
-    val dayStartHour: Int = 7                 // Hour of starting the day (0..23, default 7:00 AM)
+    val dayStartHour: Int = 7,                // Hour of starting the day (0..23, default 7:00 AM)
+    val maxRecommendedNightFeeds: Int = 1,    // 1 feed recommended at night; subsequent feeds optional
+    val notifyForOptionalNightFeeds: Boolean = false // Whether to alert for optional night feeds
 )

@@ -28,10 +28,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WaterDrop
+import com.residentsleeper.data.model.BabyEvent
+import com.residentsleeper.data.model.EventType
+import com.residentsleeper.ui.components.EditEventDialog
+import java.util.concurrent.TimeUnit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -90,6 +95,7 @@ fun DashboardScreen(
     var showNursingTimeAdjustDialog by remember { mutableStateOf(false) }
     var pendingNursingAdjustedTime by remember { mutableStateOf<Long?>(null) }
     var showDiaperTimeAdjustDialog by remember { mutableStateOf<DiaperType?>(null) }
+    var editingEvent by remember { mutableStateOf<BabyEvent?>(null) }
 
     Scaffold(
         topBar = {
@@ -218,9 +224,16 @@ fun DashboardScreen(
 
                 // Nursing Button (Toggle with details dialog)
                 val isNursing = state.ongoingNursing != null
+                val nursingSubtitle = if (isNursing) {
+                    "Tap to finish"
+                } else if (state.feedingState.isOptionalNightFeed) {
+                    stringResource(R.string.btn_nursing_optional_night_subtitle)
+                } else {
+                    "Breast / Bottle"
+                }
                 ActionButtonCard(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
-                    subtitle = if (isNursing) "Tap to finish" else "Breast / Bottle",
+                    subtitle = nursingSubtitle,
                     icon = Icons.Default.Restaurant,
                     containerColor = if (isNursing) NursingPink else MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = if (isNursing) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -394,6 +407,62 @@ fun DashboardScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Day's Timeline & Entries List
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.section_timeline),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(R.string.timeline_items_count, state.events.size),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (state.events.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.timeline_empty),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    } else {
+                        val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+                        val sortedEvents = remember(state.events) {
+                            state.events.sortedByDescending { it.startTime }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            sortedEvents.forEach { event ->
+                                TimelineEntryRow(
+                                    event = event,
+                                    selectedDayStart = state.selectedDayStart,
+                                    timeFormat = timeFormat,
+                                    onEditClick = { editingEvent = event }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -466,6 +535,22 @@ fun DashboardScreen(
             onTimeSelected = { adjustedTimestamp ->
                 viewModel.onDiaperClick(diaperType, adjustedTimestamp)
                 showDiaperTimeAdjustDialog = null
+            }
+        )
+    }
+
+    val currentEditing = editingEvent
+    if (currentEditing != null) {
+        EditEventDialog(
+            event = currentEditing,
+            onDismiss = { editingEvent = null },
+            onSave = { updated ->
+                viewModel.updateEvent(updated)
+                editingEvent = null
+            },
+            onDelete = { deleted ->
+                viewModel.deleteEvent(deleted)
+                editingEvent = null
             }
         )
     }
@@ -553,6 +638,141 @@ private fun ChartLegendItem(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 11.sp
         )
+    }
+}
+
+@Composable
+private fun TimelineEntryRow(
+    event: BabyEvent,
+    selectedDayStart: Long,
+    timeFormat: SimpleDateFormat,
+    onEditClick: () -> Unit
+) {
+    val isOvernightFromYesterday = event.startTime < selectedDayStart
+
+    val (icon, tintColor, title) = when (event.type) {
+        EventType.SLEEP -> {
+            val titleText = if (event.endTime == null) "Sleep (Ongoing)" else "Sleep"
+            Triple(Icons.Default.Hotel, SleepIndigo, titleText)
+        }
+        EventType.NURSING -> {
+            val titleText = when (event.nursingType) {
+                NursingType.LEFT_BREAST -> stringResource(R.string.nursing_left_breast)
+                NursingType.RIGHT_BREAST -> stringResource(R.string.nursing_right_breast)
+                NursingType.BOTH_BREASTS -> stringResource(R.string.nursing_both_breasts)
+                NursingType.BOTTLE -> {
+                    if (event.amountMl != null) "Bottle (${event.amountMl} ml)" else stringResource(R.string.nursing_bottle)
+                }
+                null -> "Nursing"
+            }
+            Triple(Icons.Default.Restaurant, NursingPink, titleText)
+        }
+        EventType.DIAPER -> {
+            val (iconD, tintD, titleText) = when (event.diaperType) {
+                DiaperType.PEE -> Triple(Icons.Default.WaterDrop, DiaperPeeCyan, stringResource(R.string.btn_diaper_pee))
+                DiaperType.POO -> Triple(Icons.Default.Check, DiaperPooWarm, stringResource(R.string.btn_diaper_poo))
+                DiaperType.BOTH -> Triple(Icons.Default.Check, DiaperPooWarm, stringResource(R.string.btn_diaper_both))
+                null -> Triple(Icons.Default.WaterDrop, DiaperPeeCyan, "Diaper")
+            }
+            Triple(iconD, tintD, titleText)
+        }
+    }
+
+    val timeText = if (event.type == EventType.DIAPER) {
+        timeFormat.format(event.startTime)
+    } else if (event.endTime != null) {
+        val durationMins = TimeUnit.MILLISECONDS.toMinutes(maxOf(0L, event.endTime - event.startTime))
+        val h = durationMins / 60
+        val m = durationMins % 60
+        val durStr = if (h > 0) "${h}h ${m}m" else "${m}m"
+        "${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)} ($durStr)"
+    } else {
+        "${timeFormat.format(event.startTime)} (Ongoing)"
+    }
+
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, tintColor.copy(alpha = 0.3f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(tintColor.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = tintColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        if (isOvernightFromYesterday) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = SleepIndigo.copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.timeline_overnight_tag),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = SleepIndigo,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = timeText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (!event.note.isNullOrBlank()) {
+                        Text(
+                            text = "📝 ${event.note}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                }
+            }
+
+            IconButton(onClick = onEditClick) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.btn_edit_entry),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }
 

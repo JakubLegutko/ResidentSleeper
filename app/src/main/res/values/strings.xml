@@ -93,4 +93,37 @@
     <string name="notif_wake_window_body">Baby\'s wake window ends in 10 minutes. Time to start the wind-down ritual!</string>
     <string name="notif_feeding_title">Feeding Approaching</string>
     <string name="notif_feeding_body">Approximated feeding time in 10 minutes.</string>
+    <string name="stat_night_feedings">%1$d feeds (%2$d night)</string>
+    <string name="status_next_feed_optional">Next feed: in %1$s (Optional)</string>
+    <string name="status_night_feed_optional_due">Night feed: Optional (On demand)</string>
+    <string name="btn_nursing_optional_night_subtitle">🌙 Optional night feed</string>
+
+    <!-- Language -->
+    <string name="settings_language">Language / Język</string>
+    <string name="lang_en">English 🇺🇸</string>
+    <string name="lang_pl">Polski 🇵🇱</string>
+    <string name="lang_system">System Default ⚙️</string>
+
+    <!-- Night Nursing Settings -->
+    <string name="settings_night_feeding">Nightly Nursing Routine</string>
+    <string name="settings_night_feeding_desc">The 1st night feed is scheduled; subsequent night feeds are treated as optional on-demand.</string>
+    <string name="settings_notify_optional_night">Notify for optional night feeds</string>
+
+    <!-- Day Timeline & Entry List -->
+    <string name="section_timeline">Day\'s Timeline &amp; Entries</string>
+    <string name="timeline_empty">No entries recorded for this day yet.</string>
+    <string name="timeline_items_count">%1$d items logged</string>
+    <string name="timeline_overnight_tag">Overnight from yesterday</string>
+    <string name="btn_edit_entry">Edit</string>
+    <string name="btn_delete_entry">Delete</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="dialog_edit_entry_title">Edit Log Entry</string>
+    <string name="dialog_delete_confirm_title">Delete Entry?</string>
+    <string name="dialog_delete_confirm_message">Are you sure you want to delete this log entry? This action cannot be undone.</string>
+    <string name="entry_start_time">Start Time</string>
+    <string name="entry_end_time">End Time</string>
+    <string name="entry_ongoing">Ongoing (in progress)</string>
+    <string name="entry_notes">Notes</string>
+    <string name="entry_notes_hint">Optional notes...</string>
+    <string name="entry_duration">Duration: %1$s</string>
 </resources>

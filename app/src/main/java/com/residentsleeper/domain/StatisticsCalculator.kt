@@ -17,7 +17,8 @@ data class DailySummary(
     val totalBottleMl: Int,
     val diaperPeeCount: Int,
     val diaperPooCount: Int,
-    val averageWakeWindowMinutes: Long
+    val averageWakeWindowMinutes: Long,
+    val nightFeedingCount: Int = 0
 )
 
 data class AggregatedReview(
@@ -32,7 +33,8 @@ data class AggregatedReview(
     val avgDiaperPeePerDay: Float,
     val avgDiaperPooPerDay: Float,
     val avgWakeWindowMinutes: Long,
-    val dailySummaries: List<DailySummary>
+    val dailySummaries: List<DailySummary>,
+    val avgNightFeedingsPerDay: Float = 0f
 )
 
 object StatisticsCalculator {
@@ -50,12 +52,15 @@ object StatisticsCalculator {
      * Calculates the daily summary for a list of events belonging to a 24-hour day.
      */
     fun calculateDailySummary(dayStartMillis: Long, events: List<BabyEvent>): DailySummary {
+        val dayEndMillis = dayStartMillis + TimeUnit.HOURS.toMillis(24) - 1
+
         var totalSleepMillis = 0L
         var daySleepMillis = 0L
         var nightSleepMillis = 0L
         var napCount = 0
 
         var feedingCount = 0
+        var nightFeedingCount = 0
         var totalNursingMillis = 0L
         var totalBottleMl = 0
 
@@ -67,20 +72,31 @@ object StatisticsCalculator {
         for (event in events) {
             when (event.type) {
                 EventType.SLEEP -> {
-                    napCount++
                     sleepEvents.add(event)
                     val end = event.endTime ?: System.currentTimeMillis()
-                    val dur = maxOf(0L, end - event.startTime)
-                    totalSleepMillis += dur
+                    val clampedStart = maxOf(dayStartMillis, event.startTime)
+                    val clampedEnd = minOf(dayEndMillis, end)
 
-                    if (isNightHour(event.startTime)) {
-                        nightSleepMillis += dur
-                    } else {
-                        daySleepMillis += dur
+                    if (clampedStart < clampedEnd) {
+                        val dur = clampedEnd - clampedStart
+                        totalSleepMillis += dur
+
+                        if (isNightHour(clampedStart)) {
+                            nightSleepMillis += dur
+                        } else {
+                            daySleepMillis += dur
+                        }
+                    }
+
+                    if (!isNightHour(event.startTime)) {
+                        napCount++
                     }
                 }
                 EventType.NURSING -> {
                     feedingCount++
+                    if (isNightHour(event.startTime)) {
+                        nightFeedingCount++
+                    }
                     val end = event.endTime ?: event.startTime
                     totalNursingMillis += maxOf(0L, end - event.startTime)
                     if (event.amountMl != null) {

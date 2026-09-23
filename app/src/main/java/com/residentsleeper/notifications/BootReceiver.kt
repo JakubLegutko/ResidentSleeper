@@ -38,7 +38,9 @@ class BootReceiver : BroadcastReceiver() {
                         val feedState = FeedingPredictor.computeState(profile, latestNursing, ongoingNursing)
 
                         if (!feedState.isNursingNow && feedState.alert10MinTimestamp != null) {
-                            BabyAlarmScheduler.scheduleFeedingAlert(context, feedState.alert10MinTimestamp)
+                            if (!feedState.isOptionalNightFeed || profile.notifyForOptionalNightFeeds) {
+                                BabyAlarmScheduler.scheduleFeedingAlert(context, feedState.alert10MinTimestamp)
+                            }
                         }
                     }
                 } finally {

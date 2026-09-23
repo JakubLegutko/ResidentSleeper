@@ -41,6 +41,9 @@ object DataBackupManager {
             pObj.put("notifyBeforeMinutes", p.notifyBeforeMinutes)
             pObj.put("enableCalendarSync", p.enableCalendarSync)
             pObj.put("enablePushNotifications", p.enablePushNotifications)
+            pObj.put("dayStartHour", p.dayStartHour)
+            pObj.put("maxRecommendedNightFeeds", p.maxRecommendedNightFeeds)
+            pObj.put("notifyForOptionalNightFeeds", p.notifyForOptionalNightFeeds)
             profilesArray.put(pObj)
         }
         root.put("profiles", profilesArray)
@@ -87,7 +90,10 @@ object DataBackupManager {
                     selectedCalendarId = if (pObj.isNull("selectedCalendarId")) null else pObj.optLong("selectedCalendarId"),
                     notifyBeforeMinutes = pObj.optInt("notifyBeforeMinutes", 10),
                     enableCalendarSync = pObj.optBoolean("enableCalendarSync", false),
-                    enablePushNotifications = pObj.optBoolean("enablePushNotifications", true)
+                    enablePushNotifications = pObj.optBoolean("enablePushNotifications", true),
+                    dayStartHour = pObj.optInt("dayStartHour", 7),
+                    maxRecommendedNightFeeds = pObj.optInt("maxRecommendedNightFeeds", 1),
+                    notifyForOptionalNightFeeds = pObj.optBoolean("notifyForOptionalNightFeeds", false)
                 )
                 profilesList.add(profile)
             }

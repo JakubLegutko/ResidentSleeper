@@ -296,13 +296,18 @@ fun Clock24HourChart(
                 )
             } else if (feedingState.minutesUntilNextFeed != null) {
                 val nextIn = feedingState.minutesUntilNextFeed
-                val feedText = if (nextIn >= 0) "Next feed: in $nextIn m" else "Feed due now!"
+                val feedText = if (feedingState.isOptionalNightFeed) {
+                    if (nextIn >= 0) "Next feed: in ${nextIn}m (Optional)" else "🌙 Night feed: Optional (On demand)"
+                } else {
+                    if (nextIn >= 0) "Next feed: in ${nextIn}m" else "Feed due now!"
+                }
                 Text(
                     text = feedText,
                     style = MaterialTheme.typography.labelSmall,
                     color = NursingPink,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp),
+                    textAlign = TextAlign.Center
                 )
             }
         }

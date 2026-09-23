@@ -110,7 +110,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
             val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
             val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents)
-            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now)
+            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now, dayEvents)
 
             DashboardUiState(
                 selectedDayStart = dayStart,
@@ -234,16 +234,34 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             if (state.ongoingNursing != null) {
                 // End nursing
                 repository.endOngoingNursing(profileId, now)
+
+                // Schedule next feeding alerts after finishing nursing
+                val latestNursing = repository.getLatestEvent(profileId, EventType.NURSING)
+                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now, state.events)
+                val shouldNotify = profile.enablePushNotifications &&
+                    feedState.alert10MinTimestamp != null &&
+                    (!feedState.isOptionalNightFeed || profile.notifyForOptionalNightFeeds)
+
+                if (shouldNotify) {
+                    BabyAlarmScheduler.scheduleFeedingAlert(context, feedState.alert10MinTimestamp!!)
+                } else {
+                    BabyAlarmScheduler.cancelFeedingAlert(context)
+                }
             } else {
                 // Start nursing
                 repository.startNursing(profileId, nursingType, amountMl, now)
 
                 // Schedule next feeding alerts
                 val latestNursing = repository.getLatestEvent(profileId, EventType.NURSING)
-                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now)
+                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now, state.events)
+                val shouldNotify = profile.enablePushNotifications &&
+                    feedState.alert10MinTimestamp != null &&
+                    (!feedState.isOptionalNightFeed || profile.notifyForOptionalNightFeeds)
 
-                if (profile.enablePushNotifications && feedState.alert10MinTimestamp != null) {
-                    BabyAlarmScheduler.scheduleFeedingAlert(context, feedState.alert10MinTimestamp)
+                if (shouldNotify) {
+                    BabyAlarmScheduler.scheduleFeedingAlert(context, feedState.alert10MinTimestamp!!)
+                } else {
+                    BabyAlarmScheduler.cancelFeedingAlert(context)
                 }
 
                 // Sync to Google Calendar
@@ -267,6 +285,20 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val time = adjustedTime ?: System.currentTimeMillis()
             repository.logDiaper(uiState.value.activeProfile.id, diaperType, time)
+            refreshData()
+        }
+    }
+
+    fun updateEvent(event: BabyEvent) {
+        viewModelScope.launch {
+            repository.updateEvent(event)
+            refreshData()
+        }
+    }
+
+    fun deleteEvent(event: BabyEvent) {
+        viewModelScope.launch {
+            repository.deleteEvent(event)
             refreshData()
         }
     }

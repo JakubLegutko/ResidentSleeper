@@ -192,7 +192,11 @@ private fun DailyMetricsView(
 
     MetricCard(
         title = stringResource(R.string.stat_feedings),
-        mainValue = "${summary.feedingCount} sessions",
+        mainValue = if (summary.nightFeedingCount > 0) {
+            stringResource(R.string.stat_night_feedings, summary.feedingCount, summary.nightFeedingCount)
+        } else {
+            "${summary.feedingCount} sessions"
+        },
         subValue = if (summary.totalBottleMl > 0) "${summary.totalNursingDurationMinutes}m total • ${summary.totalBottleMl} ml bottle" else "${summary.totalNursingDurationMinutes}m total nursing time",
         icon = Icons.Default.Restaurant,
         iconColor = NursingPink,

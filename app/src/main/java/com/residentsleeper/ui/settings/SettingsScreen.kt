@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import com.residentsleeper.R
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.ui.components.ProfileSwitcherDialog
+import com.residentsleeper.util.LocaleHelper
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -341,6 +342,35 @@ fun SettingsScreen(
                             )
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(R.string.settings_night_feeding),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_night_feeding_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_notify_optional_night),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = state.activeProfile.notifyForOptionalNightFeeds,
+                            onCheckedChange = { viewModel.toggleNotifyForOptionalNightFeeds(it) }
+                        )
+                    }
                 }
             }
 
@@ -448,6 +478,57 @@ fun SettingsScreen(
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            // Language Selection
+            Text(
+                text = stringResource(R.string.settings_language),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val currentLang = remember { LocaleHelper.getCurrentLanguage(context) }
+                    var selectedLang by remember { mutableStateOf(currentLang) }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = selectedLang == LocaleHelper.LANG_SYSTEM,
+                            onClick = {
+                                selectedLang = LocaleHelper.LANG_SYSTEM
+                                LocaleHelper.setLanguage(context, LocaleHelper.LANG_SYSTEM)
+                            },
+                            label = { Text(stringResource(R.string.lang_system)) }
+                        )
+                        FilterChip(
+                            selected = selectedLang == LocaleHelper.LANG_EN,
+                            onClick = {
+                                selectedLang = LocaleHelper.LANG_EN
+                                LocaleHelper.setLanguage(context, LocaleHelper.LANG_EN)
+                            },
+                            label = { Text(stringResource(R.string.lang_en)) }
+                        )
+                        FilterChip(
+                            selected = selectedLang == LocaleHelper.LANG_PL,
+                            onClick = {
+                                selectedLang = LocaleHelper.LANG_PL
+                                LocaleHelper.setLanguage(context, LocaleHelper.LANG_PL)
+                            },
+                            label = { Text(stringResource(R.string.lang_pl)) }
+                        )
                     }
                 }
             }
