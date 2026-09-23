@@ -444,25 +444,48 @@
           const markerY = centerY + radius * Math.sin(angle);
           const color = '#ec4899';
 
+          // Outer white halo outline
           ctx.beginPath();
-          ctx.arc(markerX, markerY, 6, 0, 2 * Math.PI);
-          ctx.fillStyle = '#fff';
+          ctx.arc(markerX, markerY, 6.5, 0, 2 * Math.PI);
+          ctx.fillStyle = '#ffffff';
           ctx.fill();
 
+          // Colored center
           ctx.beginPath();
-          ctx.arc(markerX, markerY, 4.5, 0, 2 * Math.PI);
+          ctx.arc(markerX, markerY, 4.8, 0, 2 * Math.PI);
           ctx.fillStyle = color;
           ctx.fill();
+
+          // Crisp dark border outline
+          ctx.beginPath();
+          ctx.arc(markerX, markerY, 6.5, 0, 2 * Math.PI);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#0f172a';
+          ctx.stroke();
         } else if (e.type === 'DIAPER') {
           const outerR = radius + strokeWidth / 2 - 3;
           const markerX = centerX + outerR * Math.cos(angle);
           const markerY = centerY + outerR * Math.sin(angle);
           const color = e.diaperType === 'POO' ? '#f59e0b' : '#38bdf8';
 
+          // Outer white halo outline
           ctx.beginPath();
-          ctx.arc(markerX, markerY, 3.5, 0, 2 * Math.PI);
+          ctx.arc(markerX, markerY, 5.5, 0, 2 * Math.PI);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+
+          // Colored center
+          ctx.beginPath();
+          ctx.arc(markerX, markerY, 3.8, 0, 2 * Math.PI);
           ctx.fillStyle = color;
           ctx.fill();
+
+          // Crisp dark border outline
+          ctx.beginPath();
+          ctx.arc(markerX, markerY, 5.5, 0, 2 * Math.PI);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#0f172a';
+          ctx.stroke();
         }
       }
     }

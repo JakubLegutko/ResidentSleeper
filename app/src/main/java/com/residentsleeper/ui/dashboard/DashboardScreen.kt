@@ -459,9 +459,14 @@ private fun ChartLegendItem(
     ) {
         androidx.compose.foundation.layout.Box(
             modifier = Modifier
-                .size(8.dp)
+                .size(9.dp)
                 .clip(androidx.compose.foundation.shape.CircleShape)
                 .androidx.compose.foundation.background(color)
+                .androidx.compose.foundation.border(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.8f),
+                    shape = androidx.compose.foundation.shape.CircleShape
+                )
         )
         Text(
             text = label,

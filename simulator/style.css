@@ -433,10 +433,12 @@ body {
   color: var(--text-muted);
 }
 .legend-dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
 }
 .dot-sleep { background: var(--sleep-indigo); }
 .dot-activity { background: var(--wake-mint); }
