@@ -4,6 +4,13 @@
     <string name="nav_review">Reviews</string>
     <string name="nav_settings">Settings</string>
 
+    <!-- Profiles -->
+    <string name="profile_switch_title">Switch Child Profile</string>
+    <string name="profile_add_child">+ Add New Child</string>
+    <string name="profile_name_hint">Child\'s name (e.g. Leo)</string>
+    <string name="profile_active_label">Active</string>
+    <string name="profile_delete_confirm">Are you sure you want to delete this profile and all its events?</string>
+
     <!-- Dashboard buttons -->
     <string name="btn_sleep_start">Start Sleep</string>
     <string name="btn_sleep_end">Wake Up</string>
@@ -64,6 +71,18 @@
     <string name="settings_choose_calendar">Choose Calendar</string>
     <string name="settings_notifications">Push Notifications</string>
     <string name="settings_notify_advance">Notify 10 minutes before</string>
+
+    <!-- Data Portability -->
+    <string name="settings_data_portability">Data Portability &amp; Backup</string>
+    <string name="btn_export_json">Export Backup (JSON)</string>
+    <string name="btn_export_csv">Export Spreadsheet (CSV)</string>
+    <string name="btn_import_json">Import Backup (JSON)</string>
+    <string name="import_dialog_title">Import Backup</string>
+    <string name="import_dialog_message">Choose how to import data:</string>
+    <string name="import_merge">Merge with existing data</string>
+    <string name="import_replace">Replace all current data</string>
+    <string name="import_success">Data imported successfully!</string>
+    <string name="import_failed">Failed to parse or import backup file.</string>
 
     <!-- Notification strings -->
     <string name="notif_channel_alerts">Baby Cycle Alerts</string>

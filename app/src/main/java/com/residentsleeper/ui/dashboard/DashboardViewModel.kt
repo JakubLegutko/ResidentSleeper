@@ -16,12 +16,13 @@ import com.residentsleeper.domain.FeedingState
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.domain.WakeWindowState
 import com.residentsleeper.notifications.BabyAlarmScheduler
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -35,9 +36,11 @@ data class DashboardUiState(
     val ongoingNursing: BabyEvent? = null,
     val wakeWindowState: WakeWindowState,
     val feedingState: FeedingState,
-    val profile: BabyProfile = BabyProfile()
+    val activeProfile: BabyProfile = BabyProfile(),
+    val allProfiles: List<BabyProfile> = emptyList()
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: BabyRepository
@@ -47,6 +50,11 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     init {
         val db = AppDatabase.getDatabase(application)
         repository = BabyRepository(db.babyEventDao(), db.babyProfileDao())
+
+        // Ensure active profile exists on startup
+        viewModelScope.launch {
+            repository.getActiveProfile()
+        }
 
         // Background ticker updating every 30 seconds for live countdowns
         viewModelScope.launch {
@@ -79,40 +87,47 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     private fun getStartOfToday(): Long = getStartOfDay(System.currentTimeMillis())
 
-    val uiState: StateFlow<DashboardUiState> = combine(
-        selectedDayMillis,
-        repository.profileFlow,
-        repository.getOngoingEventFlow(EventType.SLEEP),
-        repository.getOngoingEventFlow(EventType.NURSING),
-        repository.getLatestEventFlow(EventType.SLEEP),
-        repository.getLatestEventFlow(EventType.NURSING),
-        ticker
-    ) { params ->
-        val dayStart = params[0] as Long
-        val profile = (params[1] as? BabyProfile) ?: BabyProfile()
-        val ongoingSleep = params[2] as? BabyEvent
-        val ongoingNursing = params[3] as? BabyEvent
-        val latestSleep = params[4] as? BabyEvent
-        val latestNursing = params[5] as? BabyEvent
-        val now = params[6] as Long
+    val uiState: StateFlow<DashboardUiState> = repository.activeProfileFlow.flatMapLatest { profile ->
+        val safeProfile = profile ?: BabyProfile()
+        val profileId = safeProfile.id
 
-        val dayEnd = getEndOfDay(dayStart)
-        val isToday = dayStart == getStartOfToday()
+        combine(
+            selectedDayMillis,
+            repository.allProfilesFlow,
+            repository.getOngoingEventFlow(profileId, EventType.SLEEP),
+            repository.getOngoingEventFlow(profileId, EventType.NURSING),
+            repository.getLatestEventFlow(profileId, EventType.SLEEP),
+            repository.getLatestEventFlow(profileId, EventType.NURSING),
+            ticker
+        ) { params ->
+            val dayStart = params[0] as Long
+            val allProfiles = (params[1] as? List<*>)?.filterIsInstance<BabyProfile>() ?: emptyList()
+            val ongoingSleep = params[2] as? BabyEvent
+            val ongoingNursing = params[3] as? BabyEvent
+            val latestSleep = params[4] as? BabyEvent
+            val latestNursing = params[5] as? BabyEvent
+            val now = params[6] as Long
 
-        val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, ongoingSleep, now)
-        val feedingState = FeedingPredictor.computeState(profile, latestNursing, ongoingNursing, now)
+            val dayEnd = getEndOfDay(dayStart)
+            val isToday = dayStart == getStartOfToday()
 
-        DashboardUiState(
-            selectedDayStart = dayStart,
-            selectedDayEnd = dayEnd,
-            isToday = isToday,
-            events = repository.getEventsInRangeSync(dayStart, dayEnd),
-            ongoingSleep = ongoingSleep,
-            ongoingNursing = ongoingNursing,
-            wakeWindowState = wakeState,
-            feedingState = feedingState,
-            profile = profile
-        )
+            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now)
+            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now)
+            val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
+
+            DashboardUiState(
+                selectedDayStart = dayStart,
+                selectedDayEnd = dayEnd,
+                isToday = isToday,
+                events = dayEvents,
+                ongoingSleep = ongoingSleep,
+                ongoingNursing = ongoingNursing,
+                wakeWindowState = wakeState,
+                feedingState = feedingState,
+                activeProfile = safeProfile,
+                allProfiles = allProfiles
+            )
+        }
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -124,6 +139,20 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             feedingState = FeedingPredictor.computeState(BabyProfile(), null, null)
         )
     )
+
+    fun switchProfile(profileId: Long) {
+        viewModelScope.launch {
+            repository.switchActiveProfile(profileId)
+            refreshData()
+        }
+    }
+
+    fun addProfile(name: String, birthDate: Long) {
+        viewModelScope.launch {
+            repository.createProfile(name, birthDate)
+            refreshData()
+        }
+    }
 
     fun previousDay() {
         selectedDayMillis.value = selectedDayMillis.value - (24 * 60 * 60 * 1000)
@@ -146,15 +175,16 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val now = adjustedTime ?: System.currentTimeMillis()
             val state = uiState.value
+            val profile = state.activeProfile
+            val profileId = profile.id
             val context = getApplication<Application>()
 
             if (state.ongoingSleep != null) {
                 // End sleep -> baby wakes up -> start wake window
-                repository.endOngoingSleep(now)
+                repository.endOngoingSleep(profileId, now)
 
                 // Reschedule wake alerts
-                val profile = repository.getProfile()
-                val latestSleep = repository.getLatestEvent(EventType.SLEEP)
+                val latestSleep = repository.getLatestEvent(profileId, EventType.SLEEP)
                 val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now)
 
                 if (profile.enablePushNotifications && wakeState.alert10MinTimestamp != null) {
@@ -166,7 +196,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     CalendarSyncManager.createCalendarEventWithReminder(
                         context = context,
                         calendarId = profile.selectedCalendarId,
-                        title = "Baby Activity Cycle End",
+                        title = "${profile.name} - Activity Cycle End",
                         description = "Recommended end of wake window for nap time",
                         startTimeMillis = wakeState.expectedWakeEndTime,
                         endTimeMillis = wakeState.expectedWakeEndTime + 30 * 60 * 1000,
@@ -175,7 +205,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             } else {
                 // Start sleep -> baby fell asleep -> cancel wake alerts
-                repository.startSleep(now)
+                repository.startSleep(profileId, now)
                 BabyAlarmScheduler.cancelWakeWindowAlert(context)
             }
             refreshData()
@@ -190,18 +220,19 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val now = adjustedTime ?: System.currentTimeMillis()
             val state = uiState.value
+            val profile = state.activeProfile
+            val profileId = profile.id
             val context = getApplication<Application>()
 
             if (state.ongoingNursing != null) {
                 // End nursing
-                repository.endOngoingNursing(now)
+                repository.endOngoingNursing(profileId, now)
             } else {
                 // Start nursing
-                repository.startNursing(nursingType, amountMl, now)
+                repository.startNursing(profileId, nursingType, amountMl, now)
 
                 // Schedule next feeding alerts
-                val profile = repository.getProfile()
-                val latestNursing = repository.getLatestEvent(EventType.NURSING)
+                val latestNursing = repository.getLatestEvent(profileId, EventType.NURSING)
                 val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now)
 
                 if (profile.enablePushNotifications && feedState.alert10MinTimestamp != null) {
@@ -213,7 +244,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     CalendarSyncManager.createCalendarEventWithReminder(
                         context = context,
                         calendarId = profile.selectedCalendarId,
-                        title = "Baby Feeding Time",
+                        title = "${profile.name} - Feeding Time",
                         description = "Approximated next feeding schedule",
                         startTimeMillis = feedState.nextFeedEstimateTime,
                         endTimeMillis = feedState.nextFeedEstimateTime + 30 * 60 * 1000,
@@ -228,7 +259,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     fun onDiaperClick(diaperType: DiaperType, adjustedTime: Long? = null) {
         viewModelScope.launch {
             val time = adjustedTime ?: System.currentTimeMillis()
-            repository.logDiaper(diaperType, time)
+            repository.logDiaper(uiState.value.activeProfile.id, diaperType, time)
             refreshData()
         }
     }

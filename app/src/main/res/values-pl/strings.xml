@@ -4,6 +4,13 @@
     <string name="nav_review">Podsumowanie</string>
     <string name="nav_settings">Ustawienia</string>
 
+    <!-- Profiles -->
+    <string name="profile_switch_title">Przełącz profil dziecka</string>
+    <string name="profile_add_child">+ Dodaj profil dziecka</string>
+    <string name="profile_name_hint">Imię malucha (np. Jaś)</string>
+    <string name="profile_active_label">Aktywny</string>
+    <string name="profile_delete_confirm">Czy na pewno chcesz usunąć ten profil wraz ze wszystkimi wpisami?</string>
+
     <!-- Dashboard buttons -->
     <string name="btn_sleep_start">Zasnął</string>
     <string name="btn_sleep_end">Pobudka</string>
@@ -64,6 +71,18 @@
     <string name="settings_choose_calendar">Wybierz kalendarz</string>
     <string name="settings_notifications">Powiadomienia push</string>
     <string name="settings_notify_advance">Powiadamiaj 10 minut przed czasem</string>
+
+    <!-- Data Portability -->
+    <string name="settings_data_portability">Kopia zapasowa i eksport danych</string>
+    <string name="btn_export_json">Eksportuj kopię (JSON)</string>
+    <string name="btn_export_csv">Eksportuj arkusz (CSV)</string>
+    <string name="btn_import_json">Importuj kopię (JSON)</string>
+    <string name="import_dialog_title">Import danych</string>
+    <string name="import_dialog_message">Wybierz sposób importu danych:</string>
+    <string name="import_merge">Połącz z istniejącymi danymi</string>
+    <string name="import_replace">Zastąp wszystkie bieżące dane</string>
+    <string name="import_success">Pomyślnie zaimportowano dane!</string>
+    <string name="import_failed">Nie udało się odczytać pliku kopii.</string>
 
     <!-- Notification strings -->
     <string name="notif_channel_alerts">Alerty rytmu dziecka</string>

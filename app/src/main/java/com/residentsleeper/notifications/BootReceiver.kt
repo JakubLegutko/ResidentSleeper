@@ -21,18 +21,18 @@ class BootReceiver : BroadcastReceiver() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val db = AppDatabase.getDatabase(context)
-                    val profile = db.babyProfileDao().getProfile()
+                    val profile = db.babyProfileDao().getActiveProfile()
                     if (profile != null && profile.enablePushNotifications) {
-                        val latestSleep = db.babyEventDao().getLatestEvent(EventType.SLEEP)
-                        val ongoingSleep = db.babyEventDao().getOngoingEvent(EventType.SLEEP)
+                        val latestSleep = db.babyEventDao().getLatestEvent(profile.id, EventType.SLEEP)
+                        val ongoingSleep = db.babyEventDao().getOngoingEvent(profile.id, EventType.SLEEP)
                         val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, ongoingSleep)
 
                         if (!wakeState.isSleeping && wakeState.alert10MinTimestamp != null) {
                             BabyAlarmScheduler.scheduleWakeWindowAlert(context, wakeState.alert10MinTimestamp)
                         }
 
-                        val latestNursing = db.babyEventDao().getLatestEvent(EventType.NURSING)
-                        val ongoingNursing = db.babyEventDao().getOngoingEvent(EventType.NURSING)
+                        val latestNursing = db.babyEventDao().getLatestEvent(profile.id, EventType.NURSING)
+                        val ongoingNursing = db.babyEventDao().getOngoingEvent(profile.id, EventType.NURSING)
                         val feedState = FeedingPredictor.computeState(profile, latestNursing, ongoingNursing)
 
                         if (!feedState.isNursingNow && feedState.alert10MinTimestamp != null) {

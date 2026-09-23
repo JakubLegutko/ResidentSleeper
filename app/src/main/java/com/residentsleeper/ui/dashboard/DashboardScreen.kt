@@ -1,6 +1,7 @@
 package com.residentsleeper.ui.dashboard
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,14 +19,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,8 +55,10 @@ import androidx.compose.ui.unit.sp
 import com.residentsleeper.R
 import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.NursingType
+import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.ui.chart.Clock24HourChart
 import com.residentsleeper.ui.components.NursingDetailsDialog
+import com.residentsleeper.ui.components.ProfileSwitcherDialog
 import com.residentsleeper.ui.components.TimeAdjustDialog
 import com.residentsleeper.ui.theme.DiaperPeeCyan
 import com.residentsleeper.ui.theme.DiaperPooWarm
@@ -76,6 +78,7 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsState()
     val dateFormatter = remember { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()) }
 
+    var showProfileSwitcher by remember { mutableStateOf(false) }
     var showSleepTimeAdjustDialog by remember { mutableStateOf(false) }
     var showNursingDialog by remember { mutableStateOf(false) }
     var showDiaperTimeAdjustDialog by remember { mutableStateOf<DiaperType?>(null) }
@@ -84,10 +87,29 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        fontWeight = FontWeight.Bold
-                    )
+                    val ageWeeks = WakeWindowCalculator.calculateAgeInWeeks(state.activeProfile.birthTimestamp)
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                        modifier = Modifier.clickable { showProfileSwitcher = true }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "👶 ${state.activeProfile.name} (${ageWeeks}w)",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = "Switch Profile",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToReviews) {
@@ -260,7 +282,7 @@ fun DashboardScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${state.profile.feedingIntervalMinutes} min",
+                            text = "${state.activeProfile.feedingIntervalMinutes} min",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -285,6 +307,22 @@ fun DashboardScreen(
     }
 
     // Dialogs
+    if (showProfileSwitcher) {
+        ProfileSwitcherDialog(
+            currentProfileId = state.activeProfile.id,
+            profiles = state.allProfiles,
+            onDismiss = { showProfileSwitcher = false },
+            onSelectProfile = { profileId ->
+                viewModel.switchProfile(profileId)
+                showProfileSwitcher = false
+            },
+            onAddProfile = { name, birthDate ->
+                viewModel.addProfile(name, birthDate)
+                showProfileSwitcher = false
+            }
+        )
+    }
+
     if (showSleepTimeAdjustDialog) {
         val ongoing = state.ongoingSleep
         TimeAdjustDialog(

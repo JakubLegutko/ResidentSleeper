@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.residentsleeper.data.local.AppDatabase
+import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.repository.BabyRepository
 import com.residentsleeper.domain.AggregatedReview
 import com.residentsleeper.domain.DailySummary
@@ -21,6 +22,7 @@ enum class ReviewPeriod {
 }
 
 data class ReviewUiState(
+    val activeProfile: BabyProfile = BabyProfile(),
     val selectedPeriod: ReviewPeriod = ReviewPeriod.DAILY,
     val dailySummary: DailySummary? = null,
     val aggregatedReview: AggregatedReview? = null,
@@ -47,32 +49,36 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
     private fun loadReview(period: ReviewPeriod) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
+            val profile = repository.getActiveProfile()
 
             when (period) {
                 ReviewPeriod.DAILY -> {
                     val startToday = getStartOfDay(System.currentTimeMillis())
                     val endToday = getEndOfDay(System.currentTimeMillis())
-                    val events = repository.getEventsInRangeSync(startToday, endToday)
+                    val events = repository.getEventsInRangeSync(profile.id, startToday, endToday)
                     val summary = StatisticsCalculator.calculateDailySummary(startToday, events)
                     _uiState.value = _uiState.value.copy(
+                        activeProfile = profile,
                         dailySummary = summary,
                         aggregatedReview = null,
                         isLoading = false
                     )
                 }
                 ReviewPeriod.WEEKLY -> {
-                    val summaries = loadPastDaysSummaries(7)
+                    val summaries = loadPastDaysSummaries(profile.id, 7)
                     val aggregated = StatisticsCalculator.aggregateSummaries("Past 7 Days", summaries)
                     _uiState.value = _uiState.value.copy(
+                        activeProfile = profile,
                         dailySummary = null,
                         aggregatedReview = aggregated,
                         isLoading = false
                     )
                 }
                 ReviewPeriod.MONTHLY -> {
-                    val summaries = loadPastDaysSummaries(30)
+                    val summaries = loadPastDaysSummaries(profile.id, 30)
                     val aggregated = StatisticsCalculator.aggregateSummaries("Past 30 Days", summaries)
                     _uiState.value = _uiState.value.copy(
+                        activeProfile = profile,
                         dailySummary = null,
                         aggregatedReview = aggregated,
                         isLoading = false
@@ -82,7 +88,7 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    private suspend fun loadPastDaysSummaries(daysCount: Int): List<DailySummary> {
+    private suspend fun loadPastDaysSummaries(profileId: Long, daysCount: Int): List<DailySummary> {
         val list = mutableListOf<DailySummary>()
         val cal = Calendar.getInstance()
 
@@ -93,7 +99,7 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
             }
             val start = getStartOfDay(targetCal.timeInMillis)
             val end = getEndOfDay(targetCal.timeInMillis)
-            val events = repository.getEventsInRangeSync(start, end)
+            val events = repository.getEventsInRangeSync(profileId, start, end)
             list.add(StatisticsCalculator.calculateDailySummary(start, events))
         }
         return list

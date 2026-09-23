@@ -12,41 +12,54 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BabyEventDao {
-    @Query("SELECT * FROM baby_events ORDER BY startTime DESC")
-    fun getAllEvents(): Flow<List<BabyEvent>>
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId ORDER BY startTime DESC")
+    fun getAllEventsForProfile(profileId: Long): Flow<List<BabyEvent>>
 
-    @Query("SELECT * FROM baby_events WHERE (startTime <= :endOfDay AND (endTime IS NULL OR endTime >= :startOfDay)) ORDER BY startTime ASC")
-    fun getEventsForDay(startOfDay: Long, endOfDay: Long): Flow<List<BabyEvent>>
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND (startTime <= :endOfDay AND (endTime IS NULL OR endTime >= :startOfDay)) ORDER BY startTime ASC")
+    fun getEventsForDay(profileId: Long, startOfDay: Long, endOfDay: Long): Flow<List<BabyEvent>>
 
-    @Query("SELECT * FROM baby_events WHERE startTime >= :fromTimestamp AND startTime <= :toTimestamp ORDER BY startTime ASC")
-    fun getEventsInRange(fromTimestamp: Long, toTimestamp: Long): Flow<List<BabyEvent>>
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND startTime >= :fromTimestamp AND startTime <= :toTimestamp ORDER BY startTime ASC")
+    fun getEventsInRange(profileId: Long, fromTimestamp: Long, toTimestamp: Long): Flow<List<BabyEvent>>
 
-    @Query("SELECT * FROM baby_events WHERE startTime >= :fromTimestamp AND startTime <= :toTimestamp ORDER BY startTime ASC")
-    suspend fun getEventsInRangeSync(fromTimestamp: Long, toTimestamp: Long): List<BabyEvent>
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND startTime >= :fromTimestamp AND startTime <= :toTimestamp ORDER BY startTime ASC")
+    suspend fun getEventsInRangeSync(profileId: Long, fromTimestamp: Long, toTimestamp: Long): List<BabyEvent>
 
-    @Query("SELECT * FROM baby_events WHERE type = :type ORDER BY startTime DESC LIMIT 1")
-    fun getLatestEventFlow(type: EventType): Flow<BabyEvent?>
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND type = :type ORDER BY startTime DESC LIMIT 1")
+    fun getLatestEventFlow(profileId: Long, type: EventType): Flow<BabyEvent?>
 
-    @Query("SELECT * FROM baby_events WHERE type = :type ORDER BY startTime DESC LIMIT 1")
-    suspend fun getLatestEvent(type: EventType): BabyEvent?
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND type = :type ORDER BY startTime DESC LIMIT 1")
+    suspend fun getLatestEvent(profileId: Long, type: EventType): BabyEvent?
 
-    @Query("SELECT * FROM baby_events WHERE type = :type AND endTime IS NULL ORDER BY startTime DESC LIMIT 1")
-    fun getOngoingEventFlow(type: EventType): Flow<BabyEvent?>
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND type = :type AND endTime IS NULL ORDER BY startTime DESC LIMIT 1")
+    fun getOngoingEventFlow(profileId: Long, type: EventType): Flow<BabyEvent?>
 
-    @Query("SELECT * FROM baby_events WHERE type = :type AND endTime IS NULL ORDER BY startTime DESC LIMIT 1")
-    suspend fun getOngoingEvent(type: EventType): BabyEvent?
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId AND type = :type AND endTime IS NULL ORDER BY startTime DESC LIMIT 1")
+    suspend fun getOngoingEvent(profileId: Long, type: EventType): BabyEvent?
 
     @Query("SELECT * FROM baby_events WHERE id = :id")
     suspend fun getEventById(id: Long): BabyEvent?
 
+    // Global queries for export & import
+    @Query("SELECT * FROM baby_events ORDER BY startTime ASC")
+    suspend fun getAllEvents(): List<BabyEvent>
+
+    @Query("SELECT * FROM baby_events WHERE babyProfileId = :profileId ORDER BY startTime ASC")
+    suspend fun getAllEventsForProfileSync(profileId: Long): List<BabyEvent>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(event: BabyEvent): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(events: List<BabyEvent>)
 
     @Update
     suspend fun update(event: BabyEvent)
 
     @Delete
     suspend fun delete(event: BabyEvent)
+
+    @Query("DELETE FROM baby_events WHERE babyProfileId = :profileId")
+    suspend fun deleteEventsForProfile(profileId: Long)
 
     @Query("DELETE FROM baby_events")
     suspend fun deleteAll()

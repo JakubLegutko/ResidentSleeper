@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.residentsleeper.calendar.CalendarSyncManager
 import com.residentsleeper.calendar.DeviceCalendar
+import com.residentsleeper.data.backup.DataBackupManager
 import com.residentsleeper.data.local.AppDatabase
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.repository.BabyRepository
@@ -14,9 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val profile: BabyProfile = BabyProfile(),
+    val activeProfile: BabyProfile = BabyProfile(),
+    val allProfiles: List<BabyProfile> = emptyList(),
     val availableCalendars: List<DeviceCalendar> = emptyList(),
-    val hasCalendarPermission: Boolean = false
+    val hasCalendarPermission: Boolean = false,
+    val backupMessage: String? = null
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -33,48 +36,110 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun loadProfile() {
         viewModelScope.launch {
-            val profile = repository.getProfile()
+            val active = repository.getActiveProfile()
+            val all = dbProfiles()
             val context = getApplication<Application>()
             val hasPerm = CalendarSyncManager.hasCalendarPermission(context)
             val calendars = if (hasPerm) CalendarSyncManager.getAvailableCalendars(context) else emptyList()
 
-            _uiState.value = SettingsUiState(
-                profile = profile,
+            _uiState.value = _uiState.value.copy(
+                activeProfile = active,
+                allProfiles = all,
                 availableCalendars = calendars,
                 hasCalendarPermission = hasPerm
             )
         }
     }
 
+    private suspend fun dbProfiles(): List<BabyProfile> {
+        val db = AppDatabase.getDatabase(getApplication())
+        return db.babyProfileDao().getAllProfilesSync()
+    }
+
+    fun switchProfile(profileId: Long) {
+        viewModelScope.launch {
+            repository.switchActiveProfile(profileId)
+            loadProfile()
+        }
+    }
+
+    fun addProfile(name: String, birthDate: Long) {
+        viewModelScope.launch {
+            repository.createProfile(name, birthDate)
+            loadProfile()
+        }
+    }
+
+    fun deleteProfile(profileId: Long) {
+        viewModelScope.launch {
+            repository.deleteProfile(profileId)
+            loadProfile()
+        }
+    }
+
+    fun updateActiveProfileName(name: String) {
+        updateActiveProfile { it.copy(name = name) }
+    }
+
     fun updateBirthDate(timestamp: Long) {
-        updateProfile { it.copy(birthTimestamp = timestamp) }
+        updateActiveProfile { it.copy(birthTimestamp = timestamp) }
     }
 
     fun updateWakeWindow(customMinutes: Int?) {
-        updateProfile { it.copy(customWakeWindowMinutes = customMinutes) }
+        updateActiveProfile { it.copy(customWakeWindowMinutes = customMinutes) }
     }
 
     fun updateFeedingInterval(minutes: Int) {
-        updateProfile { it.copy(feedingIntervalMinutes = minutes) }
+        updateActiveProfile { it.copy(feedingIntervalMinutes = minutes) }
     }
 
     fun toggleCalendarSync(enabled: Boolean) {
-        updateProfile { it.copy(enableCalendarSync = enabled) }
+        updateActiveProfile { it.copy(enableCalendarSync = enabled) }
     }
 
     fun selectCalendar(calendarId: Long) {
-        updateProfile { it.copy(selectedCalendarId = calendarId) }
+        updateActiveProfile { it.copy(selectedCalendarId = calendarId) }
     }
 
     fun togglePushNotifications(enabled: Boolean) {
-        updateProfile { it.copy(enablePushNotifications = enabled) }
+        updateActiveProfile { it.copy(enablePushNotifications = enabled) }
     }
 
-    private fun updateProfile(block: (BabyProfile) -> BabyProfile) {
+    private fun updateActiveProfile(block: (BabyProfile) -> BabyProfile) {
         viewModelScope.launch {
-            val updated = block(_uiState.value.profile)
+            val current = _uiState.value.activeProfile
+            val updated = block(current)
             repository.updateProfile(updated)
-            _uiState.value = _uiState.value.copy(profile = updated)
+            _uiState.value = _uiState.value.copy(activeProfile = updated)
+            loadProfile()
         }
+    }
+
+    // --- Export & Import ---
+
+    suspend fun getJsonExportData(): String {
+        return repository.exportJsonBackup()
+    }
+
+    suspend fun getCsvExportData(): String {
+        return repository.exportCsvSpreadsheet()
+    }
+
+    fun importBackupData(jsonString: String, replaceAll: Boolean, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val backupData = DataBackupManager.importFromJson(jsonString)
+                repository.importBackup(backupData, replaceAll)
+                loadProfile()
+                onComplete(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onComplete(false)
+            }
+        }
+    }
+
+    fun clearBackupMessage() {
+        _uiState.value = _uiState.value.copy(backupMessage = null)
     }
 }
