@@ -18,3 +18,16 @@ enum class DiaperType {
     POO,
     BOTH
 }
+
+enum class Gender {
+    UNSPECIFIED,
+    BOY,
+    GIRL;
+
+    val emote: String
+        get() = when (this) {
+            BOY -> "\uD83D\uDC66"        // 👦
+            GIRL -> "\uD83D\uDC67"       // 👧
+            UNSPECIFIED -> "\uD83D\uDC76" // 👶
+        }
+}

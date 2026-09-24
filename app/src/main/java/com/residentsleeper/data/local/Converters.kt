@@ -26,4 +26,11 @@ class Converters {
     @TypeConverter
     fun toDiaperType(value: String?): DiaperType? =
         value?.let { enumValueOf<DiaperType>(it) }
+
+    @TypeConverter
+    fun fromGender(value: com.residentsleeper.data.model.Gender?): String? = value?.name
+
+    @TypeConverter
+    fun toGender(value: String?): com.residentsleeper.data.model.Gender? =
+        value?.let { runCatching { enumValueOf<com.residentsleeper.data.model.Gender>(it) }.getOrDefault(com.residentsleeper.data.model.Gender.UNSPECIFIED) }
 }

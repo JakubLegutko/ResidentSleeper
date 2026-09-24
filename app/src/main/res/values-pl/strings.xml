@@ -10,6 +10,10 @@
     <string name="profile_name_hint">Imię malucha (np. Jaś)</string>
     <string name="profile_active_label">Aktywny</string>
     <string name="profile_delete_confirm">Czy na pewno chcesz usunąć ten profil wraz ze wszystkimi wpisami?</string>
+    <string name="gender_label">Płeć</string>
+    <string name="gender_unspecified">Brak</string>
+    <string name="gender_boy">Chłopiec</string>
+    <string name="gender_girl">Dziewczynka</string>
 
     <!-- Dashboard buttons -->
     <string name="btn_sleep_start">Zasnął</string>

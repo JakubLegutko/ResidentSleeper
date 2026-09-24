@@ -10,6 +10,10 @@
     <string name="profile_name_hint">Child\'s name (e.g. Leo)</string>
     <string name="profile_active_label">Active</string>
     <string name="profile_delete_confirm">Are you sure you want to delete this profile and all its events?</string>
+    <string name="gender_label">Gender</string>
+    <string name="gender_unspecified">Any</string>
+    <string name="gender_boy">Boy</string>
+    <string name="gender_girl">Girl</string>
 
     <!-- Dashboard buttons -->
     <string name="btn_sleep_start">Start Sleep</string>

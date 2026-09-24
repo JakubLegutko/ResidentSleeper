@@ -136,7 +136,7 @@ fun DashboardScreen(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "đź‘¶ ${state.activeProfile.name} (${ageWeeks}w)",
+                                text = "${state.activeProfile.gender.emote} ${state.activeProfile.name} (${ageWeeks}w)",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -645,8 +645,8 @@ fun DashboardScreen(
                 viewModel.switchProfile(profileId)
                 showProfileSwitcher = false
             },
-            onAddProfile = { name, birthDate ->
-                viewModel.addProfile(name, birthDate)
+            onAddProfile = { name, birthDate, gender ->
+                viewModel.addProfile(name, birthDate, gender)
                 showProfileSwitcher = false
             }
         )
@@ -1129,7 +1129,7 @@ private fun TimelineEntryRow(
 
                     if (!event.note.isNullOrBlank()) {
                         Text(
-                            text = "đź“ť ${event.note}",
+                            text = "\uD83D\uDCDD ${event.note}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 2.dp)

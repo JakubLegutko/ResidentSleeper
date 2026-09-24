@@ -4,6 +4,7 @@ import com.residentsleeper.data.model.BabyEvent
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.EventType
+import com.residentsleeper.data.model.Gender
 import com.residentsleeper.data.model.NursingType
 import org.json.JSONArray
 import org.json.JSONObject
@@ -44,6 +45,7 @@ object DataBackupManager {
             pObj.put("dayStartHour", p.dayStartHour)
             pObj.put("maxRecommendedNightFeeds", p.maxRecommendedNightFeeds)
             pObj.put("notifyForOptionalNightFeeds", p.notifyForOptionalNightFeeds)
+            pObj.put("gender", p.gender.name)
             profilesArray.put(pObj)
         }
         root.put("profiles", profilesArray)
@@ -93,7 +95,8 @@ object DataBackupManager {
                     enablePushNotifications = pObj.optBoolean("enablePushNotifications", true),
                     dayStartHour = pObj.optInt("dayStartHour", 7),
                     maxRecommendedNightFeeds = pObj.optInt("maxRecommendedNightFeeds", 1),
-                    notifyForOptionalNightFeeds = pObj.optBoolean("notifyForOptionalNightFeeds", false)
+                    notifyForOptionalNightFeeds = pObj.optBoolean("notifyForOptionalNightFeeds", false),
+                    gender = if (!pObj.isNull("gender")) runCatching { Gender.valueOf(pObj.getString("gender")) }.getOrDefault(Gender.UNSPECIFIED) else Gender.UNSPECIFIED
                 )
                 profilesList.add(profile)
             }

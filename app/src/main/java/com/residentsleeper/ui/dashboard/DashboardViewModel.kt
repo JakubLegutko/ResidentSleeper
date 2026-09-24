@@ -9,6 +9,7 @@ import com.residentsleeper.data.model.BabyEvent
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.EventType
+import com.residentsleeper.data.model.Gender
 import com.residentsleeper.data.model.NursingType
 import com.residentsleeper.data.repository.BabyRepository
 import com.residentsleeper.domain.FeedingPredictor
@@ -160,9 +161,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun addProfile(name: String, birthDate: Long) {
+    fun addProfile(name: String, birthDate: Long, gender: Gender = Gender.UNSPECIFIED) {
         viewModelScope.launch {
-            repository.createProfile(name, birthDate)
+            repository.createProfile(name, birthDate, gender)
             refreshData()
         }
     }
