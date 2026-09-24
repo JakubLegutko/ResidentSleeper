@@ -1,5 +1,8 @@
 package com.residentsleeper.domain
 
+import android.content.Context
+import com.residentsleeper.R
+
 enum class SleepCategory {
     MORNING_NAP,
     MIDDAY_NAP,
@@ -28,14 +31,20 @@ data class AgeSleepSchedule(
     val bedtimeStartMinute: Int = 30,
     val bedtimeEndHour: Int = 19,
     val bedtimeEndMinute: Int = 30,
-    val triviaTips: List<String>
-)
+    val triviaTips: List<String>,
+    val ageBracketLabelRes: Int = 0
+) {
+    fun getLocalizedAgeBracket(context: Context): String {
+        return if (ageBracketLabelRes != 0) context.getString(ageBracketLabelRes) else ageBracketLabel
+    }
+}
 
 object LittleOnesSleepScheduleDatabase {
 
     val schedules: List<AgeSleepSchedule> = listOf(
         AgeSleepSchedule(
             ageBracketLabel = "0–4 Weeks (Newborn)",
+            ageBracketLabelRes = R.string.age_bracket_0_4,
             minAgeWeeks = 0,
             maxAgeWeeks = 4,
             totalSleepTargetHours = 16.5f,
@@ -61,6 +70,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "5–8 Weeks (~2 Months)",
+            ageBracketLabelRes = R.string.age_bracket_5_8,
             minAgeWeeks = 5,
             maxAgeWeeks = 8,
             totalSleepTargetHours = 15.5f,
@@ -86,6 +96,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "9–12 Weeks (~3 Months)",
+            ageBracketLabelRes = R.string.age_bracket_9_12,
             minAgeWeeks = 9,
             maxAgeWeeks = 12,
             totalSleepTargetHours = 15.5f,
@@ -111,6 +122,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "13–16 Weeks (~4 Months)",
+            ageBracketLabelRes = R.string.age_bracket_13_16,
             minAgeWeeks = 13,
             maxAgeWeeks = 16,
             totalSleepTargetHours = 14.5f,
@@ -136,6 +148,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "17–21 Weeks (~5 Months)",
+            ageBracketLabelRes = R.string.age_bracket_17_21,
             minAgeWeeks = 17,
             maxAgeWeeks = 21,
             totalSleepTargetHours = 14.5f,
@@ -161,6 +174,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "22–25 Weeks (~6 Months)",
+            ageBracketLabelRes = R.string.age_bracket_22_25,
             minAgeWeeks = 22,
             maxAgeWeeks = 25,
             totalSleepTargetHours = 14.25f,
@@ -186,6 +200,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "26–30 Weeks (~7 Months)",
+            ageBracketLabelRes = R.string.age_bracket_26_30,
             minAgeWeeks = 26,
             maxAgeWeeks = 30,
             totalSleepTargetHours = 14.0f,
@@ -211,6 +226,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "31–34 Weeks (~8 Months)",
+            ageBracketLabelRes = R.string.age_bracket_31_34,
             minAgeWeeks = 31,
             maxAgeWeeks = 34,
             totalSleepTargetHours = 14.0f,
@@ -236,6 +252,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "35–38 Weeks (~9 Months)",
+            ageBracketLabelRes = R.string.age_bracket_35_38,
             minAgeWeeks = 35,
             maxAgeWeeks = 38,
             totalSleepTargetHours = 13.75f,
@@ -261,6 +278,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "39–43 Weeks (~10 Months)",
+            ageBracketLabelRes = R.string.age_bracket_39_43,
             minAgeWeeks = 39,
             maxAgeWeeks = 43,
             totalSleepTargetHours = 13.75f,
@@ -286,6 +304,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "44–47 Weeks (~11 Months)",
+            ageBracketLabelRes = R.string.age_bracket_44_47,
             minAgeWeeks = 44,
             maxAgeWeeks = 47,
             totalSleepTargetHours = 13.5f,
@@ -311,6 +330,7 @@ object LittleOnesSleepScheduleDatabase {
         ),
         AgeSleepSchedule(
             ageBracketLabel = "48+ Weeks (12+ Months)",
+            ageBracketLabelRes = R.string.age_bracket_48_plus,
             minAgeWeeks = 48,
             maxAgeWeeks = 150,
             totalSleepTargetHours = 13.25f,

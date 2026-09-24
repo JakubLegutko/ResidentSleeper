@@ -58,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -119,7 +120,7 @@ fun DashboardScreen(
                             )
                             Icon(
                                 imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Switch Profile",
+                                contentDescription = stringResource(R.string.content_desc_switch_profile),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
@@ -162,10 +163,10 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { viewModel.previousDay() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous Day")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_previous_day))
                 }
                 Text(
-                    text = if (state.isToday) "Today, ${dateFormatter.format(state.selectedDayStart)}" else dateFormatter.format(state.selectedDayStart),
+                    text = if (state.isToday) "${stringResource(R.string.label_today)}, ${dateFormatter.format(state.selectedDayStart)}" else dateFormatter.format(state.selectedDayStart),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -173,7 +174,7 @@ fun DashboardScreen(
                     onClick = { viewModel.nextDay() },
                     enabled = !state.isToday
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next Day")
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.content_desc_next_day))
                 }
             }
 
@@ -197,10 +198,10 @@ fun DashboardScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 6.dp, bottom = 10.dp)
             ) {
-                ChartLegendItem(color = SleepIndigo, label = "Sleep")
-                ChartLegendItem(color = WakeMint, label = "Activity")
-                ChartLegendItem(color = NursingPink, label = "Nursing")
-                ChartLegendItem(color = DiaperPeeCyan, label = "Diaper")
+                ChartLegendItem(color = SleepIndigo, label = stringResource(R.string.legend_sleep))
+                ChartLegendItem(color = WakeMint, label = stringResource(R.string.legend_activity))
+                ChartLegendItem(color = NursingPink, label = stringResource(R.string.legend_nursing))
+                ChartLegendItem(color = DiaperPeeCyan, label = stringResource(R.string.legend_diaper))
             }
 
             // 4 ACTION BUTTONS GRID
@@ -213,7 +214,7 @@ fun DashboardScreen(
                 val isSleeping = state.ongoingSleep != null
                 ActionButtonCard(
                     title = if (isSleeping) stringResource(R.string.btn_sleep_end) else stringResource(R.string.btn_sleep_start),
-                    subtitle = if (isSleeping) "Tap to wake" else "Tap to sleep",
+                    subtitle = if (isSleeping) stringResource(R.string.subtitle_tap_to_wake) else stringResource(R.string.subtitle_tap_to_sleep),
                     icon = Icons.Default.Hotel,
                     containerColor = if (isSleeping) SleepIndigo else MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = if (isSleeping) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -225,11 +226,11 @@ fun DashboardScreen(
                 // Nursing Button (Toggle with details dialog)
                 val isNursing = state.ongoingNursing != null
                 val nursingSubtitle = if (isNursing) {
-                    "Tap to finish"
+                    stringResource(R.string.subtitle_tap_to_finish)
                 } else if (state.feedingState.isOptionalNightFeed) {
                     stringResource(R.string.btn_nursing_optional_night_subtitle)
                 } else {
-                    "Breast / Bottle"
+                    stringResource(R.string.subtitle_breast_bottle)
                 }
                 ActionButtonCard(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
@@ -298,7 +299,7 @@ fun DashboardScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Target Wake",
+                            text = stringResource(R.string.label_target_wake),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -310,7 +311,7 @@ fun DashboardScreen(
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Feed Interval",
+                            text = stringResource(R.string.label_feed_interval),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -322,12 +323,12 @@ fun DashboardScreen(
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Today Logs",
+                            text = stringResource(R.string.label_today_logs),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "${state.events.size} items",
+                            text = stringResource(R.string.label_items_count, state.events.size),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -357,7 +358,7 @@ fun DashboardScreen(
                             color = SleepIndigo
                         )
                         Text(
-                            text = "Nap ${state.wakeWindowState.napsCompletedToday}/${state.wakeWindowState.targetNapsToday}",
+                            text = stringResource(R.string.label_nap_progress, state.wakeWindowState.napsCompletedToday, state.wakeWindowState.targetNapsToday),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -366,7 +367,7 @@ fun DashboardScreen(
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Target Duration: ${state.wakeWindowState.recommendedSleepDuration}",
+                        text = stringResource(R.string.label_target_duration, state.wakeWindowState.recommendedSleepDuration),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -392,7 +393,7 @@ fun DashboardScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "💡 ${schedule.ageBracketLabel} Insight",
+                            text = stringResource(R.string.label_insight, schedule.getLocalizedAgeBracket(LocalContext.current)),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = WakeMint
@@ -487,7 +488,7 @@ fun DashboardScreen(
     if (showSleepTimeAdjustDialog) {
         val ongoing = state.ongoingSleep
         TimeAdjustDialog(
-            title = if (ongoing != null) "Adjust Wake Up Time" else "Adjust Sleep Start Time",
+            title = if (ongoing != null) stringResource(R.string.dialog_adjust_wake_up) else stringResource(R.string.dialog_adjust_sleep_start),
             onDismiss = { showSleepTimeAdjustDialog = false },
             onTimeSelected = { adjustedTimestamp ->
                 showSleepTimeAdjustDialog = false
@@ -499,7 +500,7 @@ fun DashboardScreen(
     if (showNursingTimeAdjustDialog) {
         val isNursing = state.ongoingNursing != null
         TimeAdjustDialog(
-            title = if (isNursing) "Adjust Nursing End Time" else "Adjust Nursing Start Time",
+            title = if (isNursing) stringResource(R.string.dialog_adjust_nursing_end) else stringResource(R.string.dialog_adjust_nursing_start),
             onDismiss = { showNursingTimeAdjustDialog = false },
             onTimeSelected = { adjustedTimestamp ->
                 showNursingTimeAdjustDialog = false
@@ -530,7 +531,7 @@ fun DashboardScreen(
 
     showDiaperTimeAdjustDialog?.let { diaperType ->
         TimeAdjustDialog(
-            title = if (diaperType == DiaperType.PEE) "Adjust Pee Time" else "Adjust Poo Time",
+            title = if (diaperType == DiaperType.PEE) stringResource(R.string.dialog_adjust_pee_time) else stringResource(R.string.dialog_adjust_poo_time),
             onDismiss = { showDiaperTimeAdjustDialog = null },
             onTimeSelected = { adjustedTimestamp ->
                 viewModel.onDiaperClick(diaperType, adjustedTimestamp)
@@ -652,7 +653,7 @@ private fun TimelineEntryRow(
 
     val (icon, tintColor, title) = when (event.type) {
         EventType.SLEEP -> {
-            val titleText = if (event.endTime == null) "Sleep (Ongoing)" else "Sleep"
+            val titleText = if (event.endTime == null) stringResource(R.string.label_sleep_ongoing) else stringResource(R.string.legend_sleep)
             Triple(Icons.Default.Hotel, SleepIndigo, titleText)
         }
         EventType.NURSING -> {
@@ -661,9 +662,9 @@ private fun TimelineEntryRow(
                 NursingType.RIGHT_BREAST -> stringResource(R.string.nursing_right_breast)
                 NursingType.BOTH_BREASTS -> stringResource(R.string.nursing_both_breasts)
                 NursingType.BOTTLE -> {
-                    if (event.amountMl != null) "Bottle (${event.amountMl} ml)" else stringResource(R.string.nursing_bottle)
+                    if (event.amountMl != null) stringResource(R.string.label_bottle_ml, event.amountMl) else stringResource(R.string.nursing_bottle)
                 }
-                null -> "Nursing"
+                null -> stringResource(R.string.legend_nursing)
             }
             Triple(Icons.Default.Restaurant, NursingPink, titleText)
         }
@@ -672,7 +673,7 @@ private fun TimelineEntryRow(
                 DiaperType.PEE -> Triple(Icons.Default.WaterDrop, DiaperPeeCyan, stringResource(R.string.btn_diaper_pee))
                 DiaperType.POO -> Triple(Icons.Default.Check, DiaperPooWarm, stringResource(R.string.btn_diaper_poo))
                 DiaperType.BOTH -> Triple(Icons.Default.Check, DiaperPooWarm, stringResource(R.string.btn_diaper_both))
-                null -> Triple(Icons.Default.WaterDrop, DiaperPeeCyan, "Diaper")
+                null -> Triple(Icons.Default.WaterDrop, DiaperPeeCyan, stringResource(R.string.legend_diaper))
             }
             Triple(iconD, tintD, titleText)
         }
@@ -687,7 +688,7 @@ private fun TimelineEntryRow(
         val durStr = if (h > 0) "${h}h ${m}m" else "${m}m"
         "${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)} ($durStr)"
     } else {
-        "${timeFormat.format(event.startTime)} (Ongoing)"
+        "${timeFormat.format(event.startTime)} (${stringResource(R.string.entry_ongoing)})"
     }
 
     Surface(

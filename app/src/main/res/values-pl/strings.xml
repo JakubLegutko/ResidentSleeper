@@ -126,4 +126,149 @@
     <string name="entry_notes">Notatki</string>
     <string name="entry_notes_hint">Opcjonalna notatka...</string>
     <string name="entry_duration">Czas trwania: %1$s</string>
+
+    <!-- NEW: Previously hardcoded strings -->
+
+    <!-- Dashboard -->
+    <string name="label_today">Dzisiaj</string>
+    <string name="legend_sleep">Sen</string>
+    <string name="legend_activity">Aktywność</string>
+    <string name="legend_nursing">Karmienie</string>
+    <string name="legend_diaper">Pielucha</string>
+    <string name="subtitle_tap_to_wake">Dotknij, by obudzić</string>
+    <string name="subtitle_tap_to_sleep">Dotknij, by uśpić</string>
+    <string name="subtitle_tap_to_finish">Dotknij, by zakończyć</string>
+    <string name="subtitle_breast_bottle">Pierś / Butelka</string>
+    <string name="label_target_wake">Docelowe okno</string>
+    <string name="label_feed_interval">Odstęp karmień</string>
+    <string name="label_today_logs">Dzisiejsze wpisy</string>
+    <string name="label_items_count">%1$d wpisów</string>
+    <string name="label_nap_progress">Drzemka %1$d/%2$d</string>
+    <string name="label_target_duration">Docelowy czas: %1$s</string>
+    <string name="label_insight">💡 Wskazówka dla %1$s</string>
+    <string name="label_sleep_ongoing">Sen (w trakcie)</string>
+    <string name="label_bottle_ml">Butelka (%1$d ml)</string>
+    <string name="label_ongoing">(%1$s) (W trakcie)</string>
+    <string name="dialog_adjust_wake_up">Dostosuj czas pobudki</string>
+    <string name="dialog_adjust_sleep_start">Dostosuj czas zaśnięcia</string>
+    <string name="dialog_adjust_nursing_end">Dostosuj koniec karmienia</string>
+    <string name="dialog_adjust_nursing_start">Dostosuj start karmienia</string>
+    <string name="dialog_adjust_pee_time">Dostosuj czas siku</string>
+    <string name="dialog_adjust_poo_time">Dostosuj czas kupki</string>
+    <string name="content_desc_back">Wstecz</string>
+    <string name="content_desc_switch_profile">Przełącz profil</string>
+    <string name="content_desc_previous_day">Poprzedni dzień</string>
+    <string name="content_desc_next_day">Następny dzień</string>
+    <string name="content_desc_delete_profile">Usuń profil</string>
+
+    <!-- Settings hardcoded -->
+    <string name="settings_child_profiles">Profile dzieci</string>
+    <string name="settings_manage">Zarządzaj</string>
+    <string name="settings_active_marker">(Aktywny)</string>
+    <string name="settings_weeks_old_born">%1$d tygodni • urodzony/a %2$s</string>
+    <string name="settings_active_child_details">Aktywny profil: %1$s</string>
+    <string name="settings_child_name">Imię dziecka</string>
+    <string name="settings_cycle_calculations">Cykle i obliczenia</string>
+    <string name="settings_auto_age">Automatycznie (wiek)</string>
+    <string name="settings_hours_format">%1$.1f godziny</string>
+    <string name="settings_default_marker">(Domyślne)</string>
+    <string name="settings_alerts_calendar">Alerty i Kalendarz</string>
+    <string name="settings_calendar_desc">Dodaj przypomnienia do Kalendarza Google</string>
+    <string name="settings_select_calendar">Wybierz Kalendarz Google</string>
+    <string name="settings_export_json_chooser">Eksportuj kopię JSON</string>
+    <string name="settings_export_csv_chooser">Eksportuj arkusz CSV</string>
+
+    <!-- Review hardcoded -->
+    <string name="review_avg_sleep_day">Śr. sen / dzień</string>
+    <string name="review_avg_wake_window">Śr. okno czuwania</string>
+    <string name="review_avg_feedings_day">Śr. karmienia / dzień</string>
+    <string name="review_avg_diapers_day">Śr. pieluchy / dzień</string>
+    <string name="review_days_average">%1$s (średnia z %2$d dni)</string>
+    <string name="review_sub_day_night">Dzień: %1$dh %2$dm • Noc: %3$dh %4$dm</string>
+    <string name="review_sub_day_night_naps">Dzień: %1$dh %2$dm • Noc: %3$dh %4$dm (%5$d drzemek)</string>
+    <string name="review_sub_activity_cycle">Średni cykl aktywności między drzemkami</string>
+    <string name="review_sessions">%1$d sesji</string>
+    <string name="review_nursing_time_total">%1$dm łącznego karmienia</string>
+    <string name="review_nursing_time_bottle">%1$dm łącznie • %2$d ml butelka</string>
+    <string name="review_changes">%1$d zmian</string>
+    <string name="review_wet_dirty">💧 Mokre: %1$d  |  💩 Brudne: %2$d</string>
+    <string name="review_times_format">%.1f razy</string>
+    <string name="review_ml_bottle_day">%.0f ml butelka/dzień</string>
+    <string name="review_nursing_per_day">Sesje karmienia dziennie</string>
+    <string name="review_changes_format">%.1f zmian</string>
+    <string name="review_wet_dirty_format" formatted="false">💧 Mokre: %.1f  |  💩 Brudne: %.1f</string>
+    <string name="review_trend_sleep">Trend snu (godziny / dzień)</string>
+    <string name="review_trend_wake">Trend okna (minuty / dzień)</string>
+    <string name="review_trend_feedings">Trend karmień (sesje / dzień)</string>
+    <string name="review_trend_diapers">Trend pieluch (zmiany / dzień)</string>
+    <string name="review_avg_prefix">Śr.: </string>
+    <string name="review_no_monthly_data">Za mało danych do wyświetlenia wykresu miesięcznego.</string>
+    <string name="review_active">Aktywne</string>
+    <string name="review_past_7_days">Ostatnie 7 dni</string>
+    <string name="review_past_30_days">Ostatnie 30 dni</string>
+
+    <!-- Calendar event strings -->
+    <string name="calendar_activity_end_title">%1$s - Koniec cyklu aktywności</string>
+    <string name="calendar_activity_end_desc">Zalecany koniec okna czuwania – pora drzemki</string>
+    <string name="calendar_feeding_title">%1$s - Pora karmienia</string>
+    <string name="calendar_feeding_desc">Przybliżony czas kolejnego karmienia</string>
+
+    <!-- Dialog component strings -->
+    <string name="dialog_selected_time">Wybrany czas: %1$s</string>
+    <string name="dialog_quick_offsets">Szybkie przesunięcia:</string>
+    <string name="dialog_select_method">Wybierz metodę / stronę:</string>
+    <string name="dialog_method_side">Metoda / Strona:</string>
+    <string name="dialog_diaper_content">Zawartość pieluchy:</string>
+    <string name="dialog_hide_custom_clock">Ukryj własny zegar</string>
+    <string name="profile_weeks_old">%1$d tyg.</string>
+    <string name="profile_default_name">Dziecko</string>
+
+    <!-- 24-Hour Clock Chart Center strings -->
+    <string name="state_sleeping">😴 Sen</string>
+    <string name="state_awake">👶 Czuwanie</string>
+    <string name="state_wake_duration">%1$d min</string>
+    <string name="state_window_ends_in">Koniec okna: za %1$d min</string>
+    <string name="state_overdue_by">Przekroczono: o %1$d min</string>
+    <string name="state_nursing_now">🍼 Karmienie trwa</string>
+    <string name="state_next_feed_in">Karmienie: za %1$d min</string>
+    <string name="state_next_feed_optional">Karmienie: za %1$d min (Opcjonalne)</string>
+    <string name="state_night_feed_optional">🌙 Nocne karmienie: Opcjonalne (Na żądanie)</string>
+    <string name="state_feed_due_now">Pora na karmienie!</string>
+
+    <!-- Dynamic Wake Window Recommendation Titles & Reasons -->
+    <string name="rec_title_sleep_in_progress">Sen w toku</string>
+    <string name="rec_title_morning_nap">Następnie: Poranna drzemka</string>
+    <string name="rec_title_midday_nap">Następnie: Regeneracyjna drzemka południowa</string>
+    <string name="rec_title_bridge_catnap">Następnie: Krótka drzemka pomostowa</string>
+    <string name="rec_title_bedtime">Następnie: Rytuał wieczorny</string>
+
+    <string name="rec_duration_morning_nap">%1$d min (Poranna drzemka)</string>
+    <string name="rec_duration_midday_nap_hours">%1$d godz. (Główna drzemka regeneracyjna)</string>
+    <string name="rec_duration_midday_nap_hours_mins">%1$d godz. %2$d min (Główna drzemka regeneracyjna)</string>
+    <string name="rec_duration_bridge_catnap">%1$d min (Drzemka pomostowa — koniec do 17:00)</string>
+    <string name="rec_duration_bedtime">%1$d godz. (Skonsolidowany sen nocny)</string>
+
+    <string name="rec_reason_sleep_target">Docelowy czas: %1$s</string>
+    <string name="rec_reason_custom_window">Użyto własnego okna czuwania (%1$d min).</string>
+    <string name="rec_reason_bedtime">Zbliża się pora snu nocnego (%1$s–%2$s). Dłuższe okno czuwania buduje senność przed nocą.</string>
+    <string name="rec_reason_short_nap">Ostatnia drzemka była krótka (%1$d min). Okno czuwania skrócone o %2$d min, aby zapobiec przemęczeniu.</string>
+    <string name="rec_reason_restorative_nap">Ostatnia drzemka była długa i regeneracyjna (%1$d min). Pełne okno czuwania dla wieku.</string>
+    <string name="rec_reason_morning">Poranne okno czuwania jest naturalnie krótsze, gdy organizm stopniowo się rozbudza.</string>
+    <string name="rec_reason_midday">Okno czuwania buduje optymalną senność przed kluczową południową drzemką.</string>
+    <string name="rec_reason_bridge">Krótka drzemka pomostowa, aby zapobiec przemęczeniu przed wieczornym snem.</string>
+    <string name="rec_reason_bedtime_final">Ostatnie okno czuwania przed snem nocnym.</string>
+
+    <!-- Age bracket strings -->
+    <string name="age_bracket_0_4">0–4 tyg. (Noworodek)</string>
+    <string name="age_bracket_5_8">5–8 tyg. (~2 miesiące)</string>
+    <string name="age_bracket_9_12">9–12 tyg. (~3 miesiące)</string>
+    <string name="age_bracket_13_16">13–16 tyg. (~4 miesiące)</string>
+    <string name="age_bracket_17_21">17–21 tyg. (~5 miesięcy)</string>
+    <string name="age_bracket_22_25">22–25 tyg. (~6 miesięcy)</string>
+    <string name="age_bracket_26_30">26–30 tyg. (~7 miesięcy)</string>
+    <string name="age_bracket_31_34">31–34 tyg. (~8 miesięcy)</string>
+    <string name="age_bracket_35_38">35–38 tyg. (~9 miesięcy)</string>
+    <string name="age_bracket_39_43">39–43 tyg. (~10 miesięcy)</string>
+    <string name="age_bracket_44_47">44–47 tyg. (~11 miesięcy)</string>
+    <string name="age_bracket_48_plus">48+ tyg. (12+ miesięcy)</string>
 </resources>

@@ -121,7 +121,7 @@ fun SettingsScreen(
                 title = { Text(text = stringResource(R.string.nav_settings), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
                     }
                 }
             )
@@ -142,14 +142,14 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Child Profiles",
+                    text = stringResource(R.string.settings_child_profiles),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 TextButton(onClick = { showProfileSwitcher = true }) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.size(4.dp))
-                    Text("Manage")
+                    Text(stringResource(R.string.settings_manage))
                 }
             }
 
@@ -184,7 +184,7 @@ fun SettingsScreen(
                                     if (isActive) {
                                         Spacer(modifier = Modifier.size(8.dp))
                                         Text(
-                                            text = "(Active)",
+                                            text = stringResource(R.string.settings_active_marker),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.Bold
@@ -192,7 +192,7 @@ fun SettingsScreen(
                                     }
                                 }
                                 Text(
-                                    text = "$ageWeeks weeks old • born ${dateFormatter.format(profile.birthTimestamp)}",
+                                    text = stringResource(R.string.settings_weeks_old_born, ageWeeks, dateFormatter.format(profile.birthTimestamp)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -202,7 +202,7 @@ fun SettingsScreen(
                                 IconButton(onClick = { viewModel.deleteProfile(profile.id) }) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
-                                        contentDescription = "Delete Profile",
+                                        contentDescription = stringResource(R.string.content_desc_delete_profile),
                                         tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                                     )
                                 }
@@ -214,7 +214,7 @@ fun SettingsScreen(
 
             // Section 2: Active Profile Details
             Text(
-                text = "Active Child Details: ${state.activeProfile.name}",
+                text = stringResource(R.string.settings_active_child_details, state.activeProfile.name),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -231,7 +231,7 @@ fun SettingsScreen(
                     OutlinedTextField(
                         value = state.activeProfile.name,
                         onValueChange = { viewModel.updateActiveProfileName(it) },
-                        label = { Text("Child Name") },
+                        label = { Text(stringResource(R.string.settings_child_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -252,7 +252,7 @@ fun SettingsScreen(
 
             // Section 3: Cycle Calculations
             Text(
-                text = "Cycle Calculations",
+                text = stringResource(R.string.settings_cycle_calculations),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -276,7 +276,7 @@ fun SettingsScreen(
                         FilterChip(
                             selected = state.activeProfile.customWakeWindowMinutes == null,
                             onClick = { viewModel.updateWakeWindow(null) },
-                            label = { Text("Auto (Age)") }
+                            label = { Text(stringResource(R.string.settings_auto_age)) }
                         )
                         FilterChip(
                             selected = state.activeProfile.customWakeWindowMinutes == 60,
@@ -338,7 +338,7 @@ fun SettingsScreen(
                                 Locale.getDefault(),
                                 "%02d:00%s",
                                 state.activeProfile.dayStartHour,
-                                if (state.activeProfile.dayStartHour == 7) " (Default)" else ""
+                                if (state.activeProfile.dayStartHour == 7) " ${stringResource(R.string.settings_default_marker)}" else ""
                             )
                         )
                     }
@@ -376,7 +376,7 @@ fun SettingsScreen(
 
             // Section 4: Alerts & Google Calendar Sync
             Text(
-                text = "Alerts & Calendar",
+                text = stringResource(R.string.settings_alerts_calendar),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -425,7 +425,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "Add reminders to Google Calendar",
+                                text = stringResource(R.string.settings_calendar_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -454,7 +454,7 @@ fun SettingsScreen(
                             onExpandedChange = { calendarMenuExpanded = !calendarMenuExpanded }
                         ) {
                             OutlinedTextField(
-                                value = selectedCal?.let { "${it.displayName} (${it.accountName})" } ?: "Select a Google Calendar",
+                                value = selectedCal?.let { "${it.displayName} (${it.accountName})" } ?: stringResource(R.string.settings_select_calendar),
                                 onValueChange = {},
                                 readOnly = true,
                                 label = { Text(stringResource(R.string.settings_choose_calendar)) },
@@ -559,7 +559,7 @@ fun SettingsScreen(
                                     putExtra(Intent.EXTRA_TEXT, json)
                                     putExtra(Intent.EXTRA_TITLE, "ResidentSleeper_Backup.json")
                                 }
-                                context.startActivity(Intent.createChooser(sendIntent, "Export JSON Backup"))
+                                context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.settings_export_json_chooser)))
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -579,7 +579,7 @@ fun SettingsScreen(
                                     putExtra(Intent.EXTRA_TEXT, csv)
                                     putExtra(Intent.EXTRA_TITLE, "ResidentSleeper_Events.csv")
                                 }
-                                context.startActivity(Intent.createChooser(sendIntent, "Export Spreadsheet CSV"))
+                                context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.settings_export_csv_chooser)))
                             }
                         },
                         modifier = Modifier.fillMaxWidth()

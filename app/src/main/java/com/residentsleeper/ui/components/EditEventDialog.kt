@@ -217,7 +217,7 @@ fun EditEventDialog(
                                     endTime = maxOf(startTime, System.currentTimeMillis())
                                 }
                             },
-                            label = { Text("Ongoing") }
+                            label = { Text(stringResource(R.string.entry_ongoing)) }
                         )
                     }
 
@@ -240,7 +240,7 @@ fun EditEventDialog(
                 if (event.type == EventType.NURSING) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Method / Side:",
+                        text = stringResource(R.string.dialog_method_side),
                         style = MaterialTheme.typography.labelMedium
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -285,7 +285,7 @@ fun EditEventDialog(
                 } else if (event.type == EventType.DIAPER) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Diaper Content:",
+                        text = stringResource(R.string.dialog_diaper_content),
                         style = MaterialTheme.typography.labelMedium
                     )
                     Spacer(modifier = Modifier.height(6.dp))

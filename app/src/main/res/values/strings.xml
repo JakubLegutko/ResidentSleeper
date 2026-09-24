@@ -126,4 +126,149 @@
     <string name="entry_notes">Notes</string>
     <string name="entry_notes_hint">Optional notes...</string>
     <string name="entry_duration">Duration: %1$s</string>
+
+    <!-- NEW: Previously hardcoded strings -->
+
+    <!-- Dashboard -->
+    <string name="label_today">Today</string>
+    <string name="legend_sleep">Sleep</string>
+    <string name="legend_activity">Activity</string>
+    <string name="legend_nursing">Nursing</string>
+    <string name="legend_diaper">Diaper</string>
+    <string name="subtitle_tap_to_wake">Tap to wake</string>
+    <string name="subtitle_tap_to_sleep">Tap to sleep</string>
+    <string name="subtitle_tap_to_finish">Tap to finish</string>
+    <string name="subtitle_breast_bottle">Breast / Bottle</string>
+    <string name="label_target_wake">Target Wake</string>
+    <string name="label_feed_interval">Feed Interval</string>
+    <string name="label_today_logs">Today Logs</string>
+    <string name="label_items_count">%1$d items</string>
+    <string name="label_nap_progress">Nap %1$d/%2$d</string>
+    <string name="label_target_duration">Target Duration: %1$s</string>
+    <string name="label_insight">💡 %1$s Insight</string>
+    <string name="label_sleep_ongoing">Sleep (Ongoing)</string>
+    <string name="label_bottle_ml">Bottle (%1$d ml)</string>
+    <string name="label_ongoing">(%1$s) (Ongoing)</string>
+    <string name="dialog_adjust_wake_up">Adjust Wake Up Time</string>
+    <string name="dialog_adjust_sleep_start">Adjust Sleep Start Time</string>
+    <string name="dialog_adjust_nursing_end">Adjust Nursing End Time</string>
+    <string name="dialog_adjust_nursing_start">Adjust Nursing Start Time</string>
+    <string name="dialog_adjust_pee_time">Adjust Pee Time</string>
+    <string name="dialog_adjust_poo_time">Adjust Poo Time</string>
+    <string name="content_desc_back">Back</string>
+    <string name="content_desc_switch_profile">Switch Profile</string>
+    <string name="content_desc_previous_day">Previous Day</string>
+    <string name="content_desc_next_day">Next Day</string>
+    <string name="content_desc_delete_profile">Delete Profile</string>
+
+    <!-- Settings hardcoded -->
+    <string name="settings_child_profiles">Child Profiles</string>
+    <string name="settings_manage">Manage</string>
+    <string name="settings_active_marker">(Active)</string>
+    <string name="settings_weeks_old_born">%1$d weeks old • born %2$s</string>
+    <string name="settings_active_child_details">Active Child Details: %1$s</string>
+    <string name="settings_child_name">Child Name</string>
+    <string name="settings_cycle_calculations">Cycle Calculations</string>
+    <string name="settings_auto_age">Auto (Age)</string>
+    <string name="settings_hours_format">%1$.1f hours</string>
+    <string name="settings_default_marker">(Default)</string>
+    <string name="settings_alerts_calendar">Alerts &amp; Calendar</string>
+    <string name="settings_calendar_desc">Add reminders to Google Calendar</string>
+    <string name="settings_select_calendar">Select a Google Calendar</string>
+    <string name="settings_export_json_chooser">Export JSON Backup</string>
+    <string name="settings_export_csv_chooser">Export Spreadsheet CSV</string>
+
+    <!-- Review hardcoded -->
+    <string name="review_avg_sleep_day">Avg Sleep / Day</string>
+    <string name="review_avg_wake_window">Avg Wake Window</string>
+    <string name="review_avg_feedings_day">Avg Feedings / Day</string>
+    <string name="review_avg_diapers_day">Avg Diapers / Day</string>
+    <string name="review_days_average">%1$s (%2$d days average)</string>
+    <string name="review_sub_day_night">Day: %1$dh %2$dm • Night: %3$dh %4$dm</string>
+    <string name="review_sub_day_night_naps">Day: %1$dh %2$dm • Night: %3$dh %4$dm (%5$d naps)</string>
+    <string name="review_sub_activity_cycle">Average activity cycle between naps</string>
+    <string name="review_sessions">%1$d sessions</string>
+    <string name="review_nursing_time_total">%1$dm total nursing time</string>
+    <string name="review_nursing_time_bottle">%1$dm total • %2$d ml bottle</string>
+    <string name="review_changes">%1$d changes</string>
+    <string name="review_wet_dirty">💧 Wet: %1$d  |  💩 Dirty: %2$d</string>
+    <string name="review_times_format">%.1f times</string>
+    <string name="review_ml_bottle_day">%.0f ml bottle/day</string>
+    <string name="review_nursing_per_day">Nursing sessions per day</string>
+    <string name="review_changes_format">%.1f changes</string>
+    <string name="review_wet_dirty_format" formatted="false">💧 Wet: %.1f  |  💩 Dirty: %.1f</string>
+    <string name="review_trend_sleep">Sleep Trend (Hours / Day)</string>
+    <string name="review_trend_wake">Wake Window Trend (Minutes / Day)</string>
+    <string name="review_trend_feedings">Feedings Trend (Sessions / Day)</string>
+    <string name="review_trend_diapers">Diapers Trend (Changes / Day)</string>
+    <string name="review_avg_prefix">Avg: </string>
+    <string name="review_no_monthly_data">Not enough data recorded yet for monthly graph.</string>
+    <string name="review_active">Active</string>
+    <string name="review_past_7_days">Past 7 Days</string>
+    <string name="review_past_30_days">Past 30 Days</string>
+
+    <!-- Calendar event strings -->
+    <string name="calendar_activity_end_title">%1$s - Activity Cycle End</string>
+    <string name="calendar_activity_end_desc">Recommended end of wake window for nap time</string>
+    <string name="calendar_feeding_title">%1$s - Feeding Time</string>
+    <string name="calendar_feeding_desc">Approximated next feeding schedule</string>
+
+    <!-- Dialog component strings -->
+    <string name="dialog_selected_time">Selected Time: %1$s</string>
+    <string name="dialog_quick_offsets">Quick Offsets:</string>
+    <string name="dialog_select_method">Select Method / Side:</string>
+    <string name="dialog_method_side">Method / Side:</string>
+    <string name="dialog_diaper_content">Diaper Content:</string>
+    <string name="dialog_hide_custom_clock">Hide Custom Clock</string>
+    <string name="profile_weeks_old">%1$d weeks old</string>
+    <string name="profile_default_name">Baby</string>
+
+    <!-- 24-Hour Clock Chart Center strings -->
+    <string name="state_sleeping">😴 Sleeping</string>
+    <string name="state_awake">👶 Awake</string>
+    <string name="state_wake_duration">%1$d min</string>
+    <string name="state_window_ends_in">Window ends: in %1$d m</string>
+    <string name="state_overdue_by">Overdue: by %1$d m</string>
+    <string name="state_nursing_now">🍼 Nursing now</string>
+    <string name="state_next_feed_in">Next feed: in %1$d m</string>
+    <string name="state_next_feed_optional">Next feed: in %1$d m (Optional)</string>
+    <string name="state_night_feed_optional">🌙 Night feed: Optional (On demand)</string>
+    <string name="state_feed_due_now">Feed due now!</string>
+
+    <!-- Dynamic Wake Window Recommendation Titles & Reasons -->
+    <string name="rec_title_sleep_in_progress">Sleep In Progress</string>
+    <string name="rec_title_morning_nap">Next: Morning Nap</string>
+    <string name="rec_title_midday_nap">Next: Restorative Midday Nap</string>
+    <string name="rec_title_bridge_catnap">Next: Bridge Catnap</string>
+    <string name="rec_title_bedtime">Next: Bedtime Ritual</string>
+
+    <string name="rec_duration_morning_nap">%1$d min (Morning Nap)</string>
+    <string name="rec_duration_midday_nap_hours">%1$d hours (Core Restorative Nap)</string>
+    <string name="rec_duration_midday_nap_hours_mins">%1$dh %2$dm (Core Restorative Nap)</string>
+    <string name="rec_duration_bridge_catnap">%1$d min (Bridge Catnap — end by 5:00 PM)</string>
+    <string name="rec_duration_bedtime">%1$d hours (Overnight Consolidated Sleep)</string>
+
+    <string name="rec_reason_sleep_target">Target duration: %1$s</string>
+    <string name="rec_reason_custom_window">Using custom wake window setting (%1$dm).</string>
+    <string name="rec_reason_bedtime">Bedtime window approaching (%1$s–%2$s). Longer wake window builds overnight sleep pressure.</string>
+    <string name="rec_reason_short_nap">Last nap was short (%1$dm). Wake window shortened by %2$dm to prevent overtiredness.</string>
+    <string name="rec_reason_restorative_nap">Last nap was restorative (%1$dm). Full age-appropriate wake window supported.</string>
+    <string name="rec_reason_morning">Morning wake window is naturally shorter as circadian alertness ramps up.</string>
+    <string name="rec_reason_midday">Midday sleep window builds pressure for the core restorative nap.</string>
+    <string name="rec_reason_bridge">Bridge catnap to prevent overtiredness before evening bedtime.</string>
+    <string name="rec_reason_bedtime_final">Final wake window before night sleep.</string>
+
+    <!-- Age bracket strings -->
+    <string name="age_bracket_0_4">0–4 Weeks (Newborn)</string>
+    <string name="age_bracket_5_8">5–8 Weeks (~2 Months)</string>
+    <string name="age_bracket_9_12">9–12 Weeks (~3 Months)</string>
+    <string name="age_bracket_13_16">13–16 Weeks (~4 Months)</string>
+    <string name="age_bracket_17_21">17–21 Weeks (~5 Months)</string>
+    <string name="age_bracket_22_25">22–25 Weeks (~6 Months)</string>
+    <string name="age_bracket_26_30">26–30 Weeks (~7 Months)</string>
+    <string name="age_bracket_31_34">31–34 Weeks (~8 Months)</string>
+    <string name="age_bracket_35_38">35–38 Weeks (~9 Months)</string>
+    <string name="age_bracket_39_43">39–43 Weeks (~10 Months)</string>
+    <string name="age_bracket_44_47">44–47 Weeks (~11 Months)</string>
+    <string name="age_bracket_48_plus">48+ Weeks (12+ Months)</string>
 </resources>

@@ -60,14 +60,14 @@ fun TimeAdjustDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Selected Time: ${timeFormatter.format(selectedTimestamp)}",
+                    text = stringResource(R.string.dialog_selected_time, timeFormatter.format(selectedTimestamp)),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
                 Text(
-                    text = "Quick Offsets:",
+                    text = stringResource(R.string.dialog_quick_offsets),
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(bottom = 6.dp)
                 )
@@ -110,7 +110,7 @@ fun TimeAdjustDialog(
                     onClick = { showCustomPicker = !showCustomPicker },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (showCustomPicker) "Hide Custom Clock" else stringResource(R.string.time_custom))
+                    Text(if (showCustomPicker) stringResource(R.string.dialog_hide_custom_clock) else stringResource(R.string.time_custom))
                 }
 
                 if (showCustomPicker) {
