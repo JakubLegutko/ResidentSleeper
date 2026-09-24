@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,9 +29,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
@@ -225,34 +229,77 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Sleep Button (Toggle with Now / Adjust)
-                val isSleeping = state.ongoingSleep != null
+                // Sleep Button (Toggle with Now / Adjust & Progress Bar)
+                val currentSleep = state.ongoingSleep
+                val isSleeping = currentSleep != null
+                val sleepProgress: Float?
+                val sleepSubtitle: String
+                val sleepTargetMinutes = state.wakeWindowState.recommendedSleepDurationMinutes.coerceAtLeast(15)
+                if (currentSleep != null) {
+                    val now = System.currentTimeMillis()
+                    val sleepElapsedMillis = maxOf(0L, now - currentSleep.startTime)
+                    val sleepElapsedMin = (sleepElapsedMillis / 60_000L).toInt()
+                    sleepProgress = (sleepElapsedMillis.toFloat() / (sleepTargetMinutes * 60_000f)).coerceIn(0f, 1f)
+                    val overdueMin = maxOf(0, sleepElapsedMin - sleepTargetMinutes)
+                    val remainingMin = maxOf(0, sleepTargetMinutes - sleepElapsedMin)
+                    sleepSubtitle = if (overdueMin > 0) {
+                        stringResource(R.string.btn_progress_overdue, sleepElapsedMin, sleepTargetMinutes, overdueMin)
+                    } else {
+                        stringResource(R.string.btn_progress_remaining, sleepElapsedMin, sleepTargetMinutes, remainingMin)
+                    }
+                } else {
+                    sleepProgress = null
+                    sleepSubtitle = stringResource(R.string.subtitle_tap_to_sleep)
+                }
+
                 ActionButtonCard(
                     title = if (isSleeping) stringResource(R.string.btn_sleep_end) else stringResource(R.string.btn_sleep_start),
-                    subtitle = if (isSleeping) stringResource(R.string.subtitle_tap_to_wake) else stringResource(R.string.subtitle_tap_to_sleep),
+                    subtitle = sleepSubtitle,
                     icon = Icons.Default.Hotel,
-                    containerColor = if (isSleeping) SleepIndigo else MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = if (isSleeping) Color(0xFF1E1B4B) else MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = if (isSleeping) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    progress = sleepProgress,
+                    progressColor = SleepIndigo,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onSleepButtonClick() },
                     onLongClick = { showSleepTimeAdjustDialog = true }
                 )
 
-                // Nursing Button (Toggle with details dialog)
-                val isNursing = state.ongoingNursing != null
-                val nursingSubtitle = if (isNursing) {
-                    stringResource(R.string.subtitle_tap_to_finish)
-                } else if (state.feedingState.isOptionalNightFeed) {
-                    stringResource(R.string.btn_nursing_optional_night_subtitle)
+                // Nursing Button (Toggle with details dialog & 20 min Progress Bar)
+                val currentNursing = state.ongoingNursing
+                val isNursing = currentNursing != null
+                val nursingProgress: Float?
+                val nursingSubtitle: String
+                val nursingTargetMinutes = 20
+                if (currentNursing != null) {
+                    val now = System.currentTimeMillis()
+                    val nursingElapsedMillis = maxOf(0L, now - currentNursing.startTime)
+                    val nursingElapsedMin = (nursingElapsedMillis / 60_000L).toInt()
+                    nursingProgress = (nursingElapsedMillis.toFloat() / (nursingTargetMinutes * 60_000f)).coerceIn(0f, 1f)
+                    val overdueMin = maxOf(0, nursingElapsedMin - nursingTargetMinutes)
+                    val remainingMin = maxOf(0, nursingTargetMinutes - nursingElapsedMin)
+                    nursingSubtitle = if (overdueMin > 0) {
+                        stringResource(R.string.btn_progress_overdue, nursingElapsedMin, nursingTargetMinutes, overdueMin)
+                    } else {
+                        stringResource(R.string.btn_progress_remaining, nursingElapsedMin, nursingTargetMinutes, remainingMin)
+                    }
                 } else {
-                    stringResource(R.string.subtitle_breast_bottle)
+                    nursingProgress = null
+                    nursingSubtitle = if (state.feedingState.isOptionalNightFeed) {
+                        stringResource(R.string.btn_nursing_optional_night_subtitle)
+                    } else {
+                        stringResource(R.string.subtitle_breast_bottle)
+                    }
                 }
+
                 ActionButtonCard(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
                     subtitle = nursingSubtitle,
                     icon = Icons.Default.Restaurant,
-                    containerColor = if (isNursing) NursingPink else MaterialTheme.colorScheme.surfaceVariant,
+                    containerColor = if (isNursing) Color(0xFF4C0519) else MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = if (isNursing) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    progress = nursingProgress,
+                    progressColor = NursingPink,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         if (isNursing) {
@@ -640,6 +687,8 @@ private fun ActionButtonCard(
     containerColor: Color,
     contentColor: Color,
     modifier: Modifier = Modifier,
+    progress: Float? = null,
+    progressColor: Color = containerColor,
     floatingFeedbackText: String? = null,
     floatingFeedbackColor: Color = contentColor,
     onClick: () -> Unit,
@@ -649,6 +698,12 @@ private fun ActionButtonCard(
     val buttonScale = remember { Animatable(1f) }
     val haptic = LocalHapticFeedback.current
     var feedbacks by remember { mutableStateOf(listOf<FloatingFeedback>()) }
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress?.coerceIn(0f, 1f) ?: 0f,
+        animationSpec = tween(durationMillis = 400),
+        label = "actionButtonProgress"
+    )
 
     Box(
         modifier = modifier,
@@ -684,34 +739,78 @@ private fun ActionButtonCard(
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(containerColor = containerColor)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = contentColor,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor,
-                    textAlign = TextAlign.Center
-                )
-                if (!subtitle.isNullOrBlank()) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (progress != null) {
+                    // 1. Smooth horizontal background fill
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(animatedProgress)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        progressColor.copy(alpha = 0.65f),
+                                        progressColor.copy(alpha = 0.95f)
+                                    )
+                                )
+                            )
+                    )
+                    // 2. Crisp bottom progress line
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(Color.Black.copy(alpha = 0.3f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animatedProgress)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color.White.copy(alpha = 0.8f),
+                                            Color.White
+                                        )
+                                    )
+                                )
+                        )
+                    }
+                }
+
+                // 3. Foreground content
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = contentColor,
+                        modifier = Modifier.size(26.dp)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = contentColor.copy(alpha = 0.8f),
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
                         textAlign = TextAlign.Center
                     )
+                    if (!subtitle.isNullOrBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = contentColor.copy(alpha = 0.9f),
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }

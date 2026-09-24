@@ -19,6 +19,8 @@
     <string name="btn_diaper_pee">Pee</string>
     <string name="btn_diaper_poo">Poo</string>
     <string name="btn_diaper_both">Pee &amp; Poo</string>
+    <string name="btn_progress_remaining">%1$d / %2$d min (%3$dm left)</string>
+    <string name="btn_progress_overdue">%1$d / %2$d min (+%3$dm)</string>
 
     <!-- Dialogs -->
     <string name="dialog_time_adjust_title">Select Time</string>
