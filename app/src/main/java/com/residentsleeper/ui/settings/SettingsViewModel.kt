@@ -9,6 +9,10 @@ import com.residentsleeper.data.backup.DataBackupManager
 import com.residentsleeper.data.local.AppDatabase
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.repository.BabyRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,7 +60,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         return db.babyProfileDao().getAllProfilesSync()
     }
 
+    private var nameDebounceJob: Job? = null
+
     fun switchProfile(profileId: Long) {
+        flushPendingNameSave()
         viewModelScope.launch {
             repository.switchActiveProfile(profileId)
             loadProfile()
@@ -64,6 +71,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun addProfile(name: String, birthDate: Long) {
+        flushPendingNameSave()
         viewModelScope.launch {
             repository.createProfile(name, birthDate)
             loadProfile()
@@ -71,6 +79,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun deleteProfile(profileId: Long) {
+        flushPendingNameSave()
         viewModelScope.launch {
             repository.deleteProfile(profileId)
             loadProfile()
@@ -78,7 +87,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun updateActiveProfileName(name: String) {
-        updateActiveProfile { it.copy(name = name) }
+        val current = _uiState.value.activeProfile
+        if (current.name == name) return
+        val updated = current.copy(name = name)
+        val updatedAll = _uiState.value.allProfiles.map {
+            if (it.id == updated.id) updated else it
+        }
+        _uiState.value = _uiState.value.copy(activeProfile = updated, allProfiles = updatedAll)
+
+        nameDebounceJob?.cancel()
+        nameDebounceJob = viewModelScope.launch {
+            delay(350)
+            repository.updateProfile(updated)
+        }
+    }
+
+    fun flushPendingNameSave() {
+        val job = nameDebounceJob
+        if (job != null && job.isActive) {
+            job.cancel()
+            val current = _uiState.value.activeProfile
+            viewModelScope.launch {
+                repository.updateProfile(current)
+            }
+        }
     }
 
     fun updateBirthDate(timestamp: Long) {
@@ -153,5 +185,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun clearBackupMessage() {
         _uiState.value = _uiState.value.copy(backupMessage = null)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        if (nameDebounceJob?.isActive == true) {
+            nameDebounceJob?.cancel()
+            val current = _uiState.value.activeProfile
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.updateProfile(current)
+            }
+        }
     }
 }

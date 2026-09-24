@@ -52,6 +52,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -91,6 +92,13 @@ fun SettingsScreen(
     var showProfileSwitcher by remember { mutableStateOf(false) }
     var pendingImportJson by remember { mutableStateOf<String?>(null) }
     var importReplaceOption by remember { mutableStateOf(false) } // false = merge, true = replace
+
+    var nameText by remember(state.activeProfile.id) { mutableStateOf(state.activeProfile.name) }
+    LaunchedEffect(state.activeProfile.name) {
+        if (nameText != state.activeProfile.name) {
+            nameText = state.activeProfile.name
+        }
+    }
 
     val calendarPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -229,8 +237,11 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedTextField(
-                        value = state.activeProfile.name,
-                        onValueChange = { viewModel.updateActiveProfileName(it) },
+                        value = nameText,
+                        onValueChange = {
+                            nameText = it
+                            viewModel.updateActiveProfileName(it)
+                        },
                         label = { Text(stringResource(R.string.settings_child_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
