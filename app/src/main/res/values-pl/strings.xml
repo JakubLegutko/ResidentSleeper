@@ -143,6 +143,8 @@
     <string name="subtitle_tap_to_sleep">Dotknij, by uśpić</string>
     <string name="subtitle_tap_to_finish">Dotknij, by zakończyć</string>
     <string name="subtitle_breast_bottle">Pierś / Butelka</string>
+    <string name="btn_blocked_by_nursing">Najpierw zakończ karmienie</string>
+    <string name="btn_blocked_by_sleep">Najpierw zakończ sen</string>
     <string name="label_target_wake">Docelowe okno</string>
     <string name="label_feed_interval">Odstęp karmień</string>
     <string name="label_today_logs">Dzisiejsze wpisy</string>

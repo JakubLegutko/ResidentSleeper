@@ -82,4 +82,33 @@ class DashboardUiStateTest {
         assertThat(state.peeCount).isEqualTo(1)
         assertThat(state.pooCount).isEqualTo(0)
     }
+
+    @Test
+    fun mutualExclusivity_neitherActive_neitherBlocked() {
+        val state = createBaseState(emptyList()).copy(ongoingSleep = null, ongoingNursing = null)
+        assertThat(state.isSleeping).isFalse()
+        assertThat(state.isNursing).isFalse()
+        assertThat(state.isSleepStartBlocked).isFalse()
+        assertThat(state.isNursingStartBlocked).isFalse()
+    }
+
+    @Test
+    fun mutualExclusivity_sleepActive_nursingBlocked() {
+        val sleepEvent = BabyEvent(id = 1, type = EventType.SLEEP, startTime = 1000L)
+        val state = createBaseState(emptyList()).copy(ongoingSleep = sleepEvent, ongoingNursing = null)
+        assertThat(state.isSleeping).isTrue()
+        assertThat(state.isNursing).isFalse()
+        assertThat(state.isSleepStartBlocked).isFalse() // Can end sleep
+        assertThat(state.isNursingStartBlocked).isTrue() // Cannot start nursing
+    }
+
+    @Test
+    fun mutualExclusivity_nursingActive_sleepBlocked() {
+        val nursingEvent = BabyEvent(id = 2, type = EventType.NURSING, startTime = 1000L)
+        val state = createBaseState(emptyList()).copy(ongoingSleep = null, ongoingNursing = nursingEvent)
+        assertThat(state.isSleeping).isFalse()
+        assertThat(state.isNursing).isTrue()
+        assertThat(state.isSleepStartBlocked).isTrue() // Cannot start sleep
+        assertThat(state.isNursingStartBlocked).isFalse() // Can end nursing
+    }
 }

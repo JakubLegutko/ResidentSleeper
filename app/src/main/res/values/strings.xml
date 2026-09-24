@@ -143,6 +143,8 @@
     <string name="subtitle_tap_to_sleep">Tap to sleep</string>
     <string name="subtitle_tap_to_finish">Tap to finish</string>
     <string name="subtitle_breast_bottle">Breast / Bottle</string>
+    <string name="btn_blocked_by_nursing">Stop nursing first</string>
+    <string name="btn_blocked_by_sleep">Stop sleep first</string>
     <string name="label_target_wake">Target Wake</string>
     <string name="label_feed_interval">Feed Interval</string>
     <string name="label_today_logs">Today Logs</string>
