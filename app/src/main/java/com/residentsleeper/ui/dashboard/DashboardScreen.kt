@@ -401,6 +401,18 @@ fun DashboardScreen(
             val pooBorderColor = if (isDark) Color(0xFFD97706).copy(alpha = 0.4f) else Color(0xFFFDE68A).copy(alpha = 0.8f)
             val pooContentColor = if (isDark) Color(0xFFFEF3C7) else Color(0xFFB45309)
 
+            val peeSubtitle = if (state.isToday) {
+                stringResource(R.string.btn_diaper_count_today, state.peeCount)
+            } else {
+                stringResource(R.string.btn_diaper_count_day, state.peeCount)
+            }
+
+            val pooSubtitle = if (state.isToday) {
+                stringResource(R.string.btn_diaper_count_today, state.pooCount)
+            } else {
+                stringResource(R.string.btn_diaper_count_day, state.pooCount)
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -408,7 +420,7 @@ fun DashboardScreen(
                 // Diaper Pee One-shot
                 ActionButtonCard(
                     title = stringResource(R.string.btn_diaper_pee),
-                    subtitle = null,
+                    subtitle = peeSubtitle,
                     icon = Icons.Default.WaterDrop,
                     containerColor = peeContainerColor,
                     baseColor = peeBaseColor,
@@ -424,7 +436,7 @@ fun DashboardScreen(
                 // Diaper Poo One-shot
                 ActionButtonCard(
                     title = stringResource(R.string.btn_diaper_poo),
-                    subtitle = null,
+                    subtitle = pooSubtitle,
                     icon = Icons.Default.Check,
                     containerColor = pooContainerColor,
                     baseColor = pooBaseColor,
