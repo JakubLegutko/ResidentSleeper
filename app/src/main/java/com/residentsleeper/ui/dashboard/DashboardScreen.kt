@@ -188,8 +188,8 @@ fun DashboardScreen(
                 wakeState = state.wakeWindowState,
                 feedingState = state.feedingState,
                 dayStartHour = state.activeProfile.dayStartHour,
-                sizeDp = 280.dp,
-                strokeWidthDp = 32.dp
+                sizeDp = 324.dp,
+                strokeWidthDp = 38.dp
             )
 
             // Color Legend

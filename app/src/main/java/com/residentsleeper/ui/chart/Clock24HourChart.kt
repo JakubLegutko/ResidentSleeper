@@ -58,8 +58,8 @@ fun Clock24HourChart(
     feedingState: FeedingState,
     dayStartHour: Int = 7,
     modifier: Modifier = Modifier,
-    sizeDp: Dp = 290.dp,
-    strokeWidthDp: Dp = 34.dp
+    sizeDp: Dp = 324.dp,
+    strokeWidthDp: Dp = 38.dp
 ) {
     val isDark = isSystemInDarkTheme()
     val ringBgColor = if (isDark) RingBackgroundDark else RingBackgroundLight
@@ -243,7 +243,7 @@ fun Clock24HourChart(
         // Hollow Center: Live summary status
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 48.dp)
+            modifier = Modifier.padding(horizontal = 40.dp)
         ) {
             if (wakeState.isSleeping) {
                 Text(
