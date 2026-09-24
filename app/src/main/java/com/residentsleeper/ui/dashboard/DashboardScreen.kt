@@ -1,5 +1,10 @@
 package com.residentsleeper.ui.dashboard
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
@@ -15,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +28,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -265,6 +278,8 @@ fun DashboardScreen(
                     icon = Icons.Default.WaterDrop,
                     containerColor = DiaperPeeCyan.copy(alpha = 0.2f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
+                    floatingFeedbackText = "+1",
+                    floatingFeedbackColor = DiaperPeeCyan,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onDiaperClick(DiaperType.PEE) },
                     onLongClick = { showDiaperTimeAdjustDialog = DiaperType.PEE }
@@ -277,6 +292,8 @@ fun DashboardScreen(
                     icon = Icons.Default.Check,
                     containerColor = DiaperPooWarm.copy(alpha = 0.2f),
                     contentColor = MaterialTheme.colorScheme.onSurface,
+                    floatingFeedbackText = "+1",
+                    floatingFeedbackColor = DiaperPooWarm,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onDiaperClick(DiaperType.POO) },
                     onLongClick = { showDiaperTimeAdjustDialog = DiaperType.POO }
@@ -557,6 +574,61 @@ fun DashboardScreen(
     }
 }
 
+private data class FloatingFeedback(
+    val id: Long,
+    val text: String,
+    val color: Color
+)
+
+@Composable
+private fun FloatingFeedbackItem(
+    feedback: FloatingFeedback,
+    onFinished: () -> Unit
+) {
+    val animProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(feedback.id) {
+        animProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing)
+        )
+        onFinished()
+    }
+
+    val progress = animProgress.value
+    val translateY = -52.dp * progress
+    val alpha = (1f - progress * 1.1f).coerceIn(0f, 1f)
+    val scale = 0.8f + (0.4f * progress)
+
+    Box(
+        modifier = Modifier
+            .offset(y = translateY)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                this.alpha = alpha
+            }
+            .background(
+                color = feedback.color.copy(alpha = 0.22f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = feedback.color.copy(alpha = 0.5f * alpha),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = feedback.text,
+            color = feedback.color,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ActionButtonCard(
@@ -566,47 +638,90 @@ private fun ActionButtonCard(
     containerColor: Color,
     contentColor: Color,
     modifier: Modifier = Modifier,
+    floatingFeedbackText: String? = null,
+    floatingFeedbackColor: Color = contentColor,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .height(96.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+    val coroutineScope = rememberCoroutineScope()
+    val buttonScale = remember { Animatable(1f) }
+    val haptic = LocalHapticFeedback.current
+    var feedbacks by remember { mutableStateOf(listOf<FloatingFeedback>()) }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
-        Column(
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .height(96.dp)
+                .graphicsLayer {
+                    scaleX = buttonScale.value
+                    scaleY = buttonScale.value
+                }
+                .clip(RoundedCornerShape(18.dp))
+                .combinedClickable(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        coroutineScope.launch {
+                            buttonScale.animateTo(0.93f, tween(60))
+                            buttonScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium))
+                        }
+                        if (floatingFeedbackText != null) {
+                            feedbacks = feedbacks + FloatingFeedback(
+                                id = System.nanoTime(),
+                                text = floatingFeedbackText,
+                                color = floatingFeedbackColor
+                            )
+                        }
+                        onClick()
+                    },
+                    onLongClick = onLongClick
+                ),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = containerColor)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = contentColor,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                textAlign = TextAlign.Center
-            )
-            if (!subtitle.isNullOrBlank()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = contentColor,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = contentColor.copy(alpha = 0.8f),
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
                     textAlign = TextAlign.Center
+                )
+                if (!subtitle.isNullOrBlank()) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = contentColor.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        // Floating visual feedback elements (e.g. +1 flying up)
+        feedbacks.forEach { feedback ->
+            key(feedback.id) {
+                FloatingFeedbackItem(
+                    feedback = feedback,
+                    onFinished = {
+                        feedbacks = feedbacks.filter { it.id != feedback.id }
+                    }
                 )
             }
         }
