@@ -234,6 +234,9 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // Mutual exclusivity flags
+                val isNursing = state.ongoingNursing != null
+
                 // Sleep Button (Toggle with Now / Adjust & Progress Bar)
                 val currentSleep = state.ongoingSleep
                 val isSleeping = currentSleep != null
@@ -289,25 +292,26 @@ fun DashboardScreen(
                     Color(0xFF4338CA)
                 }
 
+                val isSleepDisabled = state.isSleepStartBlocked
+
                 ActionButtonCard(
                     title = if (isSleeping) stringResource(R.string.btn_sleep_end) else stringResource(R.string.btn_sleep_start),
-                    subtitle = sleepSubtitle,
+                    subtitle = if (isSleepDisabled) stringResource(R.string.btn_blocked_by_nursing) else sleepSubtitle,
                     icon = Icons.Default.Hotel,
                     containerColor = sleepContainerColor,
                     baseColor = sleepBaseColor,
-                    contentColor = sleepContentColor,
+                    contentColor = if (isSleepDisabled) sleepContentColor.copy(alpha = 0.4f) else sleepContentColor,
                     borderColor = sleepBorderColor,
                     isToggled = isSleeping,
                     progress = sleepProgress,
                     progressColor = SleepIndigo,
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.onSleepButtonClick() },
-                    onLongClick = { showSleepTimeAdjustDialog = true }
+                    onClick = { if (!isSleepDisabled) viewModel.onSleepButtonClick() },
+                    onLongClick = { if (!isSleepDisabled) showSleepTimeAdjustDialog = true }
                 )
 
                 // Nursing Button (Toggle with details dialog & 20 min Progress Bar)
                 val currentNursing = state.ongoingNursing
-                val isNursing = currentNursing != null
                 val nursingProgress: Float?
                 val nursingSubtitle: String
                 val nursingTargetMinutes = 20
@@ -364,26 +368,30 @@ fun DashboardScreen(
                     Color(0xFFBE185D)
                 }
 
+                val isNursingDisabled = state.isNursingStartBlocked
+
                 ActionButtonCard(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
-                    subtitle = nursingSubtitle,
+                    subtitle = if (isNursingDisabled) stringResource(R.string.btn_blocked_by_sleep) else nursingSubtitle,
                     icon = Icons.Default.Restaurant,
                     containerColor = nursingContainerColor,
                     baseColor = nursingBaseColor,
-                    contentColor = nursingContentColor,
+                    contentColor = if (isNursingDisabled) nursingContentColor.copy(alpha = 0.4f) else nursingContentColor,
                     borderColor = nursingBorderColor,
                     isToggled = isNursing,
                     progress = nursingProgress,
                     progressColor = NursingPink,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        if (isNursing) {
-                            viewModel.onNursingButtonClick()
-                        } else {
-                            showNursingDialog = true
+                        if (!isNursingDisabled) {
+                            if (isNursing) {
+                                viewModel.onNursingButtonClick()
+                            } else {
+                                showNursingDialog = true
+                            }
                         }
                     },
-                    onLongClick = { showNursingTimeAdjustDialog = true }
+                    onLongClick = { if (!isNursingDisabled) showNursingTimeAdjustDialog = true }
                 )
             }
 

@@ -46,6 +46,18 @@ data class DashboardUiState(
 
     val pooCount: Int
         get() = events.count { it.type == EventType.DIAPER && (it.diaperType == DiaperType.POO || it.diaperType == DiaperType.BOTH) }
+
+    val isSleeping: Boolean
+        get() = ongoingSleep != null
+
+    val isNursing: Boolean
+        get() = ongoingNursing != null
+
+    val isSleepStartBlocked: Boolean
+        get() = !isSleeping && isNursing
+
+    val isNursingStartBlocked: Boolean
+        get() = !isNursing && isSleeping
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -227,6 +239,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     )
                 }
             } else {
+                if (state.ongoingNursing != null) return@launch
                 // Start sleep -> baby fell asleep -> cancel wake alerts
                 repository.startSleep(profileId, now)
                 BabyAlarmScheduler.cancelWakeWindowAlert(context)
@@ -264,6 +277,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     BabyAlarmScheduler.cancelFeedingAlert(context)
                 }
             } else {
+                if (state.ongoingSleep != null) return@launch
                 // Start nursing
                 repository.startNursing(profileId, nursingType, amountMl, now)
 
