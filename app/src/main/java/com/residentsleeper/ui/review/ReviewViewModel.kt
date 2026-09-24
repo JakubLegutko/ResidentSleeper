@@ -3,6 +3,7 @@ package com.residentsleeper.ui.review
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.residentsleeper.R
 import com.residentsleeper.data.local.AppDatabase
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.repository.BabyRepository
@@ -79,7 +80,7 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
                 }
                 ReviewPeriod.WEEKLY -> {
                     val summaries = loadPastDaysSummaries(profile.id, 7, startHour)
-                    val aggregated = StatisticsCalculator.aggregateSummaries("Past 7 Days", summaries)
+                    val aggregated = StatisticsCalculator.aggregateSummaries(getApplication<Application>().getString(R.string.review_past_7_days), summaries)
                     _uiState.value = _uiState.value.copy(
                         activeProfile = profile,
                         dailySummary = null,
@@ -89,7 +90,7 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
                 }
                 ReviewPeriod.MONTHLY -> {
                     val summaries = loadPastDaysSummaries(profile.id, 30, startHour)
-                    val aggregated = StatisticsCalculator.aggregateSummaries("Past 30 Days", summaries)
+                    val aggregated = StatisticsCalculator.aggregateSummaries(getApplication<Application>().getString(R.string.review_past_30_days), summaries)
                     _uiState.value = _uiState.value.copy(
                         activeProfile = profile,
                         dailySummary = null,

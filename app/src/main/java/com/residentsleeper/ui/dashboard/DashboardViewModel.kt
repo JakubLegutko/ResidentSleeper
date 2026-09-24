@@ -16,6 +16,7 @@ import com.residentsleeper.domain.FeedingState
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.domain.WakeWindowState
 import com.residentsleeper.notifications.BabyAlarmScheduler
+import com.residentsleeper.R
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,7 +110,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val isToday = dayStart == getStartOfToday(safeProfile.dayStartHour)
 
             val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
-            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents)
+            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents, getApplication())
             val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now, dayEvents)
 
             DashboardUiState(
@@ -132,7 +133,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             selectedDayStart = getStartOfToday(7),
             selectedDayEnd = getEndOfDay(getStartOfToday(7)),
             isToday = true,
-            wakeWindowState = WakeWindowCalculator.computeState(BabyProfile(), null, null),
+            wakeWindowState = WakeWindowCalculator.computeState(BabyProfile(), null, null, context = getApplication()),
             feedingState = FeedingPredictor.computeState(BabyProfile(), null, null)
         )
     )
@@ -185,7 +186,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 val dayEnd = getEndOfDay(dayStart)
                 val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
                 val latestSleep = repository.getLatestEvent(profileId, EventType.SLEEP)
-                val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now, dayEvents)
+                val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now, dayEvents, context)
 
                 if (profile.enablePushNotifications && wakeState.alert10MinTimestamp != null) {
                     val notifTitle = "${profile.name}: ${wakeState.recommendationTitle}"
@@ -203,8 +204,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     CalendarSyncManager.createCalendarEventWithReminder(
                         context = context,
                         calendarId = profile.selectedCalendarId,
-                        title = "${profile.name} - Activity Cycle End",
-                        description = "Recommended end of wake window for nap time",
+                        title = context.getString(R.string.calendar_activity_end_title, profile.name),
+                        description = context.getString(R.string.calendar_activity_end_desc),
                         startTimeMillis = wakeState.expectedWakeEndTime,
                         endTimeMillis = wakeState.expectedWakeEndTime + 30 * 60 * 1000,
                         reminderMinutes = profile.notifyBeforeMinutes
@@ -269,8 +270,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                     CalendarSyncManager.createCalendarEventWithReminder(
                         context = context,
                         calendarId = profile.selectedCalendarId,
-                        title = "${profile.name} - Feeding Time",
-                        description = "Approximated next feeding schedule",
+                        title = context.getString(R.string.calendar_feeding_title, profile.name),
+                        description = context.getString(R.string.calendar_feeding_desc),
                         startTimeMillis = feedState.nextFeedEstimateTime,
                         endTimeMillis = feedState.nextFeedEstimateTime + 30 * 60 * 1000,
                         reminderMinutes = profile.notifyBeforeMinutes

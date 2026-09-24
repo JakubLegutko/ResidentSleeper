@@ -34,4 +34,12 @@ object LocaleHelper {
         }
         AppCompatDelegate.setApplicationLocales(localeList)
     }
+
+    fun initLocale(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val savedLang = prefs.getString(KEY_LANG, null)
+        if (!savedLang.isNullOrEmpty() && AppCompatDelegate.getApplicationLocales().isEmpty) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(savedLang))
+        }
+    }
 }

@@ -20,11 +20,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.residentsleeper.R
 import com.residentsleeper.data.model.BabyEvent
 import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.EventType
@@ -245,29 +247,29 @@ fun Clock24HourChart(
         ) {
             if (wakeState.isSleeping) {
                 Text(
-                    text = "😴 Sleeping",
+                    text = stringResource(R.string.state_sleeping),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = SleepIndigo
                 )
             } else {
                 Text(
-                    text = "👶 Awake",
+                    text = stringResource(R.string.state_awake),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = WakeMint
                 )
                 Text(
-                    text = "${wakeState.wakeDurationMinutes} min",
+                    text = stringResource(R.string.state_wake_duration, wakeState.wakeDurationMinutes),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold
                 )
                 if (wakeState.minutesUntilWakeEnd != null) {
                     val remaining = wakeState.minutesUntilWakeEnd
                     val statusText = if (remaining >= 0) {
-                        "Window ends: in $remaining m"
+                        stringResource(R.string.state_window_ends_in, remaining)
                     } else {
-                        "Overdue: by ${-remaining} m"
+                        stringResource(R.string.state_overdue_by, -remaining)
                     }
                     Text(
                         text = statusText,
@@ -288,7 +290,7 @@ fun Clock24HourChart(
 
             if (feedingState.isNursingNow) {
                 Text(
-                    text = "🍼 Nursing now",
+                    text = stringResource(R.string.state_nursing_now),
                     style = MaterialTheme.typography.labelSmall,
                     color = NursingPink,
                     fontWeight = FontWeight.SemiBold,
@@ -297,9 +299,9 @@ fun Clock24HourChart(
             } else if (feedingState.minutesUntilNextFeed != null) {
                 val nextIn = feedingState.minutesUntilNextFeed
                 val feedText = if (feedingState.isOptionalNightFeed) {
-                    if (nextIn >= 0) "Next feed: in ${nextIn}m (Optional)" else "🌙 Night feed: Optional (On demand)"
+                    if (nextIn >= 0) stringResource(R.string.state_next_feed_optional, nextIn) else stringResource(R.string.state_night_feed_optional)
                 } else {
-                    if (nextIn >= 0) "Next feed: in ${nextIn}m" else "Feed due now!"
+                    if (nextIn >= 0) stringResource(R.string.state_next_feed_in, nextIn) else stringResource(R.string.state_feed_due_now)
                 }
                 Text(
                     text = feedText,

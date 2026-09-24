@@ -57,6 +57,7 @@ fun ProfileSwitcherDialog(
     var newName by remember { mutableStateOf("") }
     var newBirthDate by remember { mutableStateOf(System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
+    val defaultBabyName = stringResource(R.string.profile_default_name)
 
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
@@ -112,7 +113,7 @@ fun ProfileSwitcherDialog(
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = "$ageWeeks weeks old",
+                                            text = stringResource(R.string.profile_weeks_old, ageWeeks),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -121,7 +122,7 @@ fun ProfileSwitcherDialog(
                                 if (isSelected) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Active",
+                                        contentDescription = stringResource(R.string.review_active),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -168,7 +169,7 @@ fun ProfileSwitcherDialog(
             if (showAddForm) {
                 Button(
                     onClick = {
-                        val name = newName.trim().ifEmpty { "Baby" }
+                        val name = newName.trim().ifEmpty { defaultBabyName }
                         onAddProfile(name, newBirthDate)
                         onDismiss()
                     }

@@ -25,7 +25,7 @@ class BootReceiver : BroadcastReceiver() {
                     if (profile != null && profile.enablePushNotifications) {
                         val latestSleep = db.babyEventDao().getLatestEvent(profile.id, EventType.SLEEP)
                         val ongoingSleep = db.babyEventDao().getOngoingEvent(profile.id, EventType.SLEEP)
-                        val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, ongoingSleep)
+                        val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, ongoingSleep, context = context)
 
                         if (!wakeState.isSleeping && wakeState.alert10MinTimestamp != null) {
                             val notifTitle = "${profile.name}: ${wakeState.recommendationTitle}"

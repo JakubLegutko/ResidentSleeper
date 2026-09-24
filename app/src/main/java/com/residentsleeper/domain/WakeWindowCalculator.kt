@@ -1,5 +1,7 @@
 package com.residentsleeper.domain
 
+import android.content.Context
+import com.residentsleeper.R
 import com.residentsleeper.data.model.BabyEvent
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.model.EventType
@@ -49,7 +51,8 @@ object WakeWindowCalculator {
         latestSleep: BabyEvent?,
         ongoingSleep: BabyEvent?,
         currentTime: Long = System.currentTimeMillis(),
-        dayEvents: List<BabyEvent> = emptyList()
+        dayEvents: List<BabyEvent> = emptyList(),
+        context: Context? = null
     ): WakeWindowState {
         val ageWeeks = calculateAgeInWeeks(profile.birthTimestamp, currentTime)
         val schedule = LittleOnesSleepScheduleDatabase.getScheduleForAge(ageWeeks)
@@ -117,49 +120,104 @@ object WakeWindowCalculator {
 
         if (profile.customWakeWindowMinutes == null || profile.customWakeWindowMinutes == 0) {
             if (nextCategory == SleepCategory.BEDTIME) {
-                reason = "Bedtime window approaching (${String.format("%02d:%02d", schedule.bedtimeStartHour, schedule.bedtimeStartMinute)}–${String.format("%02d:%02d", schedule.bedtimeEndHour, schedule.bedtimeEndMinute)}). Longer wake window builds overnight sleep pressure."
+                val bedStart = String.format("%02d:%02d", schedule.bedtimeStartHour, schedule.bedtimeStartMinute)
+                val bedEnd = String.format("%02d:%02d", schedule.bedtimeEndHour, schedule.bedtimeEndMinute)
+                reason = if (context != null) {
+                    context.getString(R.string.rec_reason_bedtime, bedStart, bedEnd)
+                } else {
+                    "Bedtime window approaching ($bedStart–$bedEnd). Longer wake window builds overnight sleep pressure."
+                }
             } else if (lastNapDurationMinutes in 1..39) {
                 // Short nap penalty: reduce window by 15-20% to prevent cortisol surge
                 val reduction = (baseWindow * 0.18f).toInt()
                 adjustedWindow = maxOf(35, baseWindow - reduction)
-                reason = "Last nap was short (${lastNapDurationMinutes}m). Wake window shortened by ${reduction}m to prevent overtiredness."
+                reason = if (context != null) {
+                    context.getString(R.string.rec_reason_short_nap, lastNapDurationMinutes, reduction)
+                } else {
+                    "Last nap was short (${lastNapDurationMinutes}m). Wake window shortened by ${reduction}m to prevent overtiredness."
+                }
             } else if (lastNapDurationMinutes >= 90) {
                 // Restorative nap: full window supported
-                reason = "Last nap was restorative (${lastNapDurationMinutes}m). Full age-appropriate wake window supported."
+                reason = if (context != null) {
+                    context.getString(R.string.rec_reason_restorative_nap, lastNapDurationMinutes)
+                } else {
+                    "Last nap was restorative (${lastNapDurationMinutes}m). Full age-appropriate wake window supported."
+                }
             } else {
-                reason = when (nextCategory) {
-                    SleepCategory.MORNING_NAP -> "Morning wake window is naturally shorter as circadian alertness ramps up."
-                    SleepCategory.MIDDAY_NAP -> "Midday sleep window builds pressure for the core restorative nap."
-                    SleepCategory.BRIDGE_CATNAP -> "Bridge catnap to prevent overtiredness before evening bedtime."
-                    SleepCategory.BEDTIME -> "Final wake window before night sleep."
+                reason = if (context != null) {
+                    when (nextCategory) {
+                        SleepCategory.MORNING_NAP -> context.getString(R.string.rec_reason_morning)
+                        SleepCategory.MIDDAY_NAP -> context.getString(R.string.rec_reason_midday)
+                        SleepCategory.BRIDGE_CATNAP -> context.getString(R.string.rec_reason_bridge)
+                        SleepCategory.BEDTIME -> context.getString(R.string.rec_reason_bedtime_final)
+                    }
+                } else {
+                    when (nextCategory) {
+                        SleepCategory.MORNING_NAP -> "Morning wake window is naturally shorter as circadian alertness ramps up."
+                        SleepCategory.MIDDAY_NAP -> "Midday sleep window builds pressure for the core restorative nap."
+                        SleepCategory.BRIDGE_CATNAP -> "Bridge catnap to prevent overtiredness before evening bedtime."
+                        SleepCategory.BEDTIME -> "Final wake window before night sleep."
+                    }
                 }
             }
         } else {
-            reason = "Using custom wake window setting (${profile.customWakeWindowMinutes}m)."
+            reason = if (context != null) {
+                context.getString(R.string.rec_reason_custom_window, profile.customWakeWindowMinutes)
+            } else {
+                "Using custom wake window setting (${profile.customWakeWindowMinutes}m)."
+            }
         }
 
         // Recommended sleep duration text
-        val recDurationText = when (nextCategory) {
-            SleepCategory.MORNING_NAP -> "${schedule.morningNapDurationMin} min (Morning Nap)"
-            SleepCategory.MIDDAY_NAP -> {
-                val h = schedule.middayNapDurationMin / 60
-                val m = schedule.middayNapDurationMin % 60
-                if (m == 0) "$h hours (Core Restorative Nap)" else "${h}h ${m}m (Core Restorative Nap)"
+        val recDurationText = if (context != null) {
+            when (nextCategory) {
+                SleepCategory.MORNING_NAP -> context.getString(R.string.rec_duration_morning_nap, schedule.morningNapDurationMin)
+                SleepCategory.MIDDAY_NAP -> {
+                    val h = schedule.middayNapDurationMin / 60
+                    val m = schedule.middayNapDurationMin % 60
+                    if (m == 0) {
+                        context.getString(R.string.rec_duration_midday_nap_hours, h)
+                    } else {
+                        context.getString(R.string.rec_duration_midday_nap_hours_mins, h, m)
+                    }
+                }
+                SleepCategory.BRIDGE_CATNAP -> context.getString(R.string.rec_duration_bridge_catnap, schedule.catnapDurationMin)
+                SleepCategory.BEDTIME -> context.getString(R.string.rec_duration_bedtime, schedule.totalNightSleepTargetHours.toInt())
             }
-            SleepCategory.BRIDGE_CATNAP -> "${schedule.catnapDurationMin} min (Bridge Catnap — end by 5:00 PM)"
-            SleepCategory.BEDTIME -> "${schedule.totalNightSleepTargetHours.toInt()} hours (Overnight Consolidated Sleep)"
+        } else {
+            when (nextCategory) {
+                SleepCategory.MORNING_NAP -> "${schedule.morningNapDurationMin} min (Morning Nap)"
+                SleepCategory.MIDDAY_NAP -> {
+                    val h = schedule.middayNapDurationMin / 60
+                    val m = schedule.middayNapDurationMin % 60
+                    if (m == 0) "$h hours (Core Restorative Nap)" else "${h}h ${m}m (Core Restorative Nap)"
+                }
+                SleepCategory.BRIDGE_CATNAP -> "${schedule.catnapDurationMin} min (Bridge Catnap — end by 5:00 PM)"
+                SleepCategory.BEDTIME -> "${schedule.totalNightSleepTargetHours.toInt()} hours (Overnight Consolidated Sleep)"
+            }
         }
 
-        val recTitle = when (nextCategory) {
-            SleepCategory.MORNING_NAP -> "Next: Morning Nap"
-            SleepCategory.MIDDAY_NAP -> "Next: Restorative Midday Nap"
-            SleepCategory.BRIDGE_CATNAP -> "Next: Bridge Catnap"
-            SleepCategory.BEDTIME -> "Next: Bedtime Ritual"
+        val recTitle = if (context != null) {
+            when (nextCategory) {
+                SleepCategory.MORNING_NAP -> context.getString(R.string.rec_title_morning_nap)
+                SleepCategory.MIDDAY_NAP -> context.getString(R.string.rec_title_midday_nap)
+                SleepCategory.BRIDGE_CATNAP -> context.getString(R.string.rec_title_bridge_catnap)
+                SleepCategory.BEDTIME -> context.getString(R.string.rec_title_bedtime)
+            }
+        } else {
+            when (nextCategory) {
+                SleepCategory.MORNING_NAP -> "Next: Morning Nap"
+                SleepCategory.MIDDAY_NAP -> "Next: Restorative Midday Nap"
+                SleepCategory.BRIDGE_CATNAP -> "Next: Bridge Catnap"
+                SleepCategory.BEDTIME -> "Next: Bedtime Ritual"
+            }
         }
 
         if (ongoingSleep != null) {
             val sleepDurMillis = maxOf(0L, currentTime - ongoingSleep.startTime)
             val sleepDurMinutes = TimeUnit.MILLISECONDS.toMinutes(sleepDurMillis)
+            val ongoingTitle = if (context != null) context.getString(R.string.rec_title_sleep_in_progress) else "Sleep In Progress"
+            val ongoingReason = if (context != null) context.getString(R.string.rec_reason_sleep_target, recDurationText) else "Target duration: $recDurationText"
             return WakeWindowState(
                 isSleeping = true,
                 babyAgeWeeks = ageWeeks,
@@ -172,8 +230,8 @@ object WakeWindowCalculator {
                 alert10MinTimestamp = null,
                 nextSleepCategory = nextCategory,
                 recommendedSleepDuration = recDurationText,
-                recommendationTitle = "Sleep In Progress",
-                recommendationReason = "Target duration: $recDurationText",
+                recommendationTitle = ongoingTitle,
+                recommendationReason = ongoingReason,
                 triviaTip = trivia,
                 napsCompletedToday = napsCount,
                 targetNapsToday = schedule.targetNapsCount,

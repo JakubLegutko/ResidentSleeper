@@ -84,7 +84,7 @@ fun ReviewScreen(
                 title = { Text(text = stringResource(R.string.nav_review), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.content_desc_back))
                     }
                 }
             )
@@ -169,7 +169,7 @@ private fun DailyMetricsView(
     MetricCard(
         title = stringResource(R.string.stat_total_sleep),
         mainValue = "${totalHours}h ${totalMins}m",
-        subValue = "Day: ${dayHours}h ${dayMins}m • Night: ${nightHours}h ${nightMins}m (${summary.napCount} naps)",
+        subValue = stringResource(R.string.review_sub_day_night_naps, dayHours, dayMins, nightHours, nightMins, summary.napCount),
         icon = Icons.Default.Hotel,
         iconColor = SleepIndigo,
         selected = selectedMetric == ReviewMetric.SLEEP,
@@ -181,7 +181,7 @@ private fun DailyMetricsView(
     MetricCard(
         title = stringResource(R.string.stat_wake_window),
         mainValue = "${summary.averageWakeWindowMinutes} min",
-        subValue = "Average activity cycle between naps",
+        subValue = stringResource(R.string.review_sub_activity_cycle),
         icon = Icons.Default.Schedule,
         iconColor = WakeMint,
         selected = selectedMetric == ReviewMetric.WAKE_WINDOW,
@@ -195,9 +195,9 @@ private fun DailyMetricsView(
         mainValue = if (summary.nightFeedingCount > 0) {
             stringResource(R.string.stat_night_feedings, summary.feedingCount, summary.nightFeedingCount)
         } else {
-            "${summary.feedingCount} sessions"
+            stringResource(R.string.review_sessions, summary.feedingCount)
         },
-        subValue = if (summary.totalBottleMl > 0) "${summary.totalNursingDurationMinutes}m total • ${summary.totalBottleMl} ml bottle" else "${summary.totalNursingDurationMinutes}m total nursing time",
+        subValue = if (summary.totalBottleMl > 0) stringResource(R.string.review_nursing_time_bottle, summary.totalNursingDurationMinutes, summary.totalBottleMl) else stringResource(R.string.review_nursing_time_total, summary.totalNursingDurationMinutes),
         icon = Icons.Default.Restaurant,
         iconColor = NursingPink,
         selected = selectedMetric == ReviewMetric.FEEDINGS,
@@ -208,8 +208,8 @@ private fun DailyMetricsView(
 
     MetricCard(
         title = stringResource(R.string.stat_diapers),
-        mainValue = "${summary.diaperPeeCount + summary.diaperPooCount} changes",
-        subValue = "💧 Wet: ${summary.diaperPeeCount}  |  💩 Dirty: ${summary.diaperPooCount}",
+        mainValue = stringResource(R.string.review_changes, summary.diaperPeeCount + summary.diaperPooCount),
+        subValue = stringResource(R.string.review_wet_dirty, summary.diaperPeeCount, summary.diaperPooCount),
         icon = Icons.Default.WaterDrop,
         iconColor = DiaperPeeCyan,
         selected = selectedMetric == ReviewMetric.DIAPERS,
@@ -237,7 +237,7 @@ private fun AggregatedMetricsView(
     onSelectMetric: (ReviewMetric) -> Unit
 ) {
     Text(
-        text = "$title ($daysCount days average)",
+        text = stringResource(R.string.review_days_average, title, daysCount),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 12.dp)
@@ -251,9 +251,9 @@ private fun AggregatedMetricsView(
     val nightMins = avgNightSleepMin % 60
 
     MetricCard(
-        title = "Avg Sleep / Day",
+        title = stringResource(R.string.review_avg_sleep_day),
         mainValue = "${totalHours}h ${totalMins}m",
-        subValue = "Day: ${dayHours}h ${dayMins}m • Night: ${nightHours}h ${nightMins}m",
+        subValue = stringResource(R.string.review_sub_day_night, dayHours, dayMins, nightHours, nightMins),
         icon = Icons.Default.Hotel,
         iconColor = SleepIndigo,
         selected = selectedMetric == ReviewMetric.SLEEP,
@@ -263,9 +263,9 @@ private fun AggregatedMetricsView(
     Spacer(modifier = Modifier.height(12.dp))
 
     MetricCard(
-        title = "Avg Wake Window",
+        title = stringResource(R.string.review_avg_wake_window),
         mainValue = "$avgWakeMin min",
-        subValue = "Average activity cycle between naps",
+        subValue = stringResource(R.string.review_sub_activity_cycle),
         icon = Icons.Default.Schedule,
         iconColor = WakeMint,
         selected = selectedMetric == ReviewMetric.WAKE_WINDOW,
@@ -275,9 +275,9 @@ private fun AggregatedMetricsView(
     Spacer(modifier = Modifier.height(12.dp))
 
     MetricCard(
-        title = "Avg Feedings / Day",
-        mainValue = String.format(Locale.getDefault(), "%.1f times", avgFeeds),
-        subValue = if (avgBottleMl > 0) String.format(Locale.getDefault(), "%.0f ml bottle/day", avgBottleMl) else "Nursing sessions per day",
+        title = stringResource(R.string.review_avg_feedings_day),
+        mainValue = String.format(Locale.getDefault(), stringResource(R.string.review_times_format), avgFeeds),
+        subValue = if (avgBottleMl > 0) String.format(Locale.getDefault(), stringResource(R.string.review_ml_bottle_day), avgBottleMl) else stringResource(R.string.review_nursing_per_day),
         icon = Icons.Default.Restaurant,
         iconColor = NursingPink,
         selected = selectedMetric == ReviewMetric.FEEDINGS,
@@ -287,9 +287,9 @@ private fun AggregatedMetricsView(
     Spacer(modifier = Modifier.height(12.dp))
 
     MetricCard(
-        title = "Avg Diapers / Day",
-        mainValue = String.format(Locale.getDefault(), "%.1f changes", avgPee + avgPoo),
-        subValue = String.format(Locale.getDefault(), "💧 Wet: %.1f  |  💩 Dirty: %.1f", avgPee, avgPoo),
+        title = stringResource(R.string.review_avg_diapers_day),
+        mainValue = String.format(Locale.getDefault(), stringResource(R.string.review_changes_format), avgPee + avgPoo),
+        subValue = String.format(Locale.getDefault(), stringResource(R.string.review_wet_dirty_format), avgPee, avgPoo),
         icon = Icons.Default.WaterDrop,
         iconColor = DiaperPeeCyan,
         selected = selectedMetric == ReviewMetric.DIAPERS,
@@ -302,25 +302,25 @@ private fun AggregatedMetricsView(
     if (dailySummaries.isNotEmpty()) {
         val config = when (selectedMetric) {
             ReviewMetric.SLEEP -> MetricTrendConfig(
-                title = "Sleep Trend (Hours / Day)",
+                title = stringResource(R.string.review_trend_sleep),
                 color = SleepIndigo,
                 unit = "h",
                 extractor = { it.totalSleepMinutes / 60f }
             )
             ReviewMetric.WAKE_WINDOW -> MetricTrendConfig(
-                title = "Wake Window Trend (Minutes / Day)",
+                title = stringResource(R.string.review_trend_wake),
                 color = WakeMint,
                 unit = "m",
                 extractor = { it.averageWakeWindowMinutes.toFloat() }
             )
             ReviewMetric.FEEDINGS -> MetricTrendConfig(
-                title = "Feedings Trend (Sessions / Day)",
+                title = stringResource(R.string.review_trend_feedings),
                 color = NursingPink,
                 unit = "",
                 extractor = { it.feedingCount.toFloat() }
             )
             ReviewMetric.DIAPERS -> MetricTrendConfig(
-                title = "Diapers Trend (Changes / Day)",
+                title = stringResource(R.string.review_trend_diapers),
                 color = DiaperPeeCyan,
                 unit = "",
                 extractor = { (it.diaperPeeCount + it.diaperPooCount).toFloat() }
@@ -373,7 +373,7 @@ private fun TrendLineGraph(
                 )
                 val avgVal = if (data.isNotEmpty()) data.map { it.second }.average() else 0.0
                 Text(
-                    text = "Avg: " + String.format(Locale.getDefault(), "%.1f%s", avgVal, unit),
+                    text = stringResource(R.string.review_avg_prefix) + String.format(Locale.getDefault(), "%.1f%s", avgVal, unit),
                     style = MaterialTheme.typography.labelSmall,
                     color = lineColor,
                     fontWeight = FontWeight.SemiBold
@@ -512,7 +512,7 @@ private fun TrendLineGraph(
                 }
             } else {
                 Text(
-                    text = "Not enough data recorded yet for monthly graph.",
+                    text = stringResource(R.string.review_no_monthly_data),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -643,7 +643,7 @@ private fun MetricCard(
                     )
                     if (selected) {
                         Text(
-                            text = "Active",
+                            text = stringResource(R.string.review_active),
                             style = MaterialTheme.typography.labelSmall,
                             color = iconColor,
                             fontWeight = FontWeight.Bold

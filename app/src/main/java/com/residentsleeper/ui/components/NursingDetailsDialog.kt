@@ -45,7 +45,7 @@ fun NursingDetailsDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Select Method / Side:",
+                    text = stringResource(R.string.dialog_select_method),
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
