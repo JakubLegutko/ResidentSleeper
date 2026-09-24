@@ -57,6 +57,8 @@ fun Clock24HourChart(
     wakeState: WakeWindowState,
     feedingState: FeedingState,
     dayStartHour: Int = 7,
+    is12Hour: Boolean = false,
+    dayPeriod: DayPeriod = DayPeriod.DAY,
     modifier: Modifier = Modifier,
     sizeDp: Dp = 324.dp,
     strokeWidthDp: Dp = 38.dp
@@ -64,6 +66,20 @@ fun Clock24HourChart(
     val isDark = isSystemInDarkTheme()
     val ringBgColor = if (isDark) RingBackgroundDark else RingBackgroundLight
     val textColor = MaterialTheme.colorScheme.onSurface
+
+    // Calculate effective time window for chart
+    val periodDurationMillis = 12 * 3600 * 1000L
+    val chartStartMillis = if (is12Hour) {
+        if (dayPeriod == DayPeriod.NIGHT) dayStartMillis + periodDurationMillis else dayStartMillis
+    } else {
+        dayStartMillis
+    }
+    val chartEndMillis = if (is12Hour) {
+        if (dayPeriod == DayPeriod.NIGHT) dayEndMillis else dayStartMillis + periodDurationMillis
+    } else {
+        dayEndMillis
+    }
+    val chartStartHour = if (is12Hour && dayPeriod == DayPeriod.NIGHT) (dayStartHour + 12) % 24 else dayStartHour
 
     Box(
         modifier = modifier.size(sizeDp),
@@ -83,16 +99,17 @@ fun Clock24HourChart(
                 style = Stroke(width = strokePx)
             )
 
-            // 2. Draw 24-hour hour ticks & labels (shifted with dayStartHour at the top)
-            drawHourTicksAndLabels(center, radius, strokePx, textColor, dayStartHour)
+            // 2. Draw hour ticks & labels (24h or 12h)
+            drawHourTicksAndLabels(center, radius, strokePx, textColor, dayStartHour, is12Hour)
 
             // 3. Draw Sleep and Activity Arcs on the ring with distinct colors
             val cycleArcs = ClockChartMath.computeDayCycleArcs(
-                dayStartMillis = dayStartMillis,
-                dayEndMillis = dayEndMillis,
+                dayStartMillis = chartStartMillis,
+                dayEndMillis = chartEndMillis,
                 events = events,
                 currentTime = System.currentTimeMillis(),
-                startHour = dayStartHour
+                startHour = chartStartHour,
+                is12Hour = is12Hour
             )
 
             // Draw Activity / Wake Arcs first
@@ -149,9 +166,17 @@ fun Clock24HourChart(
             val nursingTrackRadius = radius                    // Centerline for Nursing
 
             for (event in events) {
+                if (is12Hour && (event.startTime < chartStartMillis || event.startTime >= chartEndMillis)) {
+                    continue
+                }
                 when (event.type) {
                     EventType.NURSING -> {
-                        val angle = ClockChartMath.computeMarkerAngle(event.startTime, dayStartHour)
+                        val angle = ClockChartMath.computeMarkerAngle(
+                            timestamp = event.startTime,
+                            startHour = chartStartHour,
+                            windowStartMillis = chartStartMillis,
+                            is12Hour = is12Hour
+                        )
                         val angleRad = (angle * PI / 180f).toFloat()
                         val markerPos = Offset(
                             x = center.x + nursingTrackRadius * cos(angleRad),
@@ -165,7 +190,12 @@ fun Clock24HourChart(
                         )
                     }
                     EventType.DIAPER -> {
-                        val angle = ClockChartMath.computeMarkerAngle(event.startTime, dayStartHour)
+                        val angle = ClockChartMath.computeMarkerAngle(
+                            timestamp = event.startTime,
+                            startHour = chartStartHour,
+                            windowStartMillis = chartStartMillis,
+                            is12Hour = is12Hour
+                        )
                         val angleRad = (angle * PI / 180f).toFloat()
 
                         when (event.diaperType) {
@@ -229,24 +259,37 @@ fun Clock24HourChart(
             }
 
             // 5. Draw current time indicator needle
-            val nowMinute = ClockChartMath.getMinuteOfDay(System.currentTimeMillis())
-            val nowAngle = ClockChartMath.minuteToAngle(nowMinute, dayStartHour)
-            val nowAngleRad = (nowAngle * PI / 180f).toFloat()
-            val needleEnd = Offset(
-                x = center.x + (radius + strokePx / 2f + 4.dp.toPx()) * cos(nowAngleRad),
-                y = center.y + (radius + strokePx / 2f + 4.dp.toPx()) * sin(nowAngleRad)
-            )
-            val needleStart = Offset(
-                x = center.x + (radius - strokePx / 2f - 4.dp.toPx()) * cos(nowAngleRad),
-                y = center.y + (radius - strokePx / 2f - 4.dp.toPx()) * sin(nowAngleRad)
-            )
-            drawLine(
-                color = CurrentTimeNeedle,
-                start = needleStart,
-                end = needleEnd,
-                strokeWidth = 3.dp.toPx(),
-                cap = StrokeCap.Round
-            )
+            val now = System.currentTimeMillis()
+            val isInCurrentChartRange = if (is12Hour) {
+                now in chartStartMillis until chartEndMillis
+            } else {
+                now in dayStartMillis until dayEndMillis
+            }
+
+            if (isInCurrentChartRange) {
+                val nowAngle = ClockChartMath.computeMarkerAngle(
+                    timestamp = now,
+                    startHour = chartStartHour,
+                    windowStartMillis = chartStartMillis,
+                    is12Hour = is12Hour
+                )
+                val nowAngleRad = (nowAngle * PI / 180f).toFloat()
+                val needleEnd = Offset(
+                    x = center.x + (radius + strokePx / 2f + 4.dp.toPx()) * cos(nowAngleRad),
+                    y = center.y + (radius + strokePx / 2f + 4.dp.toPx()) * sin(nowAngleRad)
+                )
+                val needleStart = Offset(
+                    x = center.x + (radius - strokePx / 2f - 4.dp.toPx()) * cos(nowAngleRad),
+                    y = center.y + (radius - strokePx / 2f - 4.dp.toPx()) * sin(nowAngleRad)
+                )
+                drawLine(
+                    color = CurrentTimeNeedle,
+                    start = needleStart,
+                    end = needleEnd,
+                    strokeWidth = 3.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
         }
 
         // Hollow Center: Live summary status
@@ -330,17 +373,26 @@ private fun DrawScope.drawHourTicksAndLabels(
     radius: Float,
     strokePx: Float,
     textColor: Color,
-    dayStartHour: Int
+    dayStartHour: Int,
+    is12Hour: Boolean = false
 ) {
     val tickRadiusInner = radius - (strokePx / 2f)
     val majorTickRadiusInner = radius - (strokePx / 2f) - 6.dp.toPx()
 
-    for (i in 0 until 24) {
-        val hourOfDay = (dayStartHour + i) % 24
-        val angle = ClockChartMath.minuteToAngle(hourOfDay * 60, dayStartHour)
+    val totalHours = if (is12Hour) 12 else 24
+    val majorInterval = 3 // Every 3 hours is a major tick
+    val labelInterval = if (is12Hour) 3 else 6 // Cardinal points (Top, Right, Bottom, Left)
+
+    for (i in 0 until totalHours) {
+        val angle = if (is12Hour) {
+            (i * 30f + ClockChartMath.TOP_CLOCK_OFFSET + 360f) % 360f
+        } else {
+            val hourOfDay = (dayStartHour + i) % 24
+            ClockChartMath.minuteToAngle(hourOfDay * 60, dayStartHour)
+        }
         val angleRad = (angle * PI / 180f).toFloat()
 
-        val isMajor = i % 3 == 0
+        val isMajor = i % majorInterval == 0
         val innerR = if (isMajor) majorTickRadiusInner else tickRadiusInner
         val outerR = radius - (strokePx / 2f) + 2.dp.toPx()
 
@@ -360,13 +412,20 @@ private fun DrawScope.drawHourTicksAndLabels(
             strokeWidth = if (isMajor) 2.dp.toPx() else 1.dp.toPx()
         )
 
-        // Draw hour numbers for 4 cardinal points (Top: startHour, Right: +6h, Bottom: +12h, Left: +18h)
-        if (i % 6 == 0) {
+        // Draw hour numbers for 4 cardinal points (Top, Right, Bottom, Left)
+        if (i % labelInterval == 0) {
             val labelR = radius + (strokePx / 2f) + 12.dp.toPx()
             val labelX = center.x + labelR * cos(angleRad)
             val labelY = center.y + labelR * sin(angleRad) + 4.dp.toPx()
 
-            val text = java.lang.String.format(java.util.Locale.getDefault(), "%02d", hourOfDay)
+            val text = if (is12Hour) {
+                val rawHour = (dayStartHour + i) % 12
+                val hour12 = if (rawHour == 0) 12 else rawHour
+                java.lang.String.format(java.util.Locale.getDefault(), "%02d", hour12)
+            } else {
+                val hourOfDay = (dayStartHour + i) % 24
+                java.lang.String.format(java.util.Locale.getDefault(), "%02d", hourOfDay)
+            }
 
             drawContext.canvas.nativeCanvas.apply {
                 val paint = android.graphics.Paint().apply {

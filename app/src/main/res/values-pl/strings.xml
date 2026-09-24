@@ -282,4 +282,12 @@
     <string name="age_bracket_39_43">39–43 tyg. (~10 miesięcy)</string>
     <string name="age_bracket_44_47">44–47 tyg. (~11 miesięcy)</string>
     <string name="age_bracket_48_plus">48+ tyg. (12+ miesięcy)</string>
+
+    <!-- 12-Hour Format & Day/Night Chart -->
+    <string name="settings_time_format">Format czasu i wykresu</string>
+    <string name="settings_time_format_desc">Wybierz między pojedynczym zegarem 24-godzinnym a 12-godzinnym z podziałem na cykl dzienny i nocny.</string>
+    <string name="time_format_24h">24-godzinny</string>
+    <string name="time_format_12h">12-godzinny (Dzień / Noc)</string>
+    <string name="chart_period_day">Dzień</string>
+    <string name="chart_period_night">Noc</string>
 </resources>

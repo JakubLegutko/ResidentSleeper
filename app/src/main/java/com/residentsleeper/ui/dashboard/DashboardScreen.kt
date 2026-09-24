@@ -90,6 +90,8 @@ import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.NursingType
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.ui.chart.Clock24HourChart
+import com.residentsleeper.ui.chart.DayPeriod
+import com.residentsleeper.ui.components.DayNightPeriodSelector
 import com.residentsleeper.ui.components.DiaperTimeAdjustDialog
 import com.residentsleeper.ui.components.NursingDetailsDialog
 import com.residentsleeper.ui.components.ProfileSwitcherDialog
@@ -120,6 +122,14 @@ fun DashboardScreen(
     var pendingNursingAdjustedTime by remember { mutableStateOf<Long?>(null) }
     var showDiaperTimeAdjustDialog by remember { mutableStateOf<DiaperType?>(null) }
     var editingEvent by remember { mutableStateOf<BabyEvent?>(null) }
+
+    val is12Hour = state.activeProfile.use12HourFormat
+    val nightStartMillis = state.selectedDayStart + 12 * 3600 * 1000L
+    var selectedDayPeriod by remember(state.selectedDayStart) {
+        val now = System.currentTimeMillis()
+        val defaultPeriod = if (state.isToday && now >= nightStartMillis) DayPeriod.NIGHT else DayPeriod.DAY
+        mutableStateOf(defaultPeriod)
+    }
 
     Scaffold(
         topBar = {
@@ -203,7 +213,17 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 24-Hour Donut Chart
+            // Day / Night Period Selector for 12-Hour Format
+            if (is12Hour) {
+                DayNightPeriodSelector(
+                    selectedPeriod = selectedDayPeriod,
+                    dayStartHour = state.activeProfile.dayStartHour,
+                    onPeriodSelected = { selectedDayPeriod = it },
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+            }
+
+            // Donut Chart (24-Hour or 12-Hour)
             Clock24HourChart(
                 dayStartMillis = state.selectedDayStart,
                 dayEndMillis = state.selectedDayEnd,
@@ -211,6 +231,8 @@ fun DashboardScreen(
                 wakeState = state.wakeWindowState,
                 feedingState = state.feedingState,
                 dayStartHour = state.activeProfile.dayStartHour,
+                is12Hour = is12Hour,
+                dayPeriod = selectedDayPeriod,
                 sizeDp = 324.dp,
                 strokeWidthDp = 38.dp
             )

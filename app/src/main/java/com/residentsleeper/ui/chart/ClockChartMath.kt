@@ -24,11 +24,18 @@ enum class MarkerType {
     DIAPER_BOTH
 }
 
+enum class DayPeriod {
+    DAY,
+    NIGHT
+}
+
 object ClockChartMath {
 
     const val MINUTES_PER_DAY = 1440f
     const val DEGREES_PER_MINUTE = 360f / MINUTES_PER_DAY // 0.25 deg/min
-    const val TOP_CLOCK_OFFSET = -90f // 00:00 at 12 o'clock
+    const val MINUTES_PER_12H = 720f
+    const val DEGREES_PER_MINUTE_12H = 360f / MINUTES_PER_12H // 0.5 deg/min
+    const val TOP_CLOCK_OFFSET = -90f // 12 o'clock at top of circle
 
     /**
      * Converts an epoch millisecond timestamp to the minute of the day in local time (0 .. 1439).
@@ -67,14 +74,15 @@ object ClockChartMath {
         minuteToAngle(minuteOfDay.toFloat(), startHour)
 
     /**
-     * Converts a start timestamp and end timestamp on a given day into a drawing arc.
+     * Converts a start timestamp and end timestamp on a given day/period into a drawing arc.
      *
-     * @param dayStartMillis Start of the selected day (e.g. 07:00)
-     * @param dayEndMillis End of the selected day (e.g. 06:59:59 next day)
+     * @param dayStartMillis Start of the selected day/period window (e.g. 07:00)
+     * @param dayEndMillis End of the selected day/period window (e.g. 19:00 for 12h day, or next morning)
      * @param eventStart Start time of event
      * @param eventEnd End time of event
      * @param isSleep Whether this interval is a sleep interval
      * @param startHour Hour of starting the day (default 7:00 AM)
+     * @param is12Hour Whether computing for 12-hour period (0.5 deg/min) instead of 24-hour (0.25 deg/min)
      */
     fun computeArcsForInterval(
         dayStartMillis: Long,
@@ -82,19 +90,26 @@ object ClockChartMath {
         eventStart: Long,
         eventEnd: Long,
         isSleep: Boolean,
-        startHour: Int = 7
+        startHour: Int = 7,
+        is12Hour: Boolean = false
     ): List<ChartArc> {
-        // Clamp to current day window
+        // Clamp to current window
         val clampedStart = maxOf(dayStartMillis, eventStart)
         val clampedEnd = minOf(dayEndMillis, eventEnd)
 
         if (clampedStart >= clampedEnd) return emptyList()
 
         val durationMinutes = (clampedEnd - clampedStart) / 60000f
-        val sweep = minOf(360f, durationMinutes * DEGREES_PER_MINUTE)
+        val degPerMin = if (is12Hour) DEGREES_PER_MINUTE_12H else DEGREES_PER_MINUTE
+        val sweep = minOf(360f, durationMinutes * degPerMin)
 
-        val minuteOfDay = getMinuteOfDayFloat(clampedStart)
-        val startAngle = minuteToAngle(minuteOfDay, startHour)
+        val startAngle = if (is12Hour) {
+            val minutesFromStart = (clampedStart - dayStartMillis) / 60000f
+            (minutesFromStart * DEGREES_PER_MINUTE_12H + TOP_CLOCK_OFFSET + 360f) % 360f
+        } else {
+            val minuteOfDay = getMinuteOfDayFloat(clampedStart)
+            minuteToAngle(minuteOfDay, startHour)
+        }
 
         return listOf(ChartArc(startAngle = startAngle, sweepAngle = sweep, isSleep = isSleep))
     }
@@ -102,20 +117,31 @@ object ClockChartMath {
     /**
      * Computes the angle for a point-in-time marker (nursing or diaper).
      */
-    fun computeMarkerAngle(timestamp: Long, startHour: Int = 7): Float {
-        val minute = getMinuteOfDay(timestamp)
-        return minuteToAngle(minute, startHour)
+    fun computeMarkerAngle(
+        timestamp: Long,
+        startHour: Int = 7,
+        windowStartMillis: Long = 0L,
+        is12Hour: Boolean = false
+    ): Float {
+        return if (is12Hour) {
+            val minutesFromStart = (timestamp - windowStartMillis) / 60000f
+            (minutesFromStart * DEGREES_PER_MINUTE_12H + TOP_CLOCK_OFFSET + 360f) % 360f
+        } else {
+            val minute = getMinuteOfDay(timestamp)
+            minuteToAngle(minute, startHour)
+        }
     }
 
     /**
-     * Computes all arcs for the day, distinguishing between Sleep intervals and Activity/Wake intervals.
+     * Computes all arcs for the day or 12h period, distinguishing between Sleep intervals and Activity/Wake intervals.
      */
     fun computeDayCycleArcs(
         dayStartMillis: Long,
         dayEndMillis: Long,
         events: List<com.residentsleeper.data.model.BabyEvent>,
         currentTime: Long = System.currentTimeMillis(),
-        startHour: Int = 7
+        startHour: Int = 7,
+        is12Hour: Boolean = false
     ): List<ChartArc> {
         val sleepEvents = events
             .filter { it.type == com.residentsleeper.data.model.EventType.SLEEP }
@@ -134,7 +160,8 @@ object ClockChartMath {
                     eventStart = s.startTime,
                     eventEnd = end,
                     isSleep = true,
-                    startHour = startHour
+                    startHour = startHour,
+                    is12Hour = is12Hour
                 )
             )
         }
@@ -152,7 +179,8 @@ object ClockChartMath {
                         eventStart = dayStartMillis,
                         eventEnd = effectiveLimit,
                         isSleep = false,
-                        startHour = startHour
+                        startHour = startHour,
+                        is12Hour = is12Hour
                     )
                 )
             }
@@ -170,7 +198,8 @@ object ClockChartMath {
                             eventStart = dayStartMillis,
                             eventEnd = wakeEnd,
                             isSleep = false,
-                            startHour = startHour
+                            startHour = startHour,
+                            is12Hour = is12Hour
                         )
                     )
                 }
@@ -191,7 +220,8 @@ object ClockChartMath {
                                 eventStart = wakeStart,
                                 eventEnd = wakeEnd,
                                 isSleep = false,
-                                startHour = startHour
+                                startHour = startHour,
+                                is12Hour = is12Hour
                             )
                         )
                     }
@@ -211,7 +241,8 @@ object ClockChartMath {
                             eventStart = wakeStart,
                             eventEnd = effectiveLimit,
                             isSleep = false,
-                            startHour = startHour
+                            startHour = startHour,
+                            is12Hour = is12Hour
                         )
                     )
                 }

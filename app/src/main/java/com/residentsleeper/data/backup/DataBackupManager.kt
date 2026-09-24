@@ -46,6 +46,7 @@ object DataBackupManager {
             pObj.put("maxRecommendedNightFeeds", p.maxRecommendedNightFeeds)
             pObj.put("notifyForOptionalNightFeeds", p.notifyForOptionalNightFeeds)
             pObj.put("gender", p.gender.name)
+            pObj.put("use12HourFormat", p.use12HourFormat)
             profilesArray.put(pObj)
         }
         root.put("profiles", profilesArray)
@@ -96,7 +97,8 @@ object DataBackupManager {
                     dayStartHour = pObj.optInt("dayStartHour", 7),
                     maxRecommendedNightFeeds = pObj.optInt("maxRecommendedNightFeeds", 1),
                     notifyForOptionalNightFeeds = pObj.optBoolean("notifyForOptionalNightFeeds", false),
-                    gender = if (!pObj.isNull("gender")) runCatching { Gender.valueOf(pObj.getString("gender")) }.getOrDefault(Gender.UNSPECIFIED) else Gender.UNSPECIFIED
+                    gender = if (!pObj.isNull("gender")) runCatching { Gender.valueOf(pObj.getString("gender")) }.getOrDefault(Gender.UNSPECIFIED) else Gender.UNSPECIFIED,
+                    use12HourFormat = pObj.optBoolean("use12HourFormat", false)
                 )
                 profilesList.add(profile)
             }
