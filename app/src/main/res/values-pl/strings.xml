@@ -290,4 +290,8 @@
     <string name="time_format_12h">12-godzinny (Dzień / Noc)</string>
     <string name="chart_period_day">Dzień</string>
     <string name="chart_period_night">Noc</string>
+
+    <!-- Delete Profile Dialog -->
+    <string name="dialog_delete_profile_title">Usunąć profil?</string>
+    <string name="dialog_delete_profile_message">Czy na pewno chcesz usunąć profil \"%1$s\" wraz ze wszystkimi wpisami? Tej operacji nie można cofnąć.</string>
 </resources>

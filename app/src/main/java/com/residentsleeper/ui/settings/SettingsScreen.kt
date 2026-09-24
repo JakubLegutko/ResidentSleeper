@@ -67,6 +67,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.residentsleeper.R
+import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.ui.components.GenderSelectionRow
 import com.residentsleeper.ui.components.ProfileSwitcherDialog
@@ -97,6 +98,7 @@ fun SettingsScreen(
     var showProfileSwitcher by remember { mutableStateOf(false) }
     var pendingImportJson by remember { mutableStateOf<String?>(null) }
     var importReplaceOption by remember { mutableStateOf(false) } // false = merge, true = replace
+    var profileToDelete by remember { mutableStateOf<BabyProfile?>(null) }
 
     var nameText by remember(state.activeProfile.id) { mutableStateOf(state.activeProfile.name) }
     LaunchedEffect(state.activeProfile.name) {
@@ -219,7 +221,7 @@ fun SettingsScreen(
                             }
 
                             if (state.allProfiles.size > 1 && !isActive) {
-                                IconButton(onClick = { viewModel.deleteProfile(profile.id) }) {
+                                IconButton(onClick = { profileToDelete = profile }) {
                                     Icon(
                                         imageVector = Icons.Default.Delete,
                                         contentDescription = stringResource(R.string.content_desc_delete_profile),
@@ -828,6 +830,44 @@ fun SettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showDayStartHourDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Delete Profile Confirmation Prompt
+    val targetProfile = profileToDelete
+    if (targetProfile != null) {
+        AlertDialog(
+            onDismissRequest = { profileToDelete = null },
+            title = {
+                Text(
+                    text = stringResource(R.string.dialog_delete_profile_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.dialog_delete_profile_message, targetProfile.name)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteProfile(targetProfile.id)
+                        profileToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(stringResource(R.string.btn_delete_entry))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { profileToDelete = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             }

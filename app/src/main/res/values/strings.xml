@@ -290,4 +290,8 @@
     <string name="time_format_12h">12-Hour (Day / Night)</string>
     <string name="chart_period_day">Day</string>
     <string name="chart_period_night">Night</string>
+
+    <!-- Delete Profile Dialog -->
+    <string name="dialog_delete_profile_title">Delete Profile?</string>
+    <string name="dialog_delete_profile_message">Are you sure you want to delete \"%1$s\" and all associated logs? This action cannot be undone.</string>
 </resources>
