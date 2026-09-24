@@ -82,6 +82,7 @@ import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.NursingType
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.ui.chart.Clock24HourChart
+import com.residentsleeper.ui.components.DiaperTimeAdjustDialog
 import com.residentsleeper.ui.components.NursingDetailsDialog
 import com.residentsleeper.ui.components.ProfileSwitcherDialog
 import com.residentsleeper.ui.components.TimeAdjustDialog
@@ -548,11 +549,11 @@ fun DashboardScreen(
     }
 
     showDiaperTimeAdjustDialog?.let { diaperType ->
-        TimeAdjustDialog(
-            title = if (diaperType == DiaperType.PEE) stringResource(R.string.dialog_adjust_pee_time) else stringResource(R.string.dialog_adjust_poo_time),
+        DiaperTimeAdjustDialog(
+            initialDiaperType = diaperType,
             onDismiss = { showDiaperTimeAdjustDialog = null },
-            onTimeSelected = { adjustedTimestamp ->
-                viewModel.onDiaperClick(diaperType, adjustedTimestamp)
+            onConfirm = { selectedType, adjustedTimestamp ->
+                viewModel.onDiaperClick(selectedType, adjustedTimestamp)
                 showDiaperTimeAdjustDialog = null
             }
         )
