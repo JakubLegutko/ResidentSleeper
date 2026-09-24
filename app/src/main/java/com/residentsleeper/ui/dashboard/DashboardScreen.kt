@@ -207,14 +207,15 @@ fun DashboardScreen(
 
             // Color Legend
             Row(
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 6.dp, bottom = 10.dp)
             ) {
                 ChartLegendItem(color = SleepIndigo, label = stringResource(R.string.legend_sleep))
                 ChartLegendItem(color = WakeMint, label = stringResource(R.string.legend_activity))
                 ChartLegendItem(color = NursingPink, label = stringResource(R.string.legend_nursing))
-                ChartLegendItem(color = DiaperPeeCyan, label = stringResource(R.string.legend_diaper))
+                ChartLegendItem(color = DiaperPeeCyan, label = stringResource(R.string.btn_diaper_pee))
+                ChartLegendItem(color = DiaperPooWarm, label = stringResource(R.string.btn_diaper_poo))
             }
 
             // 4 ACTION BUTTONS GRID
