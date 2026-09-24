@@ -136,7 +136,7 @@ fun DashboardScreen(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "👶 ${state.activeProfile.name} (${ageWeeks}w)",
+                                text = "đź‘¶ ${state.activeProfile.name} (${ageWeeks}w)",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -330,7 +330,7 @@ fun DashboardScreen(
                     } else {
                         stringResource(R.string.subtitle_breast_bottle)
                     }
-                }
+}
 
                 val nursingContainerColor = if (isNursing) {
                     Color(0xFF4C0519)
@@ -1117,7 +1117,7 @@ private fun TimelineEntryRow(
 
                     if (!event.note.isNullOrBlank()) {
                         Text(
-                            text = "📝 ${event.note}",
+                            text = "đź“ť ${event.note}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 2.dp)
