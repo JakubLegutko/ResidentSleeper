@@ -39,14 +39,32 @@ object ClockChartMath {
     }
 
     /**
-     * Converts a minute of the day (0..1439) to a Canvas start angle in degrees,
-     * where 00:00 is at top (-90 degrees) and moves clockwise.
+     * Converts an epoch millisecond timestamp to the fractional minute of the day in local time (0.0 .. 1439.999).
      */
-    fun minuteToAngle(minuteOfDay: Int, startHour: Int = 7): Float {
-        val startMinute = startHour * 60
-        val relativeMinute = (minuteOfDay - startMinute + 1440) % 1440
+    fun getMinuteOfDayFloat(timestamp: Long): Float {
+        val cal = Calendar.getInstance().apply { timeInMillis = timestamp }
+        return cal.get(Calendar.HOUR_OF_DAY) * 60f +
+                cal.get(Calendar.MINUTE) +
+                cal.get(Calendar.SECOND) / 60f +
+                cal.get(Calendar.MILLISECOND) / 60000f
+    }
+
+    /**
+     * Converts a fractional minute of the day (0.0..1439.999) to a Canvas start angle in degrees,
+     * where startHour is at the top (-90 / 270 degrees) and moves clockwise.
+     */
+    fun minuteToAngle(minuteOfDay: Float, startHour: Int = 7): Float {
+        val startMinute = startHour * 60f
+        val relativeMinute = (minuteOfDay - startMinute + 1440f) % 1440f
         return (relativeMinute * DEGREES_PER_MINUTE + TOP_CLOCK_OFFSET + 360f) % 360f
     }
+
+    /**
+     * Converts a minute of the day (0..1439) to a Canvas start angle in degrees,
+     * where startHour is at top (-90 degrees) and moves clockwise.
+     */
+    fun minuteToAngle(minuteOfDay: Int, startHour: Int = 7): Float =
+        minuteToAngle(minuteOfDay.toFloat(), startHour)
 
     /**
      * Converts a start timestamp and end timestamp on a given day into a drawing arc.
@@ -72,11 +90,11 @@ object ClockChartMath {
 
         if (clampedStart >= clampedEnd) return emptyList()
 
-        val offsetStart = (clampedStart - dayStartMillis) / 60000f
-        val offsetEnd = (clampedEnd - dayStartMillis) / 60000f
+        val durationMinutes = (clampedEnd - clampedStart) / 60000f
+        val sweep = minOf(360f, durationMinutes * DEGREES_PER_MINUTE)
 
-        val sweep = (offsetEnd - offsetStart) * DEGREES_PER_MINUTE
-        val startAngle = (offsetStart * DEGREES_PER_MINUTE + TOP_CLOCK_OFFSET + 360f) % 360f
+        val minuteOfDay = getMinuteOfDayFloat(clampedStart)
+        val startAngle = minuteToAngle(minuteOfDay, startHour)
 
         return listOf(ChartArc(startAngle = startAngle, sweepAngle = sweep, isSleep = isSleep))
     }
@@ -101,6 +119,7 @@ object ClockChartMath {
     ): List<ChartArc> {
         val sleepEvents = events
             .filter { it.type == com.residentsleeper.data.model.EventType.SLEEP }
+            .filter { (it.endTime ?: currentTime) > dayStartMillis && it.startTime < dayEndMillis }
             .sortedBy { it.startTime }
 
         val arcs = mutableListOf<ChartArc>()
@@ -140,8 +159,9 @@ object ClockChartMath {
         } else {
             // Wake window before first sleep of the day (if first sleep started after dayStart)
             val firstSleep = sleepEvents.first()
-            if (firstSleep.startTime > dayStartMillis) {
-                val wakeEnd = minOf(firstSleep.startTime, effectiveLimit)
+            val firstSleepClampedStart = maxOf(dayStartMillis, firstSleep.startTime)
+            if (firstSleepClampedStart > dayStartMillis) {
+                val wakeEnd = minOf(firstSleepClampedStart, effectiveLimit)
                 if (dayStartMillis < wakeEnd) {
                     arcs.addAll(
                         computeArcsForInterval(
@@ -161,13 +181,14 @@ object ClockChartMath {
                 val currentEnd = sleepEvents[i].endTime ?: currentTime
                 val nextStart = sleepEvents[i + 1].startTime
                 if (nextStart > currentEnd) {
+                    val wakeStart = maxOf(dayStartMillis, currentEnd)
                     val wakeEnd = minOf(nextStart, effectiveLimit)
-                    if (currentEnd < wakeEnd) {
+                    if (wakeStart < wakeEnd) {
                         arcs.addAll(
                             computeArcsForInterval(
                                 dayStartMillis = dayStartMillis,
                                 dayEndMillis = dayEndMillis,
-                                eventStart = currentEnd,
+                                eventStart = wakeStart,
                                 eventEnd = wakeEnd,
                                 isSleep = false,
                                 startHour = startHour
@@ -181,16 +202,19 @@ object ClockChartMath {
             val lastSleep = sleepEvents.last()
             val lastEnd = lastSleep.endTime
             if (lastEnd != null && lastEnd < effectiveLimit) {
-                arcs.addAll(
-                    computeArcsForInterval(
-                        dayStartMillis = dayStartMillis,
-                        dayEndMillis = dayEndMillis,
-                        eventStart = lastEnd,
-                        eventEnd = effectiveLimit,
-                        isSleep = false,
-                        startHour = startHour
+                val wakeStart = maxOf(dayStartMillis, lastEnd)
+                if (wakeStart < effectiveLimit) {
+                    arcs.addAll(
+                        computeArcsForInterval(
+                            dayStartMillis = dayStartMillis,
+                            dayEndMillis = dayEndMillis,
+                            eventStart = wakeStart,
+                            eventEnd = effectiveLimit,
+                            isSleep = false,
+                            startHour = startHour
+                        )
                     )
-                )
+                }
             }
         }
 
