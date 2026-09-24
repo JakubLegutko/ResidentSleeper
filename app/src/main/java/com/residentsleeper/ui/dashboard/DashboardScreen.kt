@@ -11,6 +11,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.residentsleeper.domain.LittleOnesSleepScheduleDatabase
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +36,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.LaunchedEffect
@@ -106,6 +110,7 @@ fun DashboardScreen(
     onNavigateToSettings: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val isDark = isSystemInDarkTheme()
     val dateFormatter = remember { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()) }
 
     var showProfileSwitcher by remember { mutableStateOf(false) }
@@ -252,12 +257,47 @@ fun DashboardScreen(
                     sleepSubtitle = stringResource(R.string.subtitle_tap_to_sleep)
                 }
 
+                val sleepContainerColor = if (isSleeping) {
+                    Color(0xFF1E1B4B)
+                } else if (isDark) {
+                    Color(0xFF282566)
+                } else {
+                    Color(0xFFEEF2FF)
+                }
+
+                val sleepBaseColor = if (isSleeping) {
+                    Color(0xFF0F0E2A)
+                } else if (isDark) {
+                    Color(0xFF191740)
+                } else {
+                    Color(0xFFC7D2FE)
+                }
+
+                val sleepBorderColor = if (isSleeping) {
+                    SleepIndigo.copy(alpha = 0.6f)
+                } else if (isDark) {
+                    SleepIndigo.copy(alpha = 0.4f)
+                } else {
+                    Color(0xFFC7D2FE).copy(alpha = 0.8f)
+                }
+
+                val sleepContentColor = if (isSleeping) {
+                    Color.White
+                } else if (isDark) {
+                    Color(0xFFE0E7FF)
+                } else {
+                    Color(0xFF4338CA)
+                }
+
                 ActionButtonCard(
                     title = if (isSleeping) stringResource(R.string.btn_sleep_end) else stringResource(R.string.btn_sleep_start),
                     subtitle = sleepSubtitle,
                     icon = Icons.Default.Hotel,
-                    containerColor = if (isSleeping) Color(0xFF1E1B4B) else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (isSleeping) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    containerColor = sleepContainerColor,
+                    baseColor = sleepBaseColor,
+                    contentColor = sleepContentColor,
+                    borderColor = sleepBorderColor,
+                    isToggled = isSleeping,
                     progress = sleepProgress,
                     progressColor = SleepIndigo,
                     modifier = Modifier.weight(1f),
@@ -292,12 +332,47 @@ fun DashboardScreen(
                     }
                 }
 
+                val nursingContainerColor = if (isNursing) {
+                    Color(0xFF4C0519)
+                } else if (isDark) {
+                    Color(0xFF6B1138)
+                } else {
+                    Color(0xFFFDF2F8)
+                }
+
+                val nursingBaseColor = if (isNursing) {
+                    Color(0xFF28020D)
+                } else if (isDark) {
+                    Color(0xFF38071C)
+                } else {
+                    Color(0xFFFBCFE8)
+                }
+
+                val nursingBorderColor = if (isNursing) {
+                    NursingPink.copy(alpha = 0.6f)
+                } else if (isDark) {
+                    NursingPink.copy(alpha = 0.4f)
+                } else {
+                    Color(0xFFFBCFE8).copy(alpha = 0.8f)
+                }
+
+                val nursingContentColor = if (isNursing) {
+                    Color.White
+                } else if (isDark) {
+                    Color(0xFFFCE7F3)
+                } else {
+                    Color(0xFFBE185D)
+                }
+
                 ActionButtonCard(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
                     subtitle = nursingSubtitle,
                     icon = Icons.Default.Restaurant,
-                    containerColor = if (isNursing) Color(0xFF4C0519) else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (isNursing) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    containerColor = nursingContainerColor,
+                    baseColor = nursingBaseColor,
+                    contentColor = nursingContentColor,
+                    borderColor = nursingBorderColor,
+                    isToggled = isNursing,
                     progress = nursingProgress,
                     progressColor = NursingPink,
                     modifier = Modifier.weight(1f),
@@ -316,6 +391,16 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Row 2: Diaper Pee & Diaper Poo (One-shot buttons)
+            val peeContainerColor = if (isDark) Color(0xFF075985) else Color(0xFFF0F9FF)
+            val peeBaseColor = if (isDark) Color(0xFF082F49) else Color(0xFFBAE6FD)
+            val peeBorderColor = if (isDark) Color(0xFF38BDF8).copy(alpha = 0.4f) else Color(0xFFBAE6FD).copy(alpha = 0.8f)
+            val peeContentColor = if (isDark) Color(0xFFE0F2FE) else Color(0xFF0284C7)
+
+            val pooContainerColor = if (isDark) Color(0xFF78350F) else Color(0xFFFFFBEB)
+            val pooBaseColor = if (isDark) Color(0xFF451A03) else Color(0xFFFDE68A)
+            val pooBorderColor = if (isDark) Color(0xFFD97706).copy(alpha = 0.4f) else Color(0xFFFDE68A).copy(alpha = 0.8f)
+            val pooContentColor = if (isDark) Color(0xFFFEF3C7) else Color(0xFFB45309)
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -325,8 +410,10 @@ fun DashboardScreen(
                     title = stringResource(R.string.btn_diaper_pee),
                     subtitle = null,
                     icon = Icons.Default.WaterDrop,
-                    containerColor = DiaperPeeCyan.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = peeContainerColor,
+                    baseColor = peeBaseColor,
+                    contentColor = peeContentColor,
+                    borderColor = peeBorderColor,
                     floatingFeedbackText = "+1",
                     floatingFeedbackColor = DiaperPeeCyan,
                     modifier = Modifier.weight(1f),
@@ -339,8 +426,10 @@ fun DashboardScreen(
                     title = stringResource(R.string.btn_diaper_poo),
                     subtitle = null,
                     icon = Icons.Default.Check,
-                    containerColor = DiaperPooWarm.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = pooContainerColor,
+                    baseColor = pooBaseColor,
+                    contentColor = pooContentColor,
+                    borderColor = pooBorderColor,
                     floatingFeedbackText = "+1",
                     floatingFeedbackColor = DiaperPooWarm,
                     modifier = Modifier.weight(1f),
@@ -685,8 +774,11 @@ private fun ActionButtonCard(
     subtitle: String? = null,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     containerColor: Color,
+    baseColor: Color,
     contentColor: Color,
+    borderColor: Color,
     modifier: Modifier = Modifier,
+    isToggled: Boolean = false,
     progress: Float? = null,
     progressColor: Color = containerColor,
     floatingFeedbackText: String? = null,
@@ -695,9 +787,35 @@ private fun ActionButtonCard(
     onLongClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val buttonScale = remember { Animatable(1f) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
     var feedbacks by remember { mutableStateOf(listOf<FloatingFeedback>()) }
+
+    // 0f = resting (pushed out with 3D lip showing), 1f = pushed in (recessed)
+    val pressAnim = remember { Animatable(if (isToggled) 1f else 0f) }
+
+    LaunchedEffect(isToggled) {
+        val target = if (isToggled) 1f else 0f
+        pressAnim.animateTo(
+            targetValue = target,
+            animationSpec = spring(
+                dampingRatio = 0.6f,
+                stiffness = Spring.StiffnessMediumLow
+            )
+        )
+    }
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            pressAnim.animateTo(1f, tween(durationMillis = 60, easing = FastOutSlowInEasing))
+        } else if (!isToggled) {
+            pressAnim.animateTo(
+                0f,
+                spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium)
+            )
+        }
+    }
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress?.coerceIn(0f, 1f) ?: 0f,
@@ -705,25 +823,50 @@ private fun ActionButtonCard(
         label = "actionButtonProgress"
     )
 
+    val pushDepth = 4.dp
+    val pushDepthPx = with(LocalDensity.current) { pushDepth.toPx() }
+    val currentOffset = pushDepthPx * pressAnim.value
+    val currentElevation = ((1f - pressAnim.value) * 3f).dp
+
     Box(
-        modifier = modifier,
+        modifier = modifier.height(96.dp),
         contentAlignment = Alignment.Center
     ) {
+        // 1. 3D Base Bevel / Extrusion Layer (visible when button is pushed out)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(92.dp)
+                .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(18.dp))
+                .background(baseColor)
+        )
+
+        // 2. Interactive Tactile Button Face
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(96.dp)
+                .height(92.dp)
+                .align(Alignment.TopCenter)
                 .graphicsLayer {
-                    scaleX = buttonScale.value
-                    scaleY = buttonScale.value
+                    translationY = currentOffset
+                    scaleX = 1f - (pressAnim.value * 0.015f)
+                    scaleY = 1f - (pressAnim.value * 0.015f)
                 }
                 .clip(RoundedCornerShape(18.dp))
                 .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = null,
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         coroutineScope.launch {
-                            buttonScale.animateTo(0.93f, tween(60))
-                            buttonScale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium))
+                            if (!isToggled) {
+                                pressAnim.animateTo(1f, tween(60, easing = FastOutSlowInEasing))
+                                pressAnim.animateTo(
+                                    0f,
+                                    spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium)
+                                )
+                            }
                         }
                         if (floatingFeedbackText != null) {
                             feedbacks = feedbacks + FloatingFeedback(
@@ -737,7 +880,9 @@ private fun ActionButtonCard(
                     onLongClick = onLongClick
                 ),
             shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = containerColor)
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+            border = BorderStroke(1.dp, borderColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = currentElevation)
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (progress != null) {
