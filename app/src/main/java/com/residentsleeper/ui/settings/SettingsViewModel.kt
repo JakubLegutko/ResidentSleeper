@@ -8,6 +8,7 @@ import com.residentsleeper.calendar.DeviceCalendar
 import com.residentsleeper.data.backup.DataBackupManager
 import com.residentsleeper.data.local.AppDatabase
 import com.residentsleeper.data.model.BabyProfile
+import com.residentsleeper.data.model.Gender
 import com.residentsleeper.data.repository.BabyRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,10 +71,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun addProfile(name: String, birthDate: Long) {
+    fun addProfile(name: String, birthDate: Long, gender: Gender = Gender.UNSPECIFIED) {
         flushPendingNameSave()
         viewModelScope.launch {
-            repository.createProfile(name, birthDate)
+            repository.createProfile(name, birthDate, gender)
+            loadProfile()
+        }
+    }
+
+    fun updateActiveProfileGender(gender: Gender) {
+        updateActiveProfile { it.copy(gender = gender) }
+    }
+
+    fun updateProfileGender(profileId: Long, gender: Gender) {
+        viewModelScope.launch {
+            val profile = repository.getProfileById(profileId) ?: return@launch
+            repository.updateProfile(profile.copy(gender = gender))
             loadProfile()
         }
     }

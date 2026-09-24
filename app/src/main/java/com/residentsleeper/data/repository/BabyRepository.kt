@@ -8,6 +8,7 @@ import com.residentsleeper.data.model.BabyEvent
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.EventType
+import com.residentsleeper.data.model.Gender
 import com.residentsleeper.data.model.NursingType
 import kotlinx.coroutines.flow.Flow
 
@@ -42,11 +43,16 @@ class BabyRepository(
         profileDao.setActiveProfile(profileId)
     }
 
-    suspend fun createProfile(name: String, birthTimestamp: Long): Long {
+    suspend fun getProfileById(profileId: Long): BabyProfile? {
+        return profileDao.getProfileById(profileId)
+    }
+
+    suspend fun createProfile(name: String, birthTimestamp: Long, gender: Gender = Gender.UNSPECIFIED): Long {
         val newProfile = BabyProfile(
             name = name,
             birthTimestamp = birthTimestamp,
-            isActive = false
+            isActive = false,
+            gender = gender
         )
         val id = profileDao.insert(newProfile)
         switchActiveProfile(id)

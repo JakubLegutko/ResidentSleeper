@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,7 +41,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.residentsleeper.R
 import com.residentsleeper.data.model.BabyProfile
+import com.residentsleeper.data.model.Gender
 import com.residentsleeper.domain.WakeWindowCalculator
+import com.residentsleeper.ui.components.GenderSelectionRow
+import com.residentsleeper.ui.components.getDisplayColor
+import com.residentsleeper.ui.components.getIcon
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -51,13 +56,15 @@ fun ProfileSwitcherDialog(
     profiles: List<BabyProfile>,
     onDismiss: () -> Unit,
     onSelectProfile: (Long) -> Unit,
-    onAddProfile: (name: String, birthDate: Long) -> Unit
+    onAddProfile: (name: String, birthDate: Long, gender: Gender) -> Unit
 ) {
     var showAddForm by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     var newBirthDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    var newGender by remember { mutableStateOf(Gender.UNSPECIFIED) }
     var showDatePicker by remember { mutableStateOf(false) }
     val defaultBabyName = stringResource(R.string.profile_default_name)
+    val isDark = isSystemInDarkTheme()
 
     val dateFormat = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
@@ -100,10 +107,10 @@ fun ProfileSwitcherDialog(
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
-                                        imageVector = Icons.Default.ChildCare,
+                                        imageVector = profile.gender.getIcon(),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
-                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = if (isSelected) profile.gender.getDisplayColor(isDark) else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Spacer(modifier = Modifier.size(12.dp))
                                     Column {
@@ -162,6 +169,17 @@ fun ProfileSwitcherDialog(
                     ) {
                         Text(dateFormat.format(newBirthDate))
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.gender_label),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    GenderSelectionRow(
+                        selectedGender = newGender,
+                        onGenderSelected = { newGender = it }
+                    )
                 }
             }
         },
@@ -170,7 +188,7 @@ fun ProfileSwitcherDialog(
                 Button(
                     onClick = {
                         val name = newName.trim().ifEmpty { defaultBabyName }
-                        onAddProfile(name, newBirthDate)
+                        onAddProfile(name, newBirthDate, newGender)
                         onDismiss()
                     }
                 ) {

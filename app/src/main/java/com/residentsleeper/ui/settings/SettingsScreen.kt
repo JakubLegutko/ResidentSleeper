@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,7 +68,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.residentsleeper.R
 import com.residentsleeper.domain.WakeWindowCalculator
+import com.residentsleeper.ui.components.GenderSelectionRow
 import com.residentsleeper.ui.components.ProfileSwitcherDialog
+import com.residentsleeper.ui.components.getDisplayColor
+import com.residentsleeper.ui.components.getIcon
 import com.residentsleeper.util.LocaleHelper
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
@@ -85,6 +89,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val dateFormatter = remember { SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()) }
+    val isDark = isSystemInDarkTheme()
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showDayStartHourDialog by remember { mutableStateOf(false) }
@@ -189,6 +194,13 @@ fun SettingsScreen(
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal
                                     )
+                                    Spacer(modifier = Modifier.size(6.dp))
+                                    Icon(
+                                        imageVector = profile.gender.getIcon(),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                        tint = profile.gender.getDisplayColor(isDark)
+                                    )
                                     if (isActive) {
                                         Spacer(modifier = Modifier.size(8.dp))
                                         Text(
@@ -258,6 +270,18 @@ fun SettingsScreen(
                     ) {
                         Text(dateFormatter.format(state.activeProfile.birthTimestamp))
                     }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = stringResource(R.string.gender_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    GenderSelectionRow(
+                        selectedGender = state.activeProfile.gender,
+                        onGenderSelected = { viewModel.updateActiveProfileGender(it) }
+                    )
                 }
             }
 
@@ -628,8 +652,8 @@ fun SettingsScreen(
                 viewModel.switchProfile(profileId)
                 showProfileSwitcher = false
             },
-            onAddProfile = { name, birthDate ->
-                viewModel.addProfile(name, birthDate)
+            onAddProfile = { name, birthDate, gender ->
+                viewModel.addProfile(name, birthDate, gender)
                 showProfileSwitcher = false
             }
         )
