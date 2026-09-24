@@ -162,6 +162,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         updateActiveProfile { it.copy(enablePushNotifications = enabled) }
     }
 
+    fun updateTimeFormat(use12Hour: Boolean) {
+        updateActiveProfile { it.copy(use12HourFormat = use12Hour) }
+    }
+
     private fun updateActiveProfile(block: (BabyProfile) -> BabyProfile) {
         viewModelScope.launch {
             val current = _uiState.value.activeProfile

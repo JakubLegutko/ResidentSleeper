@@ -22,7 +22,8 @@ class DataBackupManagerTest {
             selectedCalendarId = 12L,
             notifyBeforeMinutes = 10,
             enableCalendarSync = true,
-            enablePushNotifications = true
+            enablePushNotifications = true,
+            use12HourFormat = true
         )
 
         val profile2 = BabyProfile(
@@ -85,11 +86,13 @@ class DataBackupManagerTest {
         assertThat(importedP1.name).isEqualTo("Emma")
         assertThat(importedP1.customWakeWindowMinutes).isEqualTo(60)
         assertThat(importedP1.isActive).isTrue()
+        assertThat(importedP1.use12HourFormat).isTrue()
 
         val importedP2 = imported.profiles.first { it.id == 2L }
         assertThat(importedP2.name).isEqualTo("Lucas")
         assertThat(importedP2.customWakeWindowMinutes).isNull()
         assertThat(importedP2.isActive).isFalse()
+        assertThat(importedP2.use12HourFormat).isFalse()
 
         val importedE1 = imported.events.first { it.id == 101L }
         assertThat(importedE1.babyProfileId).isEqualTo(1L)

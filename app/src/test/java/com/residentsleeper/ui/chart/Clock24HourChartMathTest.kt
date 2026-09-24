@@ -143,5 +143,74 @@ class Clock24HourChartMathTest {
         assertThat(firstWake.startAngle).isEqualTo(270f)
         assertThat(firstWake.sweepAngle).isEqualTo(15f)
     }
+
+    @Test
+    fun computeMarkerAngle_12HourMode_mapsDayAndNightHoursCorrectly() {
+        val windowStart = 1000000L
+        val hourMillis = 3600000L
+
+        // Top of clock (0h from window start) -> -90 / 270 deg
+        val topAngle = ClockChartMath.computeMarkerAngle(windowStart, windowStartMillis = windowStart, is12Hour = true)
+        assertThat(topAngle).isEqualTo(270f)
+
+        // 3h from window start (e.g. 10:00 for Day or 22:00 for Night) -> 0 deg (Right)
+        val rightAngle = ClockChartMath.computeMarkerAngle(windowStart + 3 * hourMillis, windowStartMillis = windowStart, is12Hour = true)
+        assertThat(rightAngle).isEqualTo(0f)
+
+        // 6h from window start (e.g. 13:00 for Day or 01:00 for Night) -> 90 deg (Bottom)
+        val bottomAngle = ClockChartMath.computeMarkerAngle(windowStart + 6 * hourMillis, windowStartMillis = windowStart, is12Hour = true)
+        assertThat(bottomAngle).isEqualTo(90f)
+
+        // 9h from window start (e.g. 16:00 for Day or 04:00 for Night) -> 180 deg (Left)
+        val leftAngle = ClockChartMath.computeMarkerAngle(windowStart + 9 * hourMillis, windowStartMillis = windowStart, is12Hour = true)
+        assertThat(leftAngle).isEqualTo(180f)
+    }
+
+    @Test
+    fun computeDayCycleArcs_12HourMode_computesScaledArcsForDayAndNight() {
+        val windowStart = 10000000L
+        val windowEnd = windowStart + 12 * 3600000L // 12-hour period (720 min)
+
+        // Sleep from +1h to +3h (120 min duration)
+        val sleepStart = windowStart + 1 * 3600000L
+        val sleepEnd = windowStart + 3 * 3600000L
+
+        val sleepEvent = com.residentsleeper.data.model.BabyEvent(
+            type = com.residentsleeper.data.model.EventType.SLEEP,
+            startTime = sleepStart,
+            endTime = sleepEnd
+        )
+
+        // Mock current time at +5h
+        val currentTime = windowStart + 5 * 3600000L
+
+        val arcs = ClockChartMath.computeDayCycleArcs(
+            dayStartMillis = windowStart,
+            dayEndMillis = windowEnd,
+            events = listOf(sleepEvent),
+            currentTime = currentTime,
+            startHour = 7,
+            is12Hour = true
+        )
+
+        val sleepArcs = arcs.filter { it.isSleep }
+        val activityArcs = arcs.filter { !it.isSleep }
+
+        assertThat(sleepArcs).hasSize(1)
+        // 120 minutes in 12h mode: 120 * 0.5 deg/min = 60 degrees!
+        assertThat(sleepArcs.first().sweepAngle).isEqualTo(60f)
+        // Starts 60 min after windowStart: 60 * 0.5 - 90 = -60 -> 300 deg
+        assertThat(sleepArcs.first().startAngle).isEqualTo(300f)
+
+        // First wake window: 0 to 60 min -> 30 degrees sweep, starting at 270 deg (top)
+        val firstWake = activityArcs.first()
+        assertThat(firstWake.startAngle).isEqualTo(270f)
+        assertThat(firstWake.sweepAngle).isEqualTo(30f)
+
+        // Second wake window: from +3h to +5h (120 min = 60 deg sweep, starting at 0 deg)
+        val secondWake = activityArcs[1]
+        assertThat(secondWake.sweepAngle).isEqualTo(60f)
+        assertThat(secondWake.startAngle).isEqualTo(0f)
+    }
 }
 

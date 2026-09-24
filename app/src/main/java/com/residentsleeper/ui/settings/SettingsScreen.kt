@@ -568,6 +568,45 @@ fun SettingsScreen(
                 }
             }
 
+            // Time & Chart Format
+            Text(
+                text = stringResource(R.string.settings_time_format),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_time_format_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = !state.activeProfile.use12HourFormat,
+                            onClick = { viewModel.updateTimeFormat(false) },
+                            label = { Text(stringResource(R.string.time_format_24h)) }
+                        )
+                        FilterChip(
+                            selected = state.activeProfile.use12HourFormat,
+                            onClick = { viewModel.updateTimeFormat(true) },
+                            label = { Text(stringResource(R.string.time_format_12h)) }
+                        )
+                    }
+                }
+            }
+
             // Section 5: Data Portability & Backup
             Text(
                 text = stringResource(R.string.settings_data_portability),

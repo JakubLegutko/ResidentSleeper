@@ -19,5 +19,6 @@ data class BabyProfile(
     val dayStartHour: Int = 7,                // Hour of starting the day (0..23, default 7:00 AM)
     val maxRecommendedNightFeeds: Int = 1,    // 1 feed recommended at night; subsequent feeds optional
     val notifyForOptionalNightFeeds: Boolean = false, // Whether to alert for optional night feeds
-    val gender: Gender = Gender.UNSPECIFIED
+    val gender: Gender = Gender.UNSPECIFIED,
+    val use12HourFormat: Boolean = false
 )
