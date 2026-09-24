@@ -19,6 +19,8 @@
     <string name="btn_diaper_pee">Siku</string>
     <string name="btn_diaper_poo">Kupka</string>
     <string name="btn_diaper_both">Siku i kupka</string>
+    <string name="btn_diaper_count_today">%1$d dzisiaj</string>
+    <string name="btn_diaper_count_day">%1$d tego dnia</string>
     <string name="btn_progress_remaining">%1$d / %2$d min (jeszcze %3$dm)</string>
     <string name="btn_progress_overdue">%1$d / %2$d min (+%3$dm)</string>
 

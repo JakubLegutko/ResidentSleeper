@@ -39,7 +39,13 @@ data class DashboardUiState(
     val feedingState: FeedingState,
     val activeProfile: BabyProfile = BabyProfile(),
     val allProfiles: List<BabyProfile> = emptyList()
-)
+) {
+    val peeCount: Int
+        get() = events.count { it.type == EventType.DIAPER && (it.diaperType == DiaperType.PEE || it.diaperType == DiaperType.BOTH || it.diaperType == null) }
+
+    val pooCount: Int
+        get() = events.count { it.type == EventType.DIAPER && (it.diaperType == DiaperType.POO || it.diaperType == DiaperType.BOTH) }
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
