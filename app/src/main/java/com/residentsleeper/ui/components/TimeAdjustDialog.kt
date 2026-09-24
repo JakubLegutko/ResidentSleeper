@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedFilterChip
@@ -28,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.residentsleeper.R
+import com.residentsleeper.data.model.DiaperType
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -38,7 +41,8 @@ fun TimeAdjustDialog(
     title: String,
     initialTimestamp: Long = System.currentTimeMillis(),
     onDismiss: () -> Unit,
-    onTimeSelected: (Long) -> Unit
+    onTimeSelected: (Long) -> Unit,
+    content: (@Composable () -> Unit)? = null
 ) {
     var selectedTimestamp by remember { mutableStateOf(initialTimestamp) }
     var showCustomPicker by remember { mutableStateOf(false) }
@@ -58,7 +62,16 @@ fun TimeAdjustDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = title, style = MaterialTheme.typography.titleLarge) },
         text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                content?.let {
+                    it()
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 Text(
                     text = stringResource(R.string.dialog_selected_time, timeFormatter.format(selectedTimestamp)),
                     style = MaterialTheme.typography.bodyLarge,
@@ -145,3 +158,64 @@ fun TimeAdjustDialog(
         }
     )
 }
+
+@Composable
+fun DiaperTimeAdjustDialog(
+    initialDiaperType: DiaperType,
+    initialTimestamp: Long = System.currentTimeMillis(),
+    onDismiss: () -> Unit,
+    onConfirm: (DiaperType, Long) -> Unit
+) {
+    var selectedType by remember { mutableStateOf(initialDiaperType) }
+
+    val title = when (selectedType) {
+        DiaperType.PEE -> stringResource(R.string.dialog_adjust_pee_time)
+        DiaperType.POO -> stringResource(R.string.dialog_adjust_poo_time)
+        DiaperType.BOTH -> stringResource(R.string.dialog_adjust_diaper_time)
+    }
+
+    TimeAdjustDialog(
+        title = title,
+        initialTimestamp = initialTimestamp,
+        onDismiss = onDismiss,
+        onTimeSelected = { finalTimestamp ->
+            onConfirm(selectedType, finalTimestamp)
+        },
+        content = {
+            Text(
+                text = stringResource(R.string.dialog_diaper_content),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (initialDiaperType == DiaperType.PEE) {
+                    ElevatedFilterChip(
+                        selected = selectedType == DiaperType.PEE,
+                        onClick = { selectedType = DiaperType.PEE },
+                        label = { Text(stringResource(R.string.btn_diaper_pee)) }
+                    )
+                    ElevatedFilterChip(
+                        selected = selectedType == DiaperType.BOTH,
+                        onClick = { selectedType = DiaperType.BOTH },
+                        label = { Text(stringResource(R.string.btn_diaper_both)) }
+                    )
+                } else {
+                    ElevatedFilterChip(
+                        selected = selectedType == DiaperType.POO,
+                        onClick = { selectedType = DiaperType.POO },
+                        label = { Text(stringResource(R.string.btn_diaper_poo)) }
+                    )
+                    ElevatedFilterChip(
+                        selected = selectedType == DiaperType.BOTH,
+                        onClick = { selectedType = DiaperType.BOTH },
+                        label = { Text(stringResource(R.string.btn_diaper_both)) }
+                    )
+                }
+            }
+        }
+    )
+}
+

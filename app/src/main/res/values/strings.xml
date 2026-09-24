@@ -19,6 +19,8 @@
     <string name="btn_diaper_pee">Pee</string>
     <string name="btn_diaper_poo">Poo</string>
     <string name="btn_diaper_both">Pee &amp; Poo</string>
+    <string name="btn_progress_remaining">%1$d / %2$d min (%3$dm left)</string>
+    <string name="btn_progress_overdue">%1$d / %2$d min (+%3$dm)</string>
 
     <!-- Dialogs -->
     <string name="dialog_time_adjust_title">Select Time</string>
@@ -155,6 +157,7 @@
     <string name="dialog_adjust_nursing_start">Adjust Nursing Start Time</string>
     <string name="dialog_adjust_pee_time">Adjust Pee Time</string>
     <string name="dialog_adjust_poo_time">Adjust Poo Time</string>
+    <string name="dialog_adjust_diaper_time">Adjust Diaper Time</string>
     <string name="content_desc_back">Back</string>
     <string name="content_desc_switch_profile">Switch Profile</string>
     <string name="content_desc_previous_day">Previous Day</string>

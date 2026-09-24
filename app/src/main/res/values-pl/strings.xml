@@ -19,6 +19,8 @@
     <string name="btn_diaper_pee">Siku</string>
     <string name="btn_diaper_poo">Kupka</string>
     <string name="btn_diaper_both">Siku i kupka</string>
+    <string name="btn_progress_remaining">%1$d / %2$d min (jeszcze %3$dm)</string>
+    <string name="btn_progress_overdue">%1$d / %2$d min (+%3$dm)</string>
 
     <!-- Dialogs -->
     <string name="dialog_time_adjust_title">Wybierz czas zdarzenia</string>
@@ -155,6 +157,7 @@
     <string name="dialog_adjust_nursing_start">Dostosuj start karmienia</string>
     <string name="dialog_adjust_pee_time">Dostosuj czas siku</string>
     <string name="dialog_adjust_poo_time">Dostosuj czas kupki</string>
+    <string name="dialog_adjust_diaper_time">Dostosuj czas pieluchy</string>
     <string name="content_desc_back">Wstecz</string>
     <string name="content_desc_switch_profile">Przełącz profil</string>
     <string name="content_desc_previous_day">Poprzedni dzień</string>

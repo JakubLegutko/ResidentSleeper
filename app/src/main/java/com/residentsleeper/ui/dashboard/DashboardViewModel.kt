@@ -45,7 +45,7 @@ data class DashboardUiState(
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: BabyRepository
-    private val selectedDayMillis = MutableStateFlow(getStartOfToday())
+    private val selectedDayOffset = MutableStateFlow(0)
     private val ticker = MutableStateFlow(System.currentTimeMillis())
 
     init {
@@ -66,11 +66,14 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun getStartOfDay(timestamp: Long, startHour: Int = 7): Long {
+    private fun getStartOfDayForOffset(timestamp: Long, startHour: Int = 7, dayOffset: Int = 0): Long {
         return Calendar.getInstance().apply {
             timeInMillis = timestamp
             if (get(Calendar.HOUR_OF_DAY) < startHour) {
                 add(Calendar.DAY_OF_YEAR, -1)
+            }
+            if (dayOffset != 0) {
+                add(Calendar.DAY_OF_YEAR, dayOffset)
             }
             set(Calendar.HOUR_OF_DAY, startHour)
             set(Calendar.MINUTE, 0)
@@ -80,17 +83,22 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private fun getEndOfDay(dayStartMillis: Long): Long {
-        return dayStartMillis + (24 * 60 * 60 * 1000) - 1
+        return Calendar.getInstance().apply {
+            timeInMillis = dayStartMillis
+            add(Calendar.DAY_OF_YEAR, 1)
+            add(Calendar.MILLISECOND, -1)
+        }.timeInMillis
     }
 
-    private fun getStartOfToday(startHour: Int = 7): Long = getStartOfDay(System.currentTimeMillis(), startHour)
+    private fun getStartOfToday(startHour: Int = 7): Long =
+        getStartOfDayForOffset(System.currentTimeMillis(), startHour, 0)
 
     val uiState: StateFlow<DashboardUiState> = repository.activeProfileFlow.flatMapLatest { profile ->
         val safeProfile = profile ?: BabyProfile()
         val profileId = safeProfile.id
 
         combine(
-            selectedDayMillis,
+            selectedDayOffset,
             repository.allProfilesFlow,
             repository.getOngoingEventFlow(profileId, EventType.SLEEP),
             repository.getOngoingEventFlow(profileId, EventType.NURSING),
@@ -98,7 +106,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             repository.getLatestEventFlow(profileId, EventType.NURSING),
             ticker
         ) { params ->
-            val dayStart = params[0] as Long
+            val dayOffset = params[0] as Int
             val allProfiles = (params[1] as? List<*>)?.filterIsInstance<BabyProfile>() ?: emptyList()
             val ongoingSleep = params[2] as? BabyEvent
             val ongoingNursing = params[3] as? BabyEvent
@@ -106,8 +114,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val latestNursing = params[5] as? BabyEvent
             val now = params[6] as Long
 
+            val dayStart = getStartOfDayForOffset(now, safeProfile.dayStartHour, dayOffset)
             val dayEnd = getEndOfDay(dayStart)
-            val isToday = dayStart == getStartOfToday(safeProfile.dayStartHour)
+            val isToday = dayOffset == 0
 
             val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
             val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents, getApplication())
@@ -153,18 +162,17 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun previousDay() {
-        selectedDayMillis.value = selectedDayMillis.value - (24 * 60 * 60 * 1000)
+        selectedDayOffset.value -= 1
     }
 
     fun nextDay() {
-        val next = selectedDayMillis.value + (24 * 60 * 60 * 1000)
-        if (next <= getStartOfToday()) {
-            selectedDayMillis.value = next
+        if (selectedDayOffset.value < 0) {
+            selectedDayOffset.value += 1
         }
     }
 
     fun goToToday() {
-        selectedDayMillis.value = getStartOfToday()
+        selectedDayOffset.value = 0
     }
 
     // --- Actions ---

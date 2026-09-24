@@ -25,7 +25,8 @@ data class WakeWindowState(
     val triviaTip: String,
     val napsCompletedToday: Int,
     val targetNapsToday: Int,
-    val daySleepAccumulatedMinutes: Long
+    val daySleepAccumulatedMinutes: Long,
+    val recommendedSleepDurationMinutes: Int = 60
 )
 
 object WakeWindowCalculator {
@@ -213,6 +214,13 @@ object WakeWindowCalculator {
             }
         }
 
+        val recDurationMinutes = when (nextCategory) {
+            SleepCategory.MORNING_NAP -> schedule.morningNapDurationMin
+            SleepCategory.MIDDAY_NAP -> schedule.middayNapDurationMin
+            SleepCategory.BRIDGE_CATNAP -> schedule.catnapDurationMin
+            SleepCategory.BEDTIME -> (schedule.totalNightSleepTargetHours * 60).toInt()
+        }.coerceAtLeast(15)
+
         if (ongoingSleep != null) {
             val sleepDurMillis = maxOf(0L, currentTime - ongoingSleep.startTime)
             val sleepDurMinutes = TimeUnit.MILLISECONDS.toMinutes(sleepDurMillis)
@@ -235,7 +243,8 @@ object WakeWindowCalculator {
                 triviaTip = trivia,
                 napsCompletedToday = napsCount,
                 targetNapsToday = schedule.targetNapsCount,
-                daySleepAccumulatedMinutes = daySleepMinutes
+                daySleepAccumulatedMinutes = daySleepMinutes,
+                recommendedSleepDurationMinutes = recDurationMinutes
             )
         }
 
@@ -268,7 +277,8 @@ object WakeWindowCalculator {
             triviaTip = trivia,
             napsCompletedToday = napsCount,
             targetNapsToday = schedule.targetNapsCount,
-            daySleepAccumulatedMinutes = daySleepMinutes
+            daySleepAccumulatedMinutes = daySleepMinutes,
+            recommendedSleepDurationMinutes = recDurationMinutes
         )
     }
 }

@@ -58,8 +58,8 @@ fun Clock24HourChart(
     feedingState: FeedingState,
     dayStartHour: Int = 7,
     modifier: Modifier = Modifier,
-    sizeDp: Dp = 290.dp,
-    strokeWidthDp: Dp = 34.dp
+    sizeDp: Dp = 324.dp,
+    strokeWidthDp: Dp = 38.dp
 ) {
     val isDark = isSystemInDarkTheme()
     val ringBgColor = if (isDark) RingBackgroundDark else RingBackgroundLight
@@ -143,76 +143,85 @@ fun Clock24HourChart(
                 }
             }
 
-            // 4. Draw Point Markers (Nursing & Diapers)
+            // 4. Draw Point Markers (Nursing in center lane, Pee in outer lane, Poo in inner lane)
+            val peeTrackRadius = radius + (strokePx * 0.28f)   // Outer lane for Pee
+            val pooTrackRadius = radius - (strokePx * 0.28f)   // Inner lane for Poo
+            val nursingTrackRadius = radius                    // Centerline for Nursing
+
             for (event in events) {
                 when (event.type) {
                     EventType.NURSING -> {
                         val angle = ClockChartMath.computeMarkerAngle(event.startTime, dayStartHour)
                         val angleRad = (angle * PI / 180f).toFloat()
                         val markerPos = Offset(
-                            x = center.x + radius * cos(angleRad),
-                            y = center.y + radius * sin(angleRad)
+                            x = center.x + nursingTrackRadius * cos(angleRad),
+                            y = center.y + nursingTrackRadius * sin(angleRad)
                         )
-                        val markerColor = NursingPink
-                        // White outline halo
-                        drawCircle(
-                            color = Color.White,
-                            radius = 6.5.dp.toPx(),
-                            center = markerPos
-                        )
-                        // Colored center
-                        drawCircle(
-                            color = markerColor,
-                            radius = 4.8.dp.toPx(),
-                            center = markerPos
-                        )
-                        // Crisp dark outline border for pop against any background
-                        drawCircle(
-                            color = Color(0xFF0F172A),
-                            radius = 6.5.dp.toPx(),
+                        drawMarkerDot(
                             center = markerPos,
-                            style = Stroke(width = 1.dp.toPx())
+                            color = NursingPink,
+                            radiusPx = 6.5.dp.toPx(),
+                            innerRadiusPx = 4.8.dp.toPx()
                         )
                     }
                     EventType.DIAPER -> {
                         val angle = ClockChartMath.computeMarkerAngle(event.startTime, dayStartHour)
                         val angleRad = (angle * PI / 180f).toFloat()
-                        // Offset slightly to outer edge of ring
-                        val outerRadius = radius + (strokePx / 2f) - 3.dp.toPx()
-                        val markerPos = Offset(
-                            x = center.x + outerRadius * cos(angleRad),
-                            y = center.y + outerRadius * sin(angleRad)
-                        )
-                        val dotColor = when (event.diaperType) {
-                            DiaperType.PEE -> DiaperPeeCyan
-                            DiaperType.POO -> DiaperPooWarm
-                            DiaperType.BOTH, null -> DiaperPooWarm
-                        }
-                        // White outline halo
-                        drawCircle(
-                            color = Color.White,
-                            radius = 5.5.dp.toPx(),
-                            center = markerPos
-                        )
-                        // Colored center
-                        drawCircle(
-                            color = dotColor,
-                            radius = 3.8.dp.toPx(),
-                            center = markerPos
-                        )
-                        // Crisp dark outline border
-                        drawCircle(
-                            color = Color(0xFF0F172A),
-                            radius = 5.5.dp.toPx(),
-                            center = markerPos,
-                            style = Stroke(width = 1.dp.toPx())
-                        )
-                        if (event.diaperType == DiaperType.BOTH) {
-                            drawCircle(
-                                color = DiaperPeeCyan,
-                                radius = 2.dp.toPx(),
-                                center = markerPos
-                            )
+
+                        when (event.diaperType) {
+                            DiaperType.PEE -> {
+                                val markerPos = Offset(
+                                    x = center.x + peeTrackRadius * cos(angleRad),
+                                    y = center.y + peeTrackRadius * sin(angleRad)
+                                )
+                                drawMarkerDot(
+                                    center = markerPos,
+                                    color = DiaperPeeCyan,
+                                    radiusPx = 5.2.dp.toPx(),
+                                    innerRadiusPx = 3.6.dp.toPx()
+                                )
+                            }
+                            DiaperType.POO -> {
+                                val markerPos = Offset(
+                                    x = center.x + pooTrackRadius * cos(angleRad),
+                                    y = center.y + pooTrackRadius * sin(angleRad)
+                                )
+                                drawMarkerDot(
+                                    center = markerPos,
+                                    color = DiaperPooWarm,
+                                    radiusPx = 5.2.dp.toPx(),
+                                    innerRadiusPx = 3.6.dp.toPx()
+                                )
+                            }
+                            DiaperType.BOTH, null -> {
+                                val peePos = Offset(
+                                    x = center.x + peeTrackRadius * cos(angleRad),
+                                    y = center.y + peeTrackRadius * sin(angleRad)
+                                )
+                                val pooPos = Offset(
+                                    x = center.x + pooTrackRadius * cos(angleRad),
+                                    y = center.y + pooTrackRadius * sin(angleRad)
+                                )
+                                // Connector line joining pee and poo for combined diaper event
+                                drawLine(
+                                    color = Color(0xFF0F172A).copy(alpha = 0.35f),
+                                    start = peePos,
+                                    end = pooPos,
+                                    strokeWidth = 1.5.dp.toPx()
+                                )
+                                drawMarkerDot(
+                                    center = peePos,
+                                    color = DiaperPeeCyan,
+                                    radiusPx = 5.2.dp.toPx(),
+                                    innerRadiusPx = 3.6.dp.toPx()
+                                )
+                                drawMarkerDot(
+                                    center = pooPos,
+                                    color = DiaperPooWarm,
+                                    radiusPx = 5.2.dp.toPx(),
+                                    innerRadiusPx = 3.6.dp.toPx()
+                                )
+                            }
                         }
                     }
                     EventType.SLEEP -> { /* Handled as arcs */ }
@@ -243,7 +252,7 @@ fun Clock24HourChart(
         // Hollow Center: Live summary status
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 48.dp)
+            modifier = Modifier.padding(horizontal = 40.dp)
         ) {
             if (wakeState.isSleeping) {
                 Text(
@@ -371,3 +380,31 @@ private fun DrawScope.drawHourTicksAndLabels(
         }
     }
 }
+
+private fun DrawScope.drawMarkerDot(
+    center: Offset,
+    color: Color,
+    radiusPx: Float,
+    innerRadiusPx: Float
+) {
+    // 1. White contrast halo
+    drawCircle(
+        color = Color.White,
+        radius = radiusPx,
+        center = center
+    )
+    // 2. Colored center
+    drawCircle(
+        color = color,
+        radius = innerRadiusPx,
+        center = center
+    )
+    // 3. Crisp dark outline border for popping against any background
+    drawCircle(
+        color = Color(0xFF0F172A),
+        radius = radiusPx,
+        center = center,
+        style = Stroke(width = 1.dp.toPx())
+    )
+}
+

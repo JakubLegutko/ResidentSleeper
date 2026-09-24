@@ -1,20 +1,30 @@
 package com.residentsleeper.ui.dashboard
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.residentsleeper.domain.LittleOnesSleepScheduleDatabase
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +32,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -69,6 +90,7 @@ import com.residentsleeper.data.model.DiaperType
 import com.residentsleeper.data.model.NursingType
 import com.residentsleeper.domain.WakeWindowCalculator
 import com.residentsleeper.ui.chart.Clock24HourChart
+import com.residentsleeper.ui.components.DiaperTimeAdjustDialog
 import com.residentsleeper.ui.components.NursingDetailsDialog
 import com.residentsleeper.ui.components.ProfileSwitcherDialog
 import com.residentsleeper.ui.components.TimeAdjustDialog
@@ -88,6 +110,7 @@ fun DashboardScreen(
     onNavigateToSettings: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    val isDark = isSystemInDarkTheme()
     val dateFormatter = remember { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()) }
 
     var showProfileSwitcher by remember { mutableStateOf(false) }
@@ -113,7 +136,7 @@ fun DashboardScreen(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "👶 ${state.activeProfile.name} (${ageWeeks}w)",
+                                text = "đź‘¶ ${state.activeProfile.name} (${ageWeeks}w)",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -188,20 +211,21 @@ fun DashboardScreen(
                 wakeState = state.wakeWindowState,
                 feedingState = state.feedingState,
                 dayStartHour = state.activeProfile.dayStartHour,
-                sizeDp = 280.dp,
-                strokeWidthDp = 32.dp
+                sizeDp = 324.dp,
+                strokeWidthDp = 38.dp
             )
 
             // Color Legend
             Row(
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 6.dp, bottom = 10.dp)
             ) {
                 ChartLegendItem(color = SleepIndigo, label = stringResource(R.string.legend_sleep))
                 ChartLegendItem(color = WakeMint, label = stringResource(R.string.legend_activity))
                 ChartLegendItem(color = NursingPink, label = stringResource(R.string.legend_nursing))
-                ChartLegendItem(color = DiaperPeeCyan, label = stringResource(R.string.legend_diaper))
+                ChartLegendItem(color = DiaperPeeCyan, label = stringResource(R.string.btn_diaper_pee))
+                ChartLegendItem(color = DiaperPooWarm, label = stringResource(R.string.btn_diaper_poo))
             }
 
             // 4 ACTION BUTTONS GRID
@@ -210,34 +234,147 @@ fun DashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Sleep Button (Toggle with Now / Adjust)
-                val isSleeping = state.ongoingSleep != null
+                // Sleep Button (Toggle with Now / Adjust & Progress Bar)
+                val currentSleep = state.ongoingSleep
+                val isSleeping = currentSleep != null
+                val sleepProgress: Float?
+                val sleepSubtitle: String
+                val sleepTargetMinutes = state.wakeWindowState.recommendedSleepDurationMinutes.coerceAtLeast(15)
+                if (currentSleep != null) {
+                    val now = System.currentTimeMillis()
+                    val sleepElapsedMillis = maxOf(0L, now - currentSleep.startTime)
+                    val sleepElapsedMin = (sleepElapsedMillis / 60_000L).toInt()
+                    sleepProgress = (sleepElapsedMillis.toFloat() / (sleepTargetMinutes * 60_000f)).coerceIn(0f, 1f)
+                    val overdueMin = maxOf(0, sleepElapsedMin - sleepTargetMinutes)
+                    val remainingMin = maxOf(0, sleepTargetMinutes - sleepElapsedMin)
+                    sleepSubtitle = if (overdueMin > 0) {
+                        stringResource(R.string.btn_progress_overdue, sleepElapsedMin, sleepTargetMinutes, overdueMin)
+                    } else {
+                        stringResource(R.string.btn_progress_remaining, sleepElapsedMin, sleepTargetMinutes, remainingMin)
+                    }
+                } else {
+                    sleepProgress = null
+                    sleepSubtitle = stringResource(R.string.subtitle_tap_to_sleep)
+                }
+
+                val sleepContainerColor = if (isSleeping) {
+                    Color(0xFF1E1B4B)
+                } else if (isDark) {
+                    Color(0xFF282566)
+                } else {
+                    Color(0xFFEEF2FF)
+                }
+
+                val sleepBaseColor = if (isSleeping) {
+                    Color(0xFF0F0E2A)
+                } else if (isDark) {
+                    Color(0xFF191740)
+                } else {
+                    Color(0xFFC7D2FE)
+                }
+
+                val sleepBorderColor = if (isSleeping) {
+                    SleepIndigo.copy(alpha = 0.6f)
+                } else if (isDark) {
+                    SleepIndigo.copy(alpha = 0.4f)
+                } else {
+                    Color(0xFFC7D2FE).copy(alpha = 0.8f)
+                }
+
+                val sleepContentColor = if (isSleeping) {
+                    Color.White
+                } else if (isDark) {
+                    Color(0xFFE0E7FF)
+                } else {
+                    Color(0xFF4338CA)
+                }
+
                 ActionButtonCard(
                     title = if (isSleeping) stringResource(R.string.btn_sleep_end) else stringResource(R.string.btn_sleep_start),
-                    subtitle = if (isSleeping) stringResource(R.string.subtitle_tap_to_wake) else stringResource(R.string.subtitle_tap_to_sleep),
+                    subtitle = sleepSubtitle,
                     icon = Icons.Default.Hotel,
-                    containerColor = if (isSleeping) SleepIndigo else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (isSleeping) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    containerColor = sleepContainerColor,
+                    baseColor = sleepBaseColor,
+                    contentColor = sleepContentColor,
+                    borderColor = sleepBorderColor,
+                    isToggled = isSleeping,
+                    progress = sleepProgress,
+                    progressColor = SleepIndigo,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onSleepButtonClick() },
                     onLongClick = { showSleepTimeAdjustDialog = true }
                 )
 
-                // Nursing Button (Toggle with details dialog)
-                val isNursing = state.ongoingNursing != null
-                val nursingSubtitle = if (isNursing) {
-                    stringResource(R.string.subtitle_tap_to_finish)
-                } else if (state.feedingState.isOptionalNightFeed) {
-                    stringResource(R.string.btn_nursing_optional_night_subtitle)
+                // Nursing Button (Toggle with details dialog & 20 min Progress Bar)
+                val currentNursing = state.ongoingNursing
+                val isNursing = currentNursing != null
+                val nursingProgress: Float?
+                val nursingSubtitle: String
+                val nursingTargetMinutes = 20
+                if (currentNursing != null) {
+                    val now = System.currentTimeMillis()
+                    val nursingElapsedMillis = maxOf(0L, now - currentNursing.startTime)
+                    val nursingElapsedMin = (nursingElapsedMillis / 60_000L).toInt()
+                    nursingProgress = (nursingElapsedMillis.toFloat() / (nursingTargetMinutes * 60_000f)).coerceIn(0f, 1f)
+                    val overdueMin = maxOf(0, nursingElapsedMin - nursingTargetMinutes)
+                    val remainingMin = maxOf(0, nursingTargetMinutes - nursingElapsedMin)
+                    nursingSubtitle = if (overdueMin > 0) {
+                        stringResource(R.string.btn_progress_overdue, nursingElapsedMin, nursingTargetMinutes, overdueMin)
+                    } else {
+                        stringResource(R.string.btn_progress_remaining, nursingElapsedMin, nursingTargetMinutes, remainingMin)
+                    }
                 } else {
-                    stringResource(R.string.subtitle_breast_bottle)
+                    nursingProgress = null
+                    nursingSubtitle = if (state.feedingState.isOptionalNightFeed) {
+                        stringResource(R.string.btn_nursing_optional_night_subtitle)
+                    } else {
+                        stringResource(R.string.subtitle_breast_bottle)
+                    }
+}
+
+                val nursingContainerColor = if (isNursing) {
+                    Color(0xFF4C0519)
+                } else if (isDark) {
+                    Color(0xFF6B1138)
+                } else {
+                    Color(0xFFFDF2F8)
                 }
+
+                val nursingBaseColor = if (isNursing) {
+                    Color(0xFF28020D)
+                } else if (isDark) {
+                    Color(0xFF38071C)
+                } else {
+                    Color(0xFFFBCFE8)
+                }
+
+                val nursingBorderColor = if (isNursing) {
+                    NursingPink.copy(alpha = 0.6f)
+                } else if (isDark) {
+                    NursingPink.copy(alpha = 0.4f)
+                } else {
+                    Color(0xFFFBCFE8).copy(alpha = 0.8f)
+                }
+
+                val nursingContentColor = if (isNursing) {
+                    Color.White
+                } else if (isDark) {
+                    Color(0xFFFCE7F3)
+                } else {
+                    Color(0xFFBE185D)
+                }
+
                 ActionButtonCard(
                     title = if (isNursing) stringResource(R.string.btn_nursing_end) else stringResource(R.string.btn_nursing_start),
                     subtitle = nursingSubtitle,
                     icon = Icons.Default.Restaurant,
-                    containerColor = if (isNursing) NursingPink else MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = if (isNursing) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    containerColor = nursingContainerColor,
+                    baseColor = nursingBaseColor,
+                    contentColor = nursingContentColor,
+                    borderColor = nursingBorderColor,
+                    isToggled = isNursing,
+                    progress = nursingProgress,
+                    progressColor = NursingPink,
                     modifier = Modifier.weight(1f),
                     onClick = {
                         if (isNursing) {
@@ -254,6 +391,16 @@ fun DashboardScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Row 2: Diaper Pee & Diaper Poo (One-shot buttons)
+            val peeContainerColor = if (isDark) Color(0xFF075985) else Color(0xFFF0F9FF)
+            val peeBaseColor = if (isDark) Color(0xFF082F49) else Color(0xFFBAE6FD)
+            val peeBorderColor = if (isDark) Color(0xFF38BDF8).copy(alpha = 0.4f) else Color(0xFFBAE6FD).copy(alpha = 0.8f)
+            val peeContentColor = if (isDark) Color(0xFFE0F2FE) else Color(0xFF0284C7)
+
+            val pooContainerColor = if (isDark) Color(0xFF78350F) else Color(0xFFFFFBEB)
+            val pooBaseColor = if (isDark) Color(0xFF451A03) else Color(0xFFFDE68A)
+            val pooBorderColor = if (isDark) Color(0xFFD97706).copy(alpha = 0.4f) else Color(0xFFFDE68A).copy(alpha = 0.8f)
+            val pooContentColor = if (isDark) Color(0xFFFEF3C7) else Color(0xFFB45309)
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -263,8 +410,12 @@ fun DashboardScreen(
                     title = stringResource(R.string.btn_diaper_pee),
                     subtitle = null,
                     icon = Icons.Default.WaterDrop,
-                    containerColor = DiaperPeeCyan.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = peeContainerColor,
+                    baseColor = peeBaseColor,
+                    contentColor = peeContentColor,
+                    borderColor = peeBorderColor,
+                    floatingFeedbackText = "+1",
+                    floatingFeedbackColor = DiaperPeeCyan,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onDiaperClick(DiaperType.PEE) },
                     onLongClick = { showDiaperTimeAdjustDialog = DiaperType.PEE }
@@ -275,8 +426,12 @@ fun DashboardScreen(
                     title = stringResource(R.string.btn_diaper_poo),
                     subtitle = null,
                     icon = Icons.Default.Check,
-                    containerColor = DiaperPooWarm.copy(alpha = 0.2f),
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    containerColor = pooContainerColor,
+                    baseColor = pooBaseColor,
+                    contentColor = pooContentColor,
+                    borderColor = pooBorderColor,
+                    floatingFeedbackText = "+1",
+                    floatingFeedbackColor = DiaperPooWarm,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.onDiaperClick(DiaperType.POO) },
                     onLongClick = { showDiaperTimeAdjustDialog = DiaperType.POO }
@@ -530,11 +685,11 @@ fun DashboardScreen(
     }
 
     showDiaperTimeAdjustDialog?.let { diaperType ->
-        TimeAdjustDialog(
-            title = if (diaperType == DiaperType.PEE) stringResource(R.string.dialog_adjust_pee_time) else stringResource(R.string.dialog_adjust_poo_time),
+        DiaperTimeAdjustDialog(
+            initialDiaperType = diaperType,
             onDismiss = { showDiaperTimeAdjustDialog = null },
-            onTimeSelected = { adjustedTimestamp ->
-                viewModel.onDiaperClick(diaperType, adjustedTimestamp)
+            onConfirm = { selectedType, adjustedTimestamp ->
+                viewModel.onDiaperClick(selectedType, adjustedTimestamp)
                 showDiaperTimeAdjustDialog = null
             }
         )
@@ -557,6 +712,61 @@ fun DashboardScreen(
     }
 }
 
+private data class FloatingFeedback(
+    val id: Long,
+    val text: String,
+    val color: Color
+)
+
+@Composable
+private fun FloatingFeedbackItem(
+    feedback: FloatingFeedback,
+    onFinished: () -> Unit
+) {
+    val animProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(feedback.id) {
+        animProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing)
+        )
+        onFinished()
+    }
+
+    val progress = animProgress.value
+    val translateY = -52.dp * progress
+    val alpha = (1f - progress * 1.1f).coerceIn(0f, 1f)
+    val scale = 0.8f + (0.4f * progress)
+
+    Box(
+        modifier = Modifier
+            .offset(y = translateY)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                this.alpha = alpha
+            }
+            .background(
+                color = feedback.color.copy(alpha = 0.22f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = feedback.color.copy(alpha = 0.5f * alpha),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = feedback.text,
+            color = feedback.color,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Black
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ActionButtonCard(
@@ -564,49 +774,200 @@ private fun ActionButtonCard(
     subtitle: String? = null,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     containerColor: Color,
+    baseColor: Color,
     contentColor: Color,
+    borderColor: Color,
     modifier: Modifier = Modifier,
+    isToggled: Boolean = false,
+    progress: Float? = null,
+    progressColor: Color = containerColor,
+    floatingFeedbackText: String? = null,
+    floatingFeedbackColor: Color = contentColor,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .height(96.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+    val coroutineScope = rememberCoroutineScope()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val haptic = LocalHapticFeedback.current
+    var feedbacks by remember { mutableStateOf(listOf<FloatingFeedback>()) }
+
+    // 0f = resting (pushed out with 3D lip showing), 1f = pushed in (recessed)
+    val pressAnim = remember { Animatable(if (isToggled) 1f else 0f) }
+
+    LaunchedEffect(isToggled) {
+        val target = if (isToggled) 1f else 0f
+        pressAnim.animateTo(
+            targetValue = target,
+            animationSpec = spring(
+                dampingRatio = 0.6f,
+                stiffness = Spring.StiffnessMediumLow
+            )
+        )
+    }
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            pressAnim.animateTo(1f, tween(durationMillis = 60, easing = FastOutSlowInEasing))
+        } else if (!isToggled) {
+            pressAnim.animateTo(
+                0f,
+                spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium)
+            )
+        }
+    }
+
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress?.coerceIn(0f, 1f) ?: 0f,
+        animationSpec = tween(durationMillis = 400),
+        label = "actionButtonProgress"
+    )
+
+    val pushDepth = 4.dp
+    val pushDepthPx = with(LocalDensity.current) { pushDepth.toPx() }
+    val currentOffset = pushDepthPx * pressAnim.value
+    val currentElevation = ((1f - pressAnim.value) * 3f).dp
+
+    Box(
+        modifier = modifier.height(96.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
+        // 1. 3D Base Bevel / Extrusion Layer (visible when button is pushed out)
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .height(92.dp)
+                .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(18.dp))
+                .background(baseColor)
+        )
+
+        // 2. Interactive Tactile Button Face
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(92.dp)
+                .align(Alignment.TopCenter)
+                .graphicsLayer {
+                    translationY = currentOffset
+                    scaleX = 1f - (pressAnim.value * 0.015f)
+                    scaleY = 1f - (pressAnim.value * 0.015f)
+                }
+                .clip(RoundedCornerShape(18.dp))
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        coroutineScope.launch {
+                            if (!isToggled) {
+                                pressAnim.animateTo(1f, tween(60, easing = FastOutSlowInEasing))
+                                pressAnim.animateTo(
+                                    0f,
+                                    spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium)
+                                )
+                            }
+                        }
+                        if (floatingFeedbackText != null) {
+                            feedbacks = feedbacks + FloatingFeedback(
+                                id = System.nanoTime(),
+                                text = floatingFeedbackText,
+                                color = floatingFeedbackColor
+                            )
+                        }
+                        onClick()
+                    },
+                    onLongClick = onLongClick
+                ),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = containerColor),
+            border = BorderStroke(1.dp, borderColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = currentElevation)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = contentColor,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                textAlign = TextAlign.Center
-            )
-            if (!subtitle.isNullOrBlank()) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = contentColor.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (progress != null) {
+                    // 1. Smooth horizontal background fill
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(animatedProgress)
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(
+                                        progressColor.copy(alpha = 0.65f),
+                                        progressColor.copy(alpha = 0.95f)
+                                    )
+                                )
+                            )
+                    )
+                    // 2. Crisp bottom progress line
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(Color.Black.copy(alpha = 0.3f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animatedProgress)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                            Color.White.copy(alpha = 0.8f),
+                                            Color.White
+                                        )
+                                    )
+                                )
+                        )
+                    }
+                }
+
+                // 3. Foreground content
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        tint = contentColor,
+                        modifier = Modifier.size(26.dp)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
+                        textAlign = TextAlign.Center
+                    )
+                    if (!subtitle.isNullOrBlank()) {
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = contentColor.copy(alpha = 0.9f),
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
+
+        // Floating visual feedback elements (e.g. +1 flying up)
+        feedbacks.forEach { feedback ->
+            key(feedback.id) {
+                FloatingFeedbackItem(
+                    feedback = feedback,
+                    onFinished = {
+                        feedbacks = feedbacks.filter { it.id != feedback.id }
+                    }
                 )
             }
         }
@@ -756,7 +1117,7 @@ private fun TimelineEntryRow(
 
                     if (!event.note.isNullOrBlank()) {
                         Text(
-                            text = "📝 ${event.note}",
+                            text = "đź“ť ${event.note}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 2.dp)
