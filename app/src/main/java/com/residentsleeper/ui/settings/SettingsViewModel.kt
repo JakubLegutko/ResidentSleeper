@@ -19,23 +19,34 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.residentsleeper.domain.FeedingIntervalCalculationResult
+import com.residentsleeper.domain.FeedingPredictor
+import java.util.concurrent.TimeUnit
+
 data class SettingsUiState(
     val activeProfile: BabyProfile = BabyProfile(),
     val allProfiles: List<BabyProfile> = emptyList(),
     val availableCalendars: List<DeviceCalendar> = emptyList(),
     val hasCalendarPermission: Boolean = false,
-    val backupMessage: String? = null
+    val backupMessage: String? = null,
+    val feedingCalculationResult: FeedingIntervalCalculationResult? = null
 )
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+class SettingsViewModel(
+    application: Application,
+    customRepository: BabyRepository? = null
+) : AndroidViewModel(application) {
 
-    private val repository: BabyRepository
+    constructor(application: Application) : this(application, null)
+
+    private val repository: BabyRepository = customRepository ?: run {
+        val db = AppDatabase.getDatabase(application)
+        BabyRepository(db.babyEventDao(), db.babyProfileDao(), db.appNotificationDao())
+    }
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     init {
-        val db = AppDatabase.getDatabase(application)
-        repository = BabyRepository(db.babyEventDao(), db.babyProfileDao(), db.appNotificationDao())
         loadProfile()
     }
 
@@ -136,6 +147,28 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun updateFeedingInterval(minutes: Int) {
         updateActiveProfile { it.copy(feedingIntervalMinutes = minutes) }
+    }
+
+    fun autoCalculateFeedingInterval() {
+        viewModelScope.launch {
+            val profile = repository.getActiveProfile()
+            val now = System.currentTimeMillis()
+            val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+            val recentEvents = repository.getEventsInRangeSync(profile.id, sevenDaysAgo, now)
+            val result = FeedingPredictor.calculateOptimalInterval(profile, recentEvents, now)
+
+            val updated = profile.copy(feedingIntervalMinutes = result.recommendedIntervalMinutes)
+            repository.updateProfile(updated)
+
+            _uiState.value = _uiState.value.copy(
+                activeProfile = updated,
+                feedingCalculationResult = result
+            )
+        }
+    }
+
+    fun dismissFeedingCalculationDialog() {
+        _uiState.value = _uiState.value.copy(feedingCalculationResult = null)
     }
 
     fun updateDayStartHour(hour: Int) {

@@ -317,4 +317,38 @@
     <string name="time_just_now">Przed chwilą</string>
     <string name="time_minutes_ago">%1$d min temu</string>
     <string name="time_hours_ago">%1$d godz. temu</string>
+
+    <!-- Automatyczny interwał karmienia -->
+    <string name="btn_auto_calculate_feeding">Dostosuj automatycznie (WHO i historia)</string>
+    <string name="feeding_auto_dialog_title">Rekomendacja interwału karmienia</string>
+    <string name="feeding_auto_dialog_subtitle">Obliczono na podstawie wytycznych WHO / PTGHiŻD oraz historii karmień</string>
+    <string name="feeding_auto_applied_label">Rekomendowany interwał</string>
+    <string name="feeding_auto_recommended_value">%1$s (%2$d min)</string>
+    <string name="feeding_auto_age_label">Wiek dziecka</string>
+    <string name="feeding_auto_age_value">%1$d tyg. (%2$s)</string>
+    <string name="feeding_auto_guidelines_label">Wytyczne WHO / PTGHiŻD</string>
+    <string name="feeding_auto_guidelines_range">%1$d–%2$d min (%3$s karmień/dobę, %4$s)</string>
+    <string name="feeding_auto_mechanism_label">Mechanizm rozwojowy</string>
+    <string name="feeding_auto_data_label">Historia karmień</string>
+    <string name="feeding_auto_history_used">Ruchoma mediana z %1$d karmień w ostatnich 7 dniach wynosi %2$d min. Zastosowano spersonalizowany interwał.</string>
+    <string name="feeding_auto_history_none">Mniej niż 3 karmienia w ostatnich 7 dniach. Zastosowano wytyczną bazową dla wieku dziecka.</string>
+    <string name="feeding_auto_apply_btn">Zastosuj rekomendację</string>
+    <string name="feeding_interval_custom_chip">%1$s</string>
+
+    <string name="feeding_bracket_1_3_days">1.–3. doba</string>
+    <string name="feeding_mech_1_3_days">Siara, minimalna pojemność żołądka</string>
+    <string name="feeding_bracket_4_14_days">4.–14. doba</string>
+    <string name="feeding_mech_4_14_days">Dynamiczny wzrost laktacji i żołądka</string>
+    <string name="feeding_bracket_2_8_weeks">2.–8. tydzień</string>
+    <string name="feeding_mech_2_8_weeks">Stabilizacja laktacji, skoki rozwojowe</string>
+    <string name="feeding_bracket_2_4_months">2.–4. miesiąc</string>
+    <string name="feeding_mech_2_4_months">Wydłużenie przerw nocnych</string>
+    <string name="feeding_bracket_5_6_months">5.–6. miesiąc</string>
+    <string name="feeding_mech_5_6_months">Wyższa gęstość kaloryczna porcji</string>
+    <string name="feeding_bracket_7_9_months">7.–9. miesiąc</string>
+    <string name="feeding_mech_7_9_months">Wprowadzanie pokarmów uzupełniających</string>
+    <string name="feeding_bracket_10_12_months">10.–12. miesiąc</string>
+    <string name="feeding_mech_10_12_months">Posiłki stałe stanowią główne źródło energii</string>
+    <string name="feeding_bracket_12_plus_months">> 12 miesięcy</string>
+    <string name="feeding_mech_12_plus_months">Ustalony rytm posiłków stałych</string>
 </resources>
