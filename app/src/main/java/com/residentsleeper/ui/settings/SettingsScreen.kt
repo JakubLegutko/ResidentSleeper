@@ -346,42 +346,51 @@ fun SettingsScreen(
                     val isAutoFeeding = state.activeProfile.customFeedingIntervalMinutes == null
                     val customInterval = state.activeProfile.customFeedingIntervalMinutes
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        FilterChip(
-                            selected = isAutoFeeding,
-                            onClick = { viewModel.updateFeedingInterval(null) },
-                            label = { Text(stringResource(R.string.settings_auto_age)) }
-                        )
-
-                        if (customInterval != null && customInterval !in listOf(120, 150, 180)) {
-                            val h = customInterval / 60
-                            val m = customInterval % 60
-                            val customLabel = if (m == 0) "${h}h" else "${h}h ${m}m"
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             FilterChip(
-                                selected = true,
-                                onClick = { },
-                                label = { Text(customLabel, fontWeight = FontWeight.Bold) }
+                                selected = isAutoFeeding,
+                                onClick = { viewModel.updateFeedingInterval(null) },
+                                label = { Text(stringResource(R.string.settings_auto_age)) }
+                            )
+
+                            FilterChip(
+                                selected = customInterval == 120,
+                                onClick = { viewModel.updateFeedingInterval(120) },
+                                label = { Text("2.0 hours") }
+                            )
+
+                            FilterChip(
+                                selected = customInterval == 150,
+                                onClick = { viewModel.updateFeedingInterval(150) },
+                                label = { Text("2.5 hours") }
                             )
                         }
 
-                        FilterChip(
-                            selected = customInterval == 120,
-                            onClick = { viewModel.updateFeedingInterval(120) },
-                            label = { Text("2.0 hours") }
-                        )
-                        FilterChip(
-                            selected = customInterval == 150,
-                            onClick = { viewModel.updateFeedingInterval(150) },
-                            label = { Text("2.5 hours") }
-                        )
-                        FilterChip(
-                            selected = customInterval == 180,
-                            onClick = { viewModel.updateFeedingInterval(180) },
-                            label = { Text("3.0 hours") }
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            FilterChip(
+                                selected = customInterval == 180,
+                                onClick = { viewModel.updateFeedingInterval(180) },
+                                label = { Text("3.0 hours") }
+                            )
+
+                            if (customInterval != null && customInterval !in listOf(120, 150, 180)) {
+                                val h = customInterval / 60
+                                val m = customInterval % 60
+                                val customLabel = if (m == 0) "${h}h" else "${h}h ${m}m"
+                                FilterChip(
+                                    selected = true,
+                                    onClick = { },
+                                    label = { Text(customLabel, fontWeight = FontWeight.Bold) }
+                                )
+                            }
+                        }
                     }
 
                     val preview = state.autoFeedingIntervalPreview
