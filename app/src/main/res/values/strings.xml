@@ -294,4 +294,27 @@
     <!-- Delete Profile Dialog -->
     <string name="dialog_delete_profile_title">Delete Profile?</string>
     <string name="dialog_delete_profile_message">Are you sure you want to delete \"%1$s\" and all associated logs? This action cannot be undone.</string>
+
+    <!-- Notification Centre -->
+    <string name="nav_notifications">Notifications</string>
+    <string name="notification_centre_title">Notification Centre</string>
+    <string name="notification_centre_subtitle">Last 24 Hours</string>
+    <string name="notification_centre_info">Notifications from the last 24 hours are stored here. Older alerts are automatically expired.</string>
+    <string name="notification_empty_title">No notifications yet</string>
+    <string name="notification_empty_desc">Alerts for wake window conclusions and feeding reminders from the last 24 hours will appear here.</string>
+    <string name="notification_mark_all_read">Mark all as read</string>
+    <string name="notification_clear_all">Clear all</string>
+    <string name="notification_clear_confirm_title">Clear Notifications?</string>
+    <string name="notification_clear_confirm_msg">Are you sure you want to clear all notifications from the last 24 hours?</string>
+    <string name="notification_send_test">Send test notification</string>
+    <string name="notification_type_wake">Sleep &amp; Wake Window</string>
+    <string name="notification_type_feed">Feeding</string>
+    <string name="notification_type_test">Test Alert</string>
+    <string name="notification_type_general">Alert</string>
+    <string name="notification_unread_badge">%1$d unread</string>
+    <string name="notif_test_title">Test Alert</string>
+    <string name="notif_test_body">ResidentSleeper alert system is active and ready!</string>
+    <string name="time_just_now">Just now</string>
+    <string name="time_minutes_ago">%1$dm ago</string>
+    <string name="time_hours_ago">%1$dh ago</string>
 </resources>

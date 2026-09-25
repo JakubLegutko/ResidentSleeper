@@ -46,7 +46,7 @@ class ReviewViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         val db = AppDatabase.getDatabase(application)
-        repository = BabyRepository(db.babyEventDao(), db.babyProfileDao())
+        repository = BabyRepository(db.babyEventDao(), db.babyProfileDao(), db.appNotificationDao())
         loadReview(ReviewPeriod.DAILY)
     }
 
