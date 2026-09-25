@@ -17,7 +17,10 @@ data class FeedingState(
     val lastFeedTypeDescription: String? = null,
     val isNightTime: Boolean = false,
     val nightFeedsCountTonight: Int = 0,
-    val isOptionalNightFeed: Boolean = false
+    val isOptionalNightFeed: Boolean = false,
+    val effectiveIntervalMinutes: Int = 150,
+    val isAutoInterval: Boolean = true,
+    val calculationResult: FeedingIntervalCalculationResult? = null
 )
 
 object FeedingPredictor {
@@ -59,6 +62,21 @@ object FeedingPredictor {
 
         val isOptional = isNight && (nightFeedsCount >= profile.maxRecommendedNightFeeds)
 
+        val isAuto = profile.customFeedingIntervalMinutes == null
+        val calculationResult = if (isAuto) {
+            calculateOptimalInterval(profile, recentEvents, currentTime)
+        } else {
+            null
+        }
+
+        val effectiveIntervalMinutes = if (profile.customFeedingIntervalMinutes != null && profile.customFeedingIntervalMinutes > 0) {
+            profile.customFeedingIntervalMinutes
+        } else if (calculationResult != null) {
+            calculationResult.recommendedIntervalMinutes
+        } else {
+            profile.feedingIntervalMinutes
+        }
+
         if (ongoingNursing != null) {
             val durationMillis = maxOf(0L, currentTime - ongoingNursing.startTime)
             return FeedingState(
@@ -72,7 +90,10 @@ object FeedingPredictor {
                 lastFeedTypeDescription = ongoingNursing.nursingType?.name,
                 isNightTime = isNight,
                 nightFeedsCountTonight = nightFeedsCount,
-                isOptionalNightFeed = isOptional
+                isOptionalNightFeed = isOptional,
+                effectiveIntervalMinutes = effectiveIntervalMinutes,
+                isAutoInterval = isAuto,
+                calculationResult = calculationResult
             )
         }
 
@@ -87,7 +108,10 @@ object FeedingPredictor {
                 alert10MinTimestamp = null,
                 isNightTime = isNight,
                 nightFeedsCountTonight = nightFeedsCount,
-                isOptionalNightFeed = isOptional
+                isOptionalNightFeed = isOptional,
+                effectiveIntervalMinutes = effectiveIntervalMinutes,
+                isAutoInterval = isAuto,
+                calculationResult = calculationResult
             )
         }
 
@@ -96,7 +120,7 @@ object FeedingPredictor {
         val elapsedMillis = maxOf(0L, currentTime - feedStart)
         val elapsedMinutes = TimeUnit.MILLISECONDS.toMinutes(elapsedMillis)
 
-        val intervalMillis = TimeUnit.MINUTES.toMillis(profile.feedingIntervalMinutes.toLong())
+        val intervalMillis = TimeUnit.MINUTES.toMillis(effectiveIntervalMinutes.toLong())
         val nextFeedEstimateTime = feedStart + intervalMillis
         val diffToNextFeed = nextFeedEstimateTime - currentTime
         val minutesUntilNextFeed = TimeUnit.MILLISECONDS.toMinutes(diffToNextFeed)
@@ -114,7 +138,10 @@ object FeedingPredictor {
             lastFeedTypeDescription = latestNursing.nursingType?.name,
             isNightTime = isNight,
             nightFeedsCountTonight = nightFeedsCount,
-            isOptionalNightFeed = isOptional
+            isOptionalNightFeed = isOptional,
+            effectiveIntervalMinutes = effectiveIntervalMinutes,
+            isAutoInterval = isAuto,
+            calculationResult = calculationResult
         )
     }
 

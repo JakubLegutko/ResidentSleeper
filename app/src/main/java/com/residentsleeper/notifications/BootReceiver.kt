@@ -35,7 +35,10 @@ class BootReceiver : BroadcastReceiver() {
 
                         val latestNursing = db.babyEventDao().getLatestEvent(profile.id, EventType.NURSING)
                         val ongoingNursing = db.babyEventDao().getOngoingEvent(profile.id, EventType.NURSING)
-                        val feedState = FeedingPredictor.computeState(profile, latestNursing, ongoingNursing)
+                        val now = System.currentTimeMillis()
+                        val sevenDaysAgo = now - java.util.concurrent.TimeUnit.DAYS.toMillis(7)
+                        val recentEvents = db.babyEventDao().getEventsInRangeSync(profile.id, sevenDaysAgo, now)
+                        val feedState = FeedingPredictor.computeState(profile, latestNursing, ongoingNursing, now, recentEvents)
 
                         if (!feedState.isNursingNow && feedState.alert10MinTimestamp != null) {
                             if (!feedState.isOptionalNightFeed || profile.notifyForOptionalNightFeeds) {

@@ -38,6 +38,7 @@ object DataBackupManager {
             pObj.put("isActive", p.isActive)
             pObj.put("customWakeWindowMinutes", p.customWakeWindowMinutes ?: JSONObject.NULL)
             pObj.put("feedingIntervalMinutes", p.feedingIntervalMinutes)
+            pObj.put("customFeedingIntervalMinutes", p.customFeedingIntervalMinutes ?: JSONObject.NULL)
             pObj.put("selectedCalendarId", p.selectedCalendarId ?: JSONObject.NULL)
             pObj.put("notifyBeforeMinutes", p.notifyBeforeMinutes)
             pObj.put("enableCalendarSync", p.enableCalendarSync)
@@ -90,6 +91,7 @@ object DataBackupManager {
                     isActive = pObj.optBoolean("isActive", false),
                     customWakeWindowMinutes = if (pObj.isNull("customWakeWindowMinutes")) null else pObj.optInt("customWakeWindowMinutes"),
                     feedingIntervalMinutes = pObj.optInt("feedingIntervalMinutes", 150),
+                    customFeedingIntervalMinutes = if (pObj.isNull("customFeedingIntervalMinutes")) null else pObj.optInt("customFeedingIntervalMinutes"),
                     selectedCalendarId = if (pObj.isNull("selectedCalendarId")) null else pObj.optLong("selectedCalendarId"),
                     notifyBeforeMinutes = pObj.optInt("notifyBeforeMinutes", 10),
                     enableCalendarSync = pObj.optBoolean("enableCalendarSync", false),

@@ -343,16 +343,22 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
+                    val isAutoFeeding = state.activeProfile.customFeedingIntervalMinutes == null
+                    val customInterval = state.activeProfile.customFeedingIntervalMinutes
+
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val currentInterval = state.activeProfile.feedingIntervalMinutes
-                        val isCustomPreset = currentInterval !in listOf(120, 150, 180)
+                        FilterChip(
+                            selected = isAutoFeeding,
+                            onClick = { viewModel.updateFeedingInterval(null) },
+                            label = { Text(stringResource(R.string.settings_auto_age)) }
+                        )
 
-                        if (isCustomPreset) {
-                            val h = currentInterval / 60
-                            val m = currentInterval % 60
+                        if (customInterval != null && customInterval !in listOf(120, 150, 180)) {
+                            val h = customInterval / 60
+                            val m = customInterval % 60
                             val customLabel = if (m == 0) "${h}h" else "${h}h ${m}m"
                             FilterChip(
                                 selected = true,
@@ -362,24 +368,46 @@ fun SettingsScreen(
                         }
 
                         FilterChip(
-                            selected = currentInterval == 120,
+                            selected = customInterval == 120,
                             onClick = { viewModel.updateFeedingInterval(120) },
                             label = { Text("2.0 hours") }
                         )
                         FilterChip(
-                            selected = currentInterval == 150,
+                            selected = customInterval == 150,
                             onClick = { viewModel.updateFeedingInterval(150) },
                             label = { Text("2.5 hours") }
                         )
                         FilterChip(
-                            selected = currentInterval == 180,
+                            selected = customInterval == 180,
                             onClick = { viewModel.updateFeedingInterval(180) },
                             label = { Text("3.0 hours") }
                         )
                     }
 
+                    val preview = state.autoFeedingIntervalPreview
+                    if (isAutoFeeding && preview != null) {
+                        val autoStatusText = if (preview.usedHistoricalData) {
+                            stringResource(
+                                R.string.feeding_auto_status_dynamic,
+                                preview.recommendedIntervalMinutes,
+                                preview.sampleCount
+                            )
+                        } else {
+                            stringResource(
+                                R.string.feeding_auto_status_guideline,
+                                preview.recommendedIntervalMinutes
+                            )
+                        }
+                        Text(
+                            text = autoStatusText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
+
                     OutlinedButton(
-                        onClick = { viewModel.autoCalculateFeedingInterval() },
+                        onClick = { viewModel.showFeedingCalculationDetails() },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -917,6 +945,7 @@ fun SettingsScreen(
     if (calculationResult != null) {
         FeedingIntervalCalculationDialog(
             result = calculationResult,
+            onApplyAuto = { viewModel.applyAutoFeedingInterval() },
             onDismiss = { viewModel.dismissFeedingCalculationDialog() }
         )
     }
@@ -925,6 +954,7 @@ fun SettingsScreen(
 @Composable
 private fun FeedingIntervalCalculationDialog(
     result: FeedingIntervalCalculationResult,
+    onApplyAuto: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1064,10 +1094,15 @@ private fun FeedingIntervalCalculationDialog(
         },
         confirmButton = {
             Button(
-                onClick = onDismiss,
+                onClick = onApplyAuto,
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Text(stringResource(R.string.confirm))
+                Text(stringResource(R.string.feeding_auto_apply_btn))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
     )
