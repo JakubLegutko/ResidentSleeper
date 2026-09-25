@@ -21,6 +21,8 @@ import kotlinx.coroutines.launch
 
 import com.residentsleeper.domain.FeedingIntervalCalculationResult
 import com.residentsleeper.domain.FeedingPredictor
+import com.residentsleeper.domain.WakeWindowCalculationResult
+import com.residentsleeper.domain.WakeWindowCalculator
 import java.util.concurrent.TimeUnit
 
 data class SettingsUiState(
@@ -30,7 +32,9 @@ data class SettingsUiState(
     val hasCalendarPermission: Boolean = false,
     val backupMessage: String? = null,
     val feedingCalculationResult: FeedingIntervalCalculationResult? = null,
-    val autoFeedingIntervalPreview: FeedingIntervalCalculationResult? = null
+    val autoFeedingIntervalPreview: FeedingIntervalCalculationResult? = null,
+    val wakeWindowCalculationResult: WakeWindowCalculationResult? = null,
+    val autoWakeWindowPreview: WakeWindowCalculationResult? = null
 )
 
 class SettingsViewModel(
@@ -62,14 +66,16 @@ class SettingsViewModel(
             val now = System.currentTimeMillis()
             val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
             val recentEvents = repository.getEventsInRangeSync(active.id, sevenDaysAgo, now)
-            val autoPreview = FeedingPredictor.calculateOptimalInterval(active, recentEvents, now)
+            val autoFeedPreview = FeedingPredictor.calculateOptimalInterval(active, recentEvents, now)
+            val autoWakePreview = WakeWindowCalculator.calculateOptimalWakeWindow(active, recentEvents, now)
 
             _uiState.value = _uiState.value.copy(
                 activeProfile = active,
                 allProfiles = all,
                 availableCalendars = calendars,
                 hasCalendarPermission = hasPerm,
-                autoFeedingIntervalPreview = autoPreview
+                autoFeedingIntervalPreview = autoFeedPreview,
+                autoWakeWindowPreview = autoWakePreview
             )
         }
     }
@@ -186,6 +192,29 @@ class SettingsViewModel(
 
     fun dismissFeedingCalculationDialog() {
         _uiState.value = _uiState.value.copy(feedingCalculationResult = null)
+    }
+
+    fun showWakeWindowCalculationDetails() {
+        viewModelScope.launch {
+            val profile = repository.getActiveProfile()
+            val now = System.currentTimeMillis()
+            val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+            val recentEvents = repository.getEventsInRangeSync(profile.id, sevenDaysAgo, now)
+            val result = WakeWindowCalculator.calculateOptimalWakeWindow(profile, recentEvents, now)
+
+            _uiState.value = _uiState.value.copy(
+                wakeWindowCalculationResult = result
+            )
+        }
+    }
+
+    fun applyAutoWakeWindow() {
+        updateWakeWindow(null)
+        dismissWakeWindowCalculationDialog()
+    }
+
+    fun dismissWakeWindowCalculationDialog() {
+        _uiState.value = _uiState.value.copy(wakeWindowCalculationResult = null)
     }
 
     fun updateDayStartHour(hour: Int) {

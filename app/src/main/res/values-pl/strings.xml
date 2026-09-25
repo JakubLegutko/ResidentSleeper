@@ -268,6 +268,7 @@
     <string name="rec_reason_midday">Okno czuwania buduje optymalną senność przed kluczową południową drzemką.</string>
     <string name="rec_reason_bridge">Krótka drzemka pomostowa, aby zapobiec przemęczeniu przed wieczornym snem.</string>
     <string name="rec_reason_bedtime_final">Ostatnie okno czuwania przed snem nocnym.</string>
+    <string name="rec_reason_early_bedtime">Deficyt snu dziennego (%1$d min vs norma %2$s godz.). Zalecany wcześniejszy sen nocny.</string>
 
     <!-- Age bracket strings -->
     <string name="age_bracket_0_4">0–4 tyg. (Noworodek)</string>
@@ -354,4 +355,35 @@
     <string name="feeding_mech_10_12_months">Posiłki stałe stanowią główne źródło energii</string>
     <string name="feeding_bracket_12_plus_months">> 12 miesięcy</string>
     <string name="feeding_mech_12_plus_months">Ustalony rytm posiłków stałych</string>
+
+    <!-- Automatyczne okno czuwania (Little Ones i historia snu) -->
+    <string name="btn_auto_calculate_wake">Dostosuj automatycznie (wiek i historia snu)</string>
+    <string name="wake_auto_dialog_title">Rekomendacja okna czuwania</string>
+    <string name="wake_auto_dialog_subtitle">Obliczono na podstawie wytycznych pediatrycznych oraz historii czuwania dziecka</string>
+    <string name="wake_auto_applied_label">Rekomendowane bazowe okno czuwania</string>
+    <string name="wake_auto_recommended_value">%1$s (%2$d min)</string>
+    <string name="wake_auto_age_label">Wiek dziecka</string>
+    <string name="wake_auto_age_value">%1$d tyg. (%2$s)</string>
+    <string name="wake_auto_guidelines_label">Wytyczne kliniczne</string>
+    <string name="wake_auto_guidelines_range">%1$d–%2$d min (%3$d drzemek/dobę, %4$s łącznego snu)</string>
+    <string name="wake_auto_mechanism_label">Uwarunkowanie neurologiczne</string>
+    <string name="wake_auto_data_label">Historia snu i czuwania</string>
+    <string name="wake_auto_history_used">Ruchoma mediana z %1$d cykli w ostatnich 7 dniach wynosi %2$d min. Zastosowano spersonalizowaną bazę.</string>
+    <string name="wake_auto_history_none">Mniej niż 3 cykle czuwania w ostatnich 7 dniach. Zastosowano wytyczną bazową dla wieku dziecka.</string>
+    <string name="wake_auto_apply_btn">Zastosuj rekomendację</string>
+    <string name="wake_auto_status_guideline">Auto: %1$d min (Wytyczna pediatryczna dla wieku — oczekiwanie na dane)</string>
+    <string name="wake_auto_status_dynamic">Auto: %1$d min (Dynamiczne — na podstawie %2$d cykli z 7 dni)</string>
+
+    <string name="sleep_mech_0_4_weeks">Zdominowane przez potrzebę karmienia i niski próg bodźców</string>
+    <string name="sleep_mech_5_8_weeks">Pojawienie się uśmiechu społecznego, początki widzenia głębi</string>
+    <string name="sleep_mech_9_12_weeks">Początki konsolidacji porannej i południowej drzemki</string>
+    <string name="sleep_mech_13_16_weeks">Wytworzenie rytmu okołodobowego (tzw. regresja 4. miesiąca)</string>
+    <string name="sleep_mech_17_21_weeks">Stabilizacja rytmu dobowego i przewidywalność cykli</string>
+    <string name="sleep_mech_22_25_weeks">Zdolność do konsolidacji cykli snu dziennego, skracanie 3. drzemki</string>
+    <string name="sleep_mech_26_30_weeks">Przejście na schemat dwudrzemkowy (początki Reguły 2-3-4)</string>
+    <string name="sleep_mech_31_34_weeks">Skoki motoryczne (raczkowanie/wstawanie), stabilne 2 drzemki</string>
+    <string name="sleep_mech_35_38_weeks">Ustalony schemat 2 drzemek, szczyt lęku separacyjnego</string>
+    <string name="sleep_mech_39_43_weeks">Konsolidacja głębokiego snu NREM, skracanie 1. drzemki</string>
+    <string name="sleep_mech_44_47_weeks">Wydłużenie fazy REM i głębokiego snu NREM (Reguła 3-3-4)</string>
+    <string name="sleep_mech_48_plus_weeks">Przejście na 1 skonsolidowaną regeneracyjną drzemkę południową</string>
 </resources>

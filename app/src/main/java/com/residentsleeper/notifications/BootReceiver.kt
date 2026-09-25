@@ -23,9 +23,20 @@ class BootReceiver : BroadcastReceiver() {
                     val db = AppDatabase.getDatabase(context)
                     val profile = db.babyProfileDao().getActiveProfile()
                     if (profile != null && profile.enablePushNotifications) {
+                        val now = System.currentTimeMillis()
+                        val sevenDaysAgo = now - java.util.concurrent.TimeUnit.DAYS.toMillis(7)
+                        val recentEvents = db.babyEventDao().getEventsInRangeSync(profile.id, sevenDaysAgo, now)
+
                         val latestSleep = db.babyEventDao().getLatestEvent(profile.id, EventType.SLEEP)
                         val ongoingSleep = db.babyEventDao().getOngoingEvent(profile.id, EventType.SLEEP)
-                        val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, ongoingSleep, context = context)
+                        val wakeState = WakeWindowCalculator.computeState(
+                            profile = profile,
+                            latestSleep = latestSleep,
+                            ongoingSleep = ongoingSleep,
+                            currentTime = now,
+                            context = context,
+                            recentWeekEvents = recentEvents
+                        )
 
                         if (!wakeState.isSleeping && wakeState.alert10MinTimestamp != null) {
                             val notifTitle = "${profile.name}: ${wakeState.recommendationTitle}"
@@ -35,9 +46,6 @@ class BootReceiver : BroadcastReceiver() {
 
                         val latestNursing = db.babyEventDao().getLatestEvent(profile.id, EventType.NURSING)
                         val ongoingNursing = db.babyEventDao().getOngoingEvent(profile.id, EventType.NURSING)
-                        val now = System.currentTimeMillis()
-                        val sevenDaysAgo = now - java.util.concurrent.TimeUnit.DAYS.toMillis(7)
-                        val recentEvents = db.babyEventDao().getEventsInRangeSync(profile.id, sevenDaysAgo, now)
                         val feedState = FeedingPredictor.computeState(profile, latestNursing, ongoingNursing, now, recentEvents)
 
                         if (!feedState.isNursingNow && feedState.alert10MinTimestamp != null) {

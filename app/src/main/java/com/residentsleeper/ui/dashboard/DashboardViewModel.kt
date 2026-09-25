@@ -144,7 +144,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
             val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
             val recentWeekEvents = repository.getEventsInRangeSync(profileId, sevenDaysAgo, now)
-            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents, getApplication())
+            val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents, getApplication(), recentWeekEvents)
             val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now, recentWeekEvents)
 
             DashboardUiState(
@@ -220,8 +220,10 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 val dayStart = getStartOfToday(profile.dayStartHour)
                 val dayEnd = getEndOfDay(dayStart)
                 val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
+                val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+                val recentWeekEvents = repository.getEventsInRangeSync(profileId, sevenDaysAgo, now)
                 val latestSleep = repository.getLatestEvent(profileId, EventType.SLEEP)
-                val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now, dayEvents, context)
+                val wakeState = WakeWindowCalculator.computeState(profile, latestSleep, null, now, dayEvents, context, recentWeekEvents)
 
                 if (profile.enablePushNotifications && wakeState.alert10MinTimestamp != null) {
                     val notifTitle = "${profile.name}: ${wakeState.recommendationTitle}"
