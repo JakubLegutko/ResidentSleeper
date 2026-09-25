@@ -29,7 +29,8 @@ data class SettingsUiState(
     val availableCalendars: List<DeviceCalendar> = emptyList(),
     val hasCalendarPermission: Boolean = false,
     val backupMessage: String? = null,
-    val feedingCalculationResult: FeedingIntervalCalculationResult? = null
+    val feedingCalculationResult: FeedingIntervalCalculationResult? = null,
+    val autoFeedingIntervalPreview: FeedingIntervalCalculationResult? = null
 )
 
 class SettingsViewModel(
@@ -58,11 +59,17 @@ class SettingsViewModel(
             val hasPerm = CalendarSyncManager.hasCalendarPermission(context)
             val calendars = if (hasPerm) CalendarSyncManager.getAvailableCalendars(context) else emptyList()
 
+            val now = System.currentTimeMillis()
+            val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+            val recentEvents = repository.getEventsInRangeSync(active.id, sevenDaysAgo, now)
+            val autoPreview = FeedingPredictor.calculateOptimalInterval(active, recentEvents, now)
+
             _uiState.value = _uiState.value.copy(
                 activeProfile = active,
                 allProfiles = all,
                 availableCalendars = calendars,
-                hasCalendarPermission = hasPerm
+                hasCalendarPermission = hasPerm,
+                autoFeedingIntervalPreview = autoPreview
             )
         }
     }
@@ -145,11 +152,20 @@ class SettingsViewModel(
         updateActiveProfile { it.copy(customWakeWindowMinutes = customMinutes) }
     }
 
-    fun updateFeedingInterval(minutes: Int) {
-        updateActiveProfile { it.copy(feedingIntervalMinutes = minutes) }
+    fun updateFeedingInterval(minutes: Int?) {
+        updateActiveProfile {
+            if (minutes != null) {
+                it.copy(
+                    customFeedingIntervalMinutes = minutes,
+                    feedingIntervalMinutes = minutes
+                )
+            } else {
+                it.copy(customFeedingIntervalMinutes = null)
+            }
+        }
     }
 
-    fun autoCalculateFeedingInterval() {
+    fun showFeedingCalculationDetails() {
         viewModelScope.launch {
             val profile = repository.getActiveProfile()
             val now = System.currentTimeMillis()
@@ -157,14 +173,15 @@ class SettingsViewModel(
             val recentEvents = repository.getEventsInRangeSync(profile.id, sevenDaysAgo, now)
             val result = FeedingPredictor.calculateOptimalInterval(profile, recentEvents, now)
 
-            val updated = profile.copy(feedingIntervalMinutes = result.recommendedIntervalMinutes)
-            repository.updateProfile(updated)
-
             _uiState.value = _uiState.value.copy(
-                activeProfile = updated,
                 feedingCalculationResult = result
             )
         }
+    }
+
+    fun applyAutoFeedingInterval() {
+        updateFeedingInterval(null)
+        dismissFeedingCalculationDialog()
     }
 
     fun dismissFeedingCalculationDialog() {

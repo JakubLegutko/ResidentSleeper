@@ -11,7 +11,8 @@ data class BabyProfile(
     val birthTimestamp: Long = System.currentTimeMillis(),
     val isActive: Boolean = false,
     val customWakeWindowMinutes: Int? = null, // null means use automatic age-based
-    val feedingIntervalMinutes: Int = 150,    // Default 2.5 hours
+    val feedingIntervalMinutes: Int = 150,    // Default 2.5 hours / manual fallback
+    val customFeedingIntervalMinutes: Int? = null, // null means automatic (WHO & 7-day rolling median)
     val selectedCalendarId: Long? = null,     // Synced Google Calendar ID
     val notifyBeforeMinutes: Int = 10,        // Push notifications X minutes before event
     val enableCalendarSync: Boolean = false,

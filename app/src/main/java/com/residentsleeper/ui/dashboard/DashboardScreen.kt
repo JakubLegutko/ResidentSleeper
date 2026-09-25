@@ -544,8 +544,13 @@ fun DashboardScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        val intervalDisplay = if (state.feedingState.isAutoInterval) {
+                            stringResource(R.string.label_feed_interval_auto, state.feedingState.effectiveIntervalMinutes)
+                        } else {
+                            "${state.feedingState.effectiveIntervalMinutes} min"
+                        }
                         Text(
-                            text = "${state.activeProfile.feedingIntervalMinutes} min",
+                            text = intervalDisplay,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )

@@ -334,6 +334,9 @@
     <string name="feeding_auto_history_none">Mniej niż 3 karmienia w ostatnich 7 dniach. Zastosowano wytyczną bazową dla wieku dziecka.</string>
     <string name="feeding_auto_apply_btn">Zastosuj rekomendację</string>
     <string name="feeding_interval_custom_chip">%1$s</string>
+    <string name="label_feed_interval_auto">Auto (%1$d min)</string>
+    <string name="feeding_auto_status_guideline">Auto: %1$d min (Wytyczna WHO dla wieku — oczekiwanie na dane)</string>
+    <string name="feeding_auto_status_dynamic">Auto: %1$d min (Dynamiczne — na podstawie %2$d karmień z 7 dni)</string>
 
     <string name="feeding_bracket_1_3_days">1.–3. doba</string>
     <string name="feeding_mech_1_3_days">Siara, minimalna pojemność żołądka</string>

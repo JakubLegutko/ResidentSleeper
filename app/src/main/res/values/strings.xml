@@ -334,6 +334,9 @@
     <string name="feeding_auto_history_none">Fewer than 3 feedings logged in the last 7 days. Standard age-based recommendation set.</string>
     <string name="feeding_auto_apply_btn">Apply Recommendation</string>
     <string name="feeding_interval_custom_chip">%1$s</string>
+    <string name="label_feed_interval_auto">Auto (%1$dm)</string>
+    <string name="feeding_auto_status_guideline">Auto: %1$d min (WHO age baseline — awaiting data)</string>
+    <string name="feeding_auto_status_dynamic">Auto: %1$d min (Dynamic — based on %2$d feeds in 7 days)</string>
 
     <string name="feeding_bracket_1_3_days">Days 1–3</string>
     <string name="feeding_mech_1_3_days">Colostrum, minimal stomach capacity</string>

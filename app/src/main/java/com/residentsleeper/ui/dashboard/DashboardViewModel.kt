@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 data class DashboardUiState(
     val selectedDayStart: Long,
@@ -141,8 +142,10 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val isToday = dayOffset == 0
 
             val dayEvents = repository.getEventsInRangeSync(profileId, dayStart, dayEnd)
+            val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+            val recentWeekEvents = repository.getEventsInRangeSync(profileId, sevenDaysAgo, now)
             val wakeState = WakeWindowCalculator.computeState(safeProfile, latestSleep, ongoingSleep, now, dayEvents, getApplication())
-            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now, dayEvents)
+            val feedingState = FeedingPredictor.computeState(safeProfile, latestNursing, ongoingNursing, now, recentWeekEvents)
 
             DashboardUiState(
                 selectedDayStart = dayStart,
@@ -271,7 +274,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
                 // Schedule next feeding alerts after finishing nursing
                 val latestNursing = repository.getLatestEvent(profileId, EventType.NURSING)
-                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now, state.events)
+                val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+                val recentWeekEvents = repository.getEventsInRangeSync(profileId, sevenDaysAgo, now)
+                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now, recentWeekEvents)
                 val shouldNotify = profile.enablePushNotifications &&
                     feedState.alert10MinTimestamp != null &&
                     (!feedState.isOptionalNightFeed || profile.notifyForOptionalNightFeeds)
@@ -288,7 +293,9 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
                 // Schedule next feeding alerts
                 val latestNursing = repository.getLatestEvent(profileId, EventType.NURSING)
-                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now, state.events)
+                val sevenDaysAgo = now - TimeUnit.DAYS.toMillis(7)
+                val recentWeekEvents = repository.getEventsInRangeSync(profileId, sevenDaysAgo, now)
+                val feedState = FeedingPredictor.computeState(profile, latestNursing, null, now, recentWeekEvents)
                 val shouldNotify = profile.enablePushNotifications &&
                     feedState.alert10MinTimestamp != null &&
                     (!feedState.isOptionalNightFeed || profile.notifyForOptionalNightFeeds)

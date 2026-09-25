@@ -19,6 +19,7 @@ class DataBackupManagerTest {
             isActive = true,
             customWakeWindowMinutes = 60,
             feedingIntervalMinutes = 150,
+            customFeedingIntervalMinutes = 120,
             selectedCalendarId = 12L,
             notifyBeforeMinutes = 10,
             enableCalendarSync = true,
@@ -33,6 +34,7 @@ class DataBackupManagerTest {
             isActive = false,
             customWakeWindowMinutes = null,
             feedingIntervalMinutes = 180,
+            customFeedingIntervalMinutes = null,
             selectedCalendarId = null,
             notifyBeforeMinutes = 10,
             enableCalendarSync = false,
@@ -85,12 +87,14 @@ class DataBackupManagerTest {
         val importedP1 = imported.profiles.first { it.id == 1L }
         assertThat(importedP1.name).isEqualTo("Emma")
         assertThat(importedP1.customWakeWindowMinutes).isEqualTo(60)
+        assertThat(importedP1.customFeedingIntervalMinutes).isEqualTo(120)
         assertThat(importedP1.isActive).isTrue()
         assertThat(importedP1.use12HourFormat).isTrue()
 
         val importedP2 = imported.profiles.first { it.id == 2L }
         assertThat(importedP2.name).isEqualTo("Lucas")
         assertThat(importedP2.customWakeWindowMinutes).isNull()
+        assertThat(importedP2.customFeedingIntervalMinutes).isNull()
         assertThat(importedP2.isActive).isFalse()
         assertThat(importedP2.use12HourFormat).isFalse()
 

@@ -34,7 +34,7 @@ class FeedingPredictorTest {
     fun computeState_calculatesNextFeedFromStartOfPreviousFeed() {
         val now = 2_000_000_000L
         val profile = BabyProfile(
-            feedingIntervalMinutes = 150, // 2.5 hours
+            customFeedingIntervalMinutes = 150, // 2.5 hours
             notifyBeforeMinutes = 10
         )
 
@@ -52,6 +52,8 @@ class FeedingPredictorTest {
         val state = FeedingPredictor.computeState(profile, completedNursing, null, now)
 
         assertThat(state.isNursingNow).isFalse()
+        assertThat(state.isAutoInterval).isFalse()
+        assertThat(state.effectiveIntervalMinutes).isEqualTo(150)
         assertThat(state.minutesSinceLastFeedStart).isEqualTo(60L)
         assertThat(state.lastFeedAmountMl).isEqualTo(90)
 
@@ -63,6 +65,59 @@ class FeedingPredictorTest {
         // 10-minute warning alert
         val expectedAlert = expectedNextFeed - TimeUnit.MINUTES.toMillis(10)
         assertThat(state.alert10MinTimestamp).isEqualTo(expectedAlert)
+    }
+
+    @Test
+    fun computeState_whenAutoModeWithoutHistory_fallsBackToWHOAgeInterval() {
+        val now = 10_000_000_000L
+        // 4 weeks old (2.–8. tydzień) -> normative WHO interval is 180 min
+        val profile = BabyProfile(
+            birthTimestamp = now - TimeUnit.DAYS.toMillis(28),
+            customFeedingIntervalMinutes = null
+        )
+
+        val feedStart = now - TimeUnit.MINUTES.toMillis(60)
+        val completedNursing = BabyEvent(
+            type = EventType.NURSING,
+            startTime = feedStart
+        )
+
+        val state = FeedingPredictor.computeState(profile, completedNursing, null, now, emptyList())
+
+        assertThat(state.isAutoInterval).isTrue()
+        assertThat(state.effectiveIntervalMinutes).isEqualTo(180)
+        assertThat(state.calculationResult?.usedHistoricalData).isFalse()
+        assertThat(state.nextFeedEstimateTime).isEqualTo(feedStart + TimeUnit.MINUTES.toMillis(180))
+        assertThat(state.minutesUntilNextFeed).isEqualTo(120L)
+    }
+
+    @Test
+    fun computeState_whenAutoModeWithHistory_dynamicallyCalculatesRollingMedian() {
+        val now = 10_000_000_000L
+        // 5 weeks old (bracket 150..210 min)
+        val profile = BabyProfile(
+            birthTimestamp = now - TimeUnit.DAYS.toMillis(35),
+            customFeedingIntervalMinutes = null
+        )
+
+        val t0 = now - TimeUnit.HOURS.toMillis(10)
+        val t1 = t0 + TimeUnit.MINUTES.toMillis(160)
+        val t2 = t1 + TimeUnit.MINUTES.toMillis(170)
+        val t3 = t2 + TimeUnit.MINUTES.toMillis(165) // intervals: 160, 170, 165 -> median = 165
+
+        val feeds = listOf(
+            BabyEvent(type = EventType.NURSING, startTime = t0),
+            BabyEvent(type = EventType.NURSING, startTime = t1),
+            BabyEvent(type = EventType.NURSING, startTime = t2),
+            BabyEvent(type = EventType.NURSING, startTime = t3)
+        )
+
+        val state = FeedingPredictor.computeState(profile, feeds.last(), null, now, feeds)
+
+        assertThat(state.isAutoInterval).isTrue()
+        assertThat(state.effectiveIntervalMinutes).isEqualTo(165)
+        assertThat(state.calculationResult?.usedHistoricalData).isTrue()
+        assertThat(state.nextFeedEstimateTime).isEqualTo(t3 + TimeUnit.MINUTES.toMillis(165))
     }
 
     @Test
