@@ -268,6 +268,7 @@
     <string name="rec_reason_midday">Midday sleep window builds pressure for the core restorative nap.</string>
     <string name="rec_reason_bridge">Bridge catnap to prevent overtiredness before evening bedtime.</string>
     <string name="rec_reason_bedtime_final">Final wake window before night sleep.</string>
+    <string name="rec_reason_early_bedtime">Daytime sleep deficit (%1$dm vs %2$sh target). Earlier bedtime recommended to prevent overtiredness.</string>
 
     <!-- Age bracket strings -->
     <string name="age_bracket_0_4">0–4 Weeks (Newborn)</string>
@@ -354,4 +355,35 @@
     <string name="feeding_mech_10_12_months">Solid meals become main energy source</string>
     <string name="feeding_bracket_12_plus_months">> 12 Months</string>
     <string name="feeding_mech_12_plus_months">Established solid meal schedule</string>
+
+    <!-- Automatic Wake Window (Little Ones & Dynamic History) -->
+    <string name="btn_auto_calculate_wake">Auto-Calculate (Age &amp; Sleep History)</string>
+    <string name="wake_auto_dialog_title">Wake Window Recommendation</string>
+    <string name="wake_auto_dialog_subtitle">Calculated from pediatric clinical guidelines and baby\'s logged wake cycles</string>
+    <string name="wake_auto_applied_label">Recommended Base Wake Window</string>
+    <string name="wake_auto_recommended_value">%1$s (%2$d min)</string>
+    <string name="wake_auto_age_label">Baby\'s Age</string>
+    <string name="wake_auto_age_value">%1$d weeks (%2$s)</string>
+    <string name="wake_auto_guidelines_label">Clinical Guidelines</string>
+    <string name="wake_auto_guidelines_range">%1$d–%2$d min (%3$d naps/day, %4$s total sleep)</string>
+    <string name="wake_auto_mechanism_label">Neurological Milestone</string>
+    <string name="wake_auto_data_label">Logged Sleep History</string>
+    <string name="wake_auto_history_used">Median wake window from %1$d cycles in last 7 days is %2$d min. Personalized baseline set within safety bounds.</string>
+    <string name="wake_auto_history_none">Fewer than 3 wake cycles logged in the last 7 days. Standard age-based recommendation set.</string>
+    <string name="wake_auto_apply_btn">Apply Recommendation</string>
+    <string name="wake_auto_status_guideline">Auto: %1$d min (Pediatric age baseline — awaiting data)</string>
+    <string name="wake_auto_status_dynamic">Auto: %1$d min (Dynamic — based on %2$d cycles in 7 days)</string>
+
+    <string name="sleep_mech_0_4_weeks">Dominated by feeding needs and low sensory threshold</string>
+    <string name="sleep_mech_5_8_weeks">Social smile emerges, beginnings of depth perception</string>
+    <string name="sleep_mech_9_12_weeks">Emergence of morning/midday nap consolidation</string>
+    <string name="sleep_mech_13_16_weeks">Circadian rhythm formation (4-month sleep regression)</string>
+    <string name="sleep_mech_17_21_weeks">Predictable daytime routine and circadian stabilization</string>
+    <string name="sleep_mech_22_25_weeks">Consolidation of daytime sleep cycles, bridge catnap shrinking</string>
+    <string name="sleep_mech_26_30_weeks">Transition to 2-nap schedule (Rule 2-3-4 emergence)</string>
+    <string name="sleep_mech_31_34_weeks">Peak physical milestones (crawling/standing), 2-nap sweet spot</string>
+    <string name="sleep_mech_35_38_weeks">Established 2-nap routine, separation anxiety peak</string>
+    <string name="sleep_mech_39_43_weeks">Consolidation of deep NREM sleep, capping nap 1</string>
+    <string name="sleep_mech_44_47_weeks">Lengthening of REM and deep NREM sleep (Rule 3-3-4)</string>
+    <string name="sleep_mech_48_plus_weeks">Transition to 1 consolidated restorative midday nap</string>
 </resources>

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.TableChart
 import com.residentsleeper.domain.FeedingIntervalCalculationResult
+import com.residentsleeper.domain.WakeWindowCalculationResult
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -312,26 +313,79 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val isAutoWake = state.activeProfile.customWakeWindowMinutes == null
+                    val customWake = state.activeProfile.customWakeWindowMinutes
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         FilterChip(
-                            selected = state.activeProfile.customWakeWindowMinutes == null,
+                            selected = isAutoWake,
                             onClick = { viewModel.updateWakeWindow(null) },
                             label = { Text(stringResource(R.string.settings_auto_age)) }
                         )
                         FilterChip(
-                            selected = state.activeProfile.customWakeWindowMinutes == 60,
+                            selected = customWake == 60,
                             onClick = { viewModel.updateWakeWindow(60) },
                             label = { Text("60 min") }
                         )
                         FilterChip(
-                            selected = state.activeProfile.customWakeWindowMinutes == 75,
+                            selected = customWake == 75,
                             onClick = { viewModel.updateWakeWindow(75) },
                             label = { Text("75 min") }
                         )
                         FilterChip(
-                            selected = state.activeProfile.customWakeWindowMinutes == 90,
+                            selected = customWake == 90,
                             onClick = { viewModel.updateWakeWindow(90) },
                             label = { Text("90 min") }
+                        )
+                        if (customWake != null && customWake !in listOf(60, 75, 90)) {
+                            FilterChip(
+                                selected = true,
+                                onClick = { },
+                                label = { Text("${customWake} min", fontWeight = FontWeight.Bold) }
+                            )
+                        }
+                    }
+
+                    val wakePreview = state.autoWakeWindowPreview
+                    if (isAutoWake && wakePreview != null) {
+                        val autoStatusText = if (wakePreview.usedHistoricalData) {
+                            stringResource(
+                                R.string.wake_auto_status_dynamic,
+                                wakePreview.recommendedWakeWindowMinutes,
+                                wakePreview.sampleCount
+                            )
+                        } else {
+                            stringResource(
+                                R.string.wake_auto_status_guideline,
+                                wakePreview.recommendedWakeWindowMinutes
+                            )
+                        }
+                        Text(
+                            text = autoStatusText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { viewModel.showWakeWindowCalculationDetails() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.btn_auto_calculate_wake),
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
 
@@ -958,6 +1012,16 @@ fun SettingsScreen(
             onDismiss = { viewModel.dismissFeedingCalculationDialog() }
         )
     }
+
+    // Wake Window Calculation Result Dialog
+    val wakeCalculationResult = state.wakeWindowCalculationResult
+    if (wakeCalculationResult != null) {
+        WakeWindowCalculationDialog(
+            result = wakeCalculationResult,
+            onApplyAuto = { viewModel.applyAutoWakeWindow() },
+            onDismiss = { viewModel.dismissWakeWindowCalculationDialog() }
+        )
+    }
 }
 
 @Composable
@@ -1107,6 +1171,175 @@ private fun FeedingIntervalCalculationDialog(
                 shape = RoundedCornerShape(10.dp)
             ) {
                 Text(stringResource(R.string.feeding_auto_apply_btn))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun WakeWindowCalculationDialog(
+    result: WakeWindowCalculationResult,
+    onApplyAuto: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val h = result.recommendedWakeWindowMinutes / 60
+    val m = result.recommendedWakeWindowMinutes % 60
+    val timeFormatted = if (h > 0) {
+        if (m == 0) "${h}h" else "${h}h ${m}m"
+    } else {
+        "${m}m"
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.wake_auto_dialog_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.wake_auto_dialog_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.wake_auto_applied_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(
+                                R.string.wake_auto_recommended_value,
+                                timeFormatted,
+                                result.recommendedWakeWindowMinutes
+                            ),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(R.string.wake_auto_age_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.wake_auto_age_value,
+                            result.ageWeeks,
+                            result.ageSchedule.getLocalizedAgeBracket(context)
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(R.string.wake_auto_guidelines_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    val totalSleepStr = if (result.ageSchedule.totalSleepTargetHours % 1f == 0f) {
+                        "${result.ageSchedule.totalSleepTargetHours.toInt()}h"
+                    } else {
+                        "${result.ageSchedule.totalSleepTargetHours}h"
+                    }
+                    Text(
+                        text = stringResource(
+                            R.string.wake_auto_guidelines_range,
+                            result.ageSchedule.minWakeWindowMin,
+                            result.ageSchedule.maxWakeWindowMin,
+                            result.ageSchedule.targetNapsCount,
+                            totalSleepStr
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    val mech = result.ageSchedule.getLocalizedMechanism(context)
+                    if (mech.isNotBlank()) {
+                        Text(
+                            text = "• $mech",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(R.string.wake_auto_data_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    val historyDesc = if (result.usedHistoricalData && result.observedMedianMinutes != null) {
+                        stringResource(
+                            R.string.wake_auto_history_used,
+                            result.sampleCount,
+                            result.observedMedianMinutes
+                        )
+                    } else {
+                        stringResource(R.string.wake_auto_history_none)
+                    }
+                    Text(
+                        text = historyDesc,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onApplyAuto,
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(stringResource(R.string.wake_auto_apply_btn))
             }
         },
         dismissButton = {

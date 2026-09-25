@@ -8,6 +8,15 @@ import com.residentsleeper.data.model.EventType
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
+data class WakeWindowCalculationResult(
+    val recommendedWakeWindowMinutes: Int,
+    val ageSchedule: AgeSleepSchedule,
+    val ageWeeks: Int,
+    val observedMedianMinutes: Int?,
+    val sampleCount: Int,
+    val usedHistoricalData: Boolean
+)
+
 data class WakeWindowState(
     val isSleeping: Boolean,
     val babyAgeWeeks: Int,
@@ -26,7 +35,9 @@ data class WakeWindowState(
     val napsCompletedToday: Int,
     val targetNapsToday: Int,
     val daySleepAccumulatedMinutes: Long,
-    val recommendedSleepDurationMinutes: Int = 60
+    val recommendedSleepDurationMinutes: Int = 60,
+    val isAutoWakeWindow: Boolean = true,
+    val calculationResult: WakeWindowCalculationResult? = null
 )
 
 object WakeWindowCalculator {
@@ -45,7 +56,70 @@ object WakeWindowCalculator {
     }
 
     /**
-     * Computes the complete dynamic, context-aware wake window state using Little Ones pediatric schedules.
+     * Calculates the optimal wake window based on Little Ones pediatric clinical guidelines and
+     * a rolling median of completed wake cycles from the last 7 days.
+     */
+    fun calculateOptimalWakeWindow(
+        profile: BabyProfile,
+        recentSleepEvents: List<BabyEvent>,
+        currentTime: Long = System.currentTimeMillis()
+    ): WakeWindowCalculationResult {
+        val ageWeeks = calculateAgeInWeeks(profile.birthTimestamp, currentTime)
+        val schedule = LittleOnesSleepScheduleDatabase.getScheduleForAge(ageWeeks)
+
+        val sevenDaysAgo = currentTime - TimeUnit.DAYS.toMillis(7)
+        val completedSleeps = recentSleepEvents
+            .filter { it.type == EventType.SLEEP && it.startTime >= sevenDaysAgo && it.startTime <= currentTime && it.endTime != null }
+            .sortedBy { it.startTime }
+
+        val validWakeWindowsMinutes = mutableListOf<Int>()
+        for (i in 0 until completedSleeps.size - 1) {
+            val wakeStart = completedSleeps[i].endTime!!
+            val nextSleepStart = completedSleeps[i + 1].startTime
+            val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(nextSleepStart - wakeStart).toInt()
+            // Filter realistic awake windows: exclude micro-breaks < 25m or overnight/missing data > 360m (6h)
+            if (diffMinutes in 25..360) {
+                validWakeWindowsMinutes.add(diffMinutes)
+            }
+        }
+
+        if (validWakeWindowsMinutes.size >= 3) {
+            val sortedIntervals = validWakeWindowsMinutes.sorted()
+            val medianMinutes = if (sortedIntervals.size % 2 == 1) {
+                sortedIntervals[sortedIntervals.size / 2]
+            } else {
+                (sortedIntervals[sortedIntervals.size / 2 - 1] + sortedIntervals[sortedIntervals.size / 2]) / 2
+            }
+
+            // Clamp to clinical pediatric bounds for safety
+            val clamped = medianMinutes.coerceIn(schedule.minWakeWindowMin, schedule.maxWakeWindowMin)
+            // Round to nearest 5 minutes
+            val rounded = ((clamped + 2) / 5) * 5
+
+            return WakeWindowCalculationResult(
+                recommendedWakeWindowMinutes = rounded,
+                ageSchedule = schedule,
+                ageWeeks = ageWeeks,
+                observedMedianMinutes = medianMinutes,
+                sampleCount = validWakeWindowsMinutes.size,
+                usedHistoricalData = true
+            )
+        }
+
+        // Insufficient historical data: fall back to normative pediatric baseline for age
+        return WakeWindowCalculationResult(
+            recommendedWakeWindowMinutes = schedule.middayWakeWindowMin,
+            ageSchedule = schedule,
+            ageWeeks = ageWeeks,
+            observedMedianMinutes = null,
+            sampleCount = validWakeWindowsMinutes.size,
+            usedHistoricalData = false
+        )
+    }
+
+    /**
+     * Computes the complete dynamic, context-aware wake window state using Little Ones pediatric schedules
+     * and personalized historical sleep data.
      */
     fun computeState(
         profile: BabyProfile,
@@ -53,7 +127,8 @@ object WakeWindowCalculator {
         ongoingSleep: BabyEvent?,
         currentTime: Long = System.currentTimeMillis(),
         dayEvents: List<BabyEvent> = emptyList(),
-        context: Context? = null
+        context: Context? = null,
+        recentWeekEvents: List<BabyEvent> = emptyList()
     ): WakeWindowState {
         val ageWeeks = calculateAgeInWeeks(profile.birthTimestamp, currentTime)
         val schedule = LittleOnesSleepScheduleDatabase.getScheduleForAge(ageWeeks)
@@ -98,9 +173,25 @@ object WakeWindowCalculator {
             }
         }
 
+        val isAuto = profile.customWakeWindowMinutes == null || profile.customWakeWindowMinutes <= 0
+        val calculationResult = if (isAuto) {
+            calculateOptimalWakeWindow(profile, recentWeekEvents, currentTime)
+        } else {
+            null
+        }
+
         // Base wake window for this category
-        val baseWindow = if (profile.customWakeWindowMinutes != null && profile.customWakeWindowMinutes > 0) {
-            profile.customWakeWindowMinutes
+        val baseWindow = if (!isAuto) {
+            profile.customWakeWindowMinutes!!
+        } else if (calculationResult != null && calculationResult.usedHistoricalData) {
+            // Child's individual baseline shifts diurnal wake windows relative to schedule
+            val delta = calculationResult.recommendedWakeWindowMinutes - schedule.middayWakeWindowMin
+            when (nextCategory) {
+                SleepCategory.MORNING_NAP -> (schedule.morningWakeWindowMin + delta).coerceIn(schedule.minWakeWindowMin, schedule.maxWakeWindowMin)
+                SleepCategory.MIDDAY_NAP -> calculationResult.recommendedWakeWindowMinutes
+                SleepCategory.BRIDGE_CATNAP -> (schedule.afternoonWakeWindowMin + delta).coerceIn(schedule.minWakeWindowMin, schedule.maxWakeWindowMin)
+                SleepCategory.BEDTIME -> (schedule.preBedtimeWakeWindowMin + delta).coerceIn(schedule.minWakeWindowMin, schedule.maxWakeWindowMin)
+            }
         } else {
             when (nextCategory) {
                 SleepCategory.MORNING_NAP -> schedule.morningWakeWindowMin
@@ -119,8 +210,26 @@ object WakeWindowCalculator {
             TimeUnit.MILLISECONDS.toMinutes(maxOf(0L, end - it.startTime))
         } ?: 0L
 
-        if (profile.customWakeWindowMinutes == null || profile.customWakeWindowMinutes == 0) {
-            if (nextCategory == SleepCategory.BEDTIME) {
+        if (isAuto) {
+            // Early bedtime check: Borbély Process S sleep debt compensation
+            // When daytime sleep deficit >= 45 minutes, bring bedtime forward by 25 min to prevent cortisol spike
+            val targetDaySleepMinutes = (schedule.totalDaySleepTargetHours * 60).toInt()
+            val sleepDeficitMinutes = targetDaySleepMinutes - daySleepMinutes.toInt()
+
+            if (nextCategory == SleepCategory.BEDTIME && sleepDeficitMinutes >= 45) {
+                val reduction = 25
+                adjustedWindow = maxOf(35, baseWindow - reduction)
+                val targetHoursStr = if (schedule.totalDaySleepTargetHours % 1f == 0f) {
+                    schedule.totalDaySleepTargetHours.toInt().toString()
+                } else {
+                    schedule.totalDaySleepTargetHours.toString()
+                }
+                reason = if (context != null) {
+                    context.getString(R.string.rec_reason_early_bedtime, sleepDeficitMinutes, targetHoursStr)
+                } else {
+                    "Daytime sleep deficit (${sleepDeficitMinutes}m vs ${targetHoursStr}h target). Earlier bedtime recommended to prevent overtiredness."
+                }
+            } else if (nextCategory == SleepCategory.BEDTIME) {
                 val bedStart = String.format("%02d:%02d", schedule.bedtimeStartHour, schedule.bedtimeStartMinute)
                 val bedEnd = String.format("%02d:%02d", schedule.bedtimeEndHour, schedule.bedtimeEndMinute)
                 reason = if (context != null) {
@@ -129,8 +238,8 @@ object WakeWindowCalculator {
                     "Bedtime window approaching ($bedStart–$bedEnd). Longer wake window builds overnight sleep pressure."
                 }
             } else if (lastNapDurationMinutes in 1..39) {
-                // Short nap penalty: reduce window by 15-20% to prevent cortisol surge
-                val reduction = (baseWindow * 0.18f).toInt()
+                // Short nap penalty: reduce window by 20% to prevent cortisol surge
+                val reduction = (baseWindow * 0.20f).toInt()
                 adjustedWindow = maxOf(35, baseWindow - reduction)
                 reason = if (context != null) {
                     context.getString(R.string.rec_reason_short_nap, lastNapDurationMinutes, reduction)
@@ -244,7 +353,9 @@ object WakeWindowCalculator {
                 napsCompletedToday = napsCount,
                 targetNapsToday = schedule.targetNapsCount,
                 daySleepAccumulatedMinutes = daySleepMinutes,
-                recommendedSleepDurationMinutes = recDurationMinutes
+                recommendedSleepDurationMinutes = recDurationMinutes,
+                isAutoWakeWindow = isAuto,
+                calculationResult = calculationResult
             )
         }
 
@@ -278,7 +389,9 @@ object WakeWindowCalculator {
             napsCompletedToday = napsCount,
             targetNapsToday = schedule.targetNapsCount,
             daySleepAccumulatedMinutes = daySleepMinutes,
-            recommendedSleepDurationMinutes = recDurationMinutes
+            recommendedSleepDurationMinutes = recDurationMinutes,
+            isAutoWakeWindow = isAuto,
+            calculationResult = calculationResult
         )
     }
 }

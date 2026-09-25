@@ -32,10 +32,17 @@ data class AgeSleepSchedule(
     val bedtimeEndHour: Int = 19,
     val bedtimeEndMinute: Int = 30,
     val triviaTips: List<String>,
-    val ageBracketLabelRes: Int = 0
+    val ageBracketLabelRes: Int = 0,
+    val minWakeWindowMin: Int = 35,
+    val maxWakeWindowMin: Int = 60,
+    val developmentalMechanismRes: Int = 0
 ) {
     fun getLocalizedAgeBracket(context: Context): String {
         return if (ageBracketLabelRes != 0) context.getString(ageBracketLabelRes) else ageBracketLabel
+    }
+
+    fun getLocalizedMechanism(context: Context): String {
+        return if (developmentalMechanismRes != 0) context.getString(developmentalMechanismRes) else ""
     }
 }
 
@@ -54,7 +61,7 @@ object LittleOnesSleepScheduleDatabase {
             morningWakeWindowMin = 50,
             middayWakeWindowMin = 60,
             afternoonWakeWindowMin = 60,
-            preBedtimeWakeWindowMin = 75,
+            preBedtimeWakeWindowMin = 60,
             morningNapDurationMin = 60,
             middayNapDurationMin = 120,
             catnapDurationMin = 45,
@@ -62,6 +69,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 0,
             bedtimeEndHour = 20,
             bedtimeEndMinute = 30,
+            minWakeWindowMin = 35,
+            maxWakeWindowMin = 60,
+            developmentalMechanismRes = R.string.sleep_mech_0_4_weeks,
             triviaTips = listOf(
                 "Newborns do not yet have a circadian rhythm. Exposing baby to natural daylight during awake times helps calibrate their developing internal body clock.",
                 "At 1 month old, wake windows include feeding, changing, interaction, and soothing. Sticking close to 50–60 minutes prevents rapid overtiredness.",
@@ -88,6 +98,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 45,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 30,
+            minWakeWindowMin = 60,
+            maxWakeWindowMin = 90,
+            developmentalMechanismRes = R.string.sleep_mech_5_8_weeks,
             triviaTips = listOf(
                 "Between 6 and 8 weeks, infant circadian rhythm begins to emerge. Anchoring a consistent morning wake time (around 7:00 AM) sets up a smoother daily rhythm.",
                 "At 2 months, the first stretch of night sleep naturally begins to lengthen, especially with a solid 2-hour midday nap in place.",
@@ -114,6 +127,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 30,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 15,
+            minWakeWindowMin = 75,
+            maxWakeWindowMin = 120,
+            developmentalMechanismRes = R.string.sleep_mech_9_12_weeks,
             triviaTips = listOf(
                 "By 12 weeks, babies consolidate sleep into a short morning nap, a long 2-hour lunchtime sleep, and a short afternoon catnap.",
                 "Consistency in your 3-month daytime structure lays the foundation for navigating the upcoming 4-month sleep regression smoothly.",
@@ -140,6 +156,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 30,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 30,
+            minWakeWindowMin = 75,
+            maxWakeWindowMin = 140,
+            developmentalMechanismRes = R.string.sleep_mech_13_16_weeks,
             triviaTips = listOf(
                 "The 4-Month Regression is a permanent biological milestone: infant sleep cycles mature into 4 adult-like stages every 45–50 minutes.",
                 "Because babies surface between sleep cycles around 4 months, practicing putting baby down drowsy but awake builds crucial independent settling skills.",
@@ -166,6 +185,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 30,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 15,
+            minWakeWindowMin = 90,
+            maxWakeWindowMin = 150,
+            developmentalMechanismRes = R.string.sleep_mech_17_21_weeks,
             triviaTips = listOf(
                 "Five months often brings real predictability: a 45m morning nap, a 2h restorative lunchtime sleep, and a short 20–30m bridge catnap.",
                 "Ensure the late afternoon catnap ends no later than 5:00 PM to protect sleep pressure for a 7:00 PM bedtime.",
@@ -184,7 +206,7 @@ object LittleOnesSleepScheduleDatabase {
             morningWakeWindowMin = 135,
             middayWakeWindowMin = 150,
             afternoonWakeWindowMin = 165,
-            preBedtimeWakeWindowMin = 180,
+            preBedtimeWakeWindowMin = 160,
             morningNapDurationMin = 35,
             middayNapDurationMin = 110,
             catnapDurationMin = 15,
@@ -192,6 +214,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 30,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 0,
+            minWakeWindowMin = 120,
+            maxWakeWindowMin = 165,
+            developmentalMechanismRes = R.string.sleep_mech_22_25_weeks,
             triviaTips = listOf(
                 "At 6 months, the 3-to-2 nap transition begins. The late afternoon nap shrinks to a 10–15 minute bridge catnap.",
                 "If your 6-month-old skips or refuses the 3rd nap, pull bedtime forward to 6:30 PM to avoid an overtired bedtime meltdown.",
@@ -218,6 +243,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 30,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 0,
+            minWakeWindowMin = 135,
+            maxWakeWindowMin = 210,
+            developmentalMechanismRes = R.string.sleep_mech_26_30_weeks,
             triviaTips = listOf(
                 "Fighting the 3rd nap is the primary sign baby is ready for a 2-nap routine (morning nap ~9:30 AM, lunchtime nap ~12:30 PM).",
                 "Wake windows naturally lengthen to 2.5–3 hours, with the shortest window in the morning and longest before bed.",
@@ -244,6 +272,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 30,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 0,
+            minWakeWindowMin = 150,
+            maxWakeWindowMin = 210,
+            developmentalMechanismRes = R.string.sleep_mech_31_34_weeks,
             triviaTips = listOf(
                 "The 8-Month Sleep Regression is driven by major physical leaps: crawling, pulling to stand, and emerging separation anxiety.",
                 "At 8 months, 2 naps totaling ~2.5 hours of day sleep provides the sweet spot for 11–12 hours of consolidated night sleep.",
@@ -270,6 +301,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 45,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 0,
+            minWakeWindowMin = 150,
+            maxWakeWindowMin = 220,
+            developmentalMechanismRes = R.string.sleep_mech_35_38_weeks,
             triviaTips = listOf(
                 "At 9 months, overtiredness often disguises itself as hyperactivity, standing in the cot, or loud babbling rather than yawning!",
                 "Most 9-month-olds thrive on: 7:00 AM wake, 9:30 AM nap 1 (30m), 12:30 PM nap 2 (1.5–2h), 6:45 PM bedtime.",
@@ -296,6 +330,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 45,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 15,
+            minWakeWindowMin = 165,
+            maxWakeWindowMin = 240,
+            developmentalMechanismRes = R.string.sleep_mech_39_43_weeks,
             triviaTips = listOf(
                 "At 10 months, if your baby resists nap 1, cap it to 20–30 minutes to preserve their sleep pressure for the longer midday nap.",
                 "Separation awareness peaks at 10 months. Spending 5 minutes playing peek-a-boo in the nursery builds confidence before naptime.",
@@ -322,6 +359,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 45,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 15,
+            minWakeWindowMin = 180,
+            maxWakeWindowMin = 240,
+            developmentalMechanismRes = R.string.sleep_mech_44_47_weeks,
             triviaTips = listOf(
                 "Beware the 11-Month False 1-Nap Trap! Babies often test boundaries by resisting nap 2, but genuine 1-nap readiness rarely occurs before 14–15 months.",
                 "Wake windows now comfortably reach 3.5 to 4 hours before bedtime.",
@@ -348,6 +388,9 @@ object LittleOnesSleepScheduleDatabase {
             bedtimeStartMinute = 0,
             bedtimeEndHour = 19,
             bedtimeEndMinute = 30,
+            minWakeWindowMin = 210,
+            maxWakeWindowMin = 300,
+            developmentalMechanismRes = R.string.sleep_mech_48_plus_weeks,
             triviaTips = listOf(
                 "The 2-to-1 nap transition happens between 12 and 18 months, most commonly around 14–15 months when baby handles a 5-hour morning window.",
                 "When transitioning to 1 nap, schedule the single nap in the middle of the day (~12:00–12:30 PM) for 2 to 2.5 hours.",
