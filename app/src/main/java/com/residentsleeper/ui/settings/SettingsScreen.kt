@@ -17,17 +17,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.TableChart
+import com.residentsleeper.domain.FeedingIntervalCalculationResult
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -340,21 +343,56 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val currentInterval = state.activeProfile.feedingIntervalMinutes
+                        val isCustomPreset = currentInterval !in listOf(120, 150, 180)
+
+                        if (isCustomPreset) {
+                            val h = currentInterval / 60
+                            val m = currentInterval % 60
+                            val customLabel = if (m == 0) "${h}h" else "${h}h ${m}m"
+                            FilterChip(
+                                selected = true,
+                                onClick = { },
+                                label = { Text(customLabel, fontWeight = FontWeight.Bold) }
+                            )
+                        }
+
                         FilterChip(
-                            selected = state.activeProfile.feedingIntervalMinutes == 120,
+                            selected = currentInterval == 120,
                             onClick = { viewModel.updateFeedingInterval(120) },
                             label = { Text("2.0 hours") }
                         )
                         FilterChip(
-                            selected = state.activeProfile.feedingIntervalMinutes == 150,
+                            selected = currentInterval == 150,
                             onClick = { viewModel.updateFeedingInterval(150) },
                             label = { Text("2.5 hours") }
                         )
                         FilterChip(
-                            selected = state.activeProfile.feedingIntervalMinutes == 180,
+                            selected = currentInterval == 180,
                             onClick = { viewModel.updateFeedingInterval(180) },
                             label = { Text("3.0 hours") }
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { viewModel.autoCalculateFeedingInterval() },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.btn_auto_calculate_feeding),
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
 
@@ -873,4 +911,164 @@ fun SettingsScreen(
             }
         )
     }
+
+    // Feeding Interval Calculation Result Dialog
+    val calculationResult = state.feedingCalculationResult
+    if (calculationResult != null) {
+        FeedingIntervalCalculationDialog(
+            result = calculationResult,
+            onDismiss = { viewModel.dismissFeedingCalculationDialog() }
+        )
+    }
+}
+
+@Composable
+private fun FeedingIntervalCalculationDialog(
+    result: FeedingIntervalCalculationResult,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val h = result.recommendedIntervalMinutes / 60
+    val m = result.recommendedIntervalMinutes % 60
+    val timeFormatted = if (m == 0) "${h}h" else "${h}h ${m}m"
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.feeding_auto_dialog_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.feeding_auto_dialog_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.feeding_auto_applied_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(
+                                R.string.feeding_auto_recommended_value,
+                                timeFormatted,
+                                result.recommendedIntervalMinutes
+                            ),
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(R.string.feeding_auto_age_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.feeding_auto_age_value,
+                            result.ageWeeks,
+                            result.ageBracket.getLocalizedAgeBracket(context)
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(R.string.feeding_auto_guidelines_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.feeding_auto_guidelines_range,
+                            result.ageBracket.minIntervalMinutes,
+                            result.ageBracket.maxIntervalMinutes,
+                            result.ageBracket.recommendedFeedsPerDay,
+                            result.ageBracket.typicalFormulaPortionMl
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "• ${result.ageBracket.getLocalizedMechanism(context)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = stringResource(R.string.feeding_auto_data_label),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    val historyDesc = if (result.usedHistoricalData && result.observedMedianMinutes != null) {
+                        stringResource(
+                            R.string.feeding_auto_history_used,
+                            result.sampleCount,
+                            result.observedMedianMinutes
+                        )
+                    } else {
+                        stringResource(R.string.feeding_auto_history_none)
+                    }
+                    Text(
+                        text = historyDesc,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text(stringResource(R.string.confirm))
+            }
+        }
+    )
 }

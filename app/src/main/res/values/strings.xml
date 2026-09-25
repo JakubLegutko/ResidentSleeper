@@ -317,4 +317,38 @@
     <string name="time_just_now">Just now</string>
     <string name="time_minutes_ago">%1$dm ago</string>
     <string name="time_hours_ago">%1$dh ago</string>
+
+    <!-- Automatic Feeding Interval -->
+    <string name="btn_auto_calculate_feeding">Auto-Calculate (WHO &amp; History)</string>
+    <string name="feeding_auto_dialog_title">Feeding Interval Recommendation</string>
+    <string name="feeding_auto_dialog_subtitle">Calculated from WHO / PTGHiŻD guidelines and baby\'s logged intervals</string>
+    <string name="feeding_auto_applied_label">Recommended Interval</string>
+    <string name="feeding_auto_recommended_value">%1$s (%2$d min)</string>
+    <string name="feeding_auto_age_label">Baby\'s Age</string>
+    <string name="feeding_auto_age_value">%1$d weeks (%2$s)</string>
+    <string name="feeding_auto_guidelines_label">WHO / PTGHiŻD Guidelines</string>
+    <string name="feeding_auto_guidelines_range">%1$d–%2$d min (%3$s feeds/day, %4$s)</string>
+    <string name="feeding_auto_mechanism_label">Developmental Mechanism</string>
+    <string name="feeding_auto_data_label">Logged Feeding History</string>
+    <string name="feeding_auto_history_used">Median interval from %1$d feedings in last 7 days is %2$d min. Personalized interval set within safety bounds.</string>
+    <string name="feeding_auto_history_none">Fewer than 3 feedings logged in the last 7 days. Standard age-based recommendation set.</string>
+    <string name="feeding_auto_apply_btn">Apply Recommendation</string>
+    <string name="feeding_interval_custom_chip">%1$s</string>
+
+    <string name="feeding_bracket_1_3_days">Days 1–3</string>
+    <string name="feeding_mech_1_3_days">Colostrum, minimal stomach capacity</string>
+    <string name="feeding_bracket_4_14_days">Days 4–14</string>
+    <string name="feeding_mech_4_14_days">Dynamic growth of lactation and stomach capacity</string>
+    <string name="feeding_bracket_2_8_weeks">Weeks 2–8</string>
+    <string name="feeding_mech_2_8_weeks">Lactation stabilization, growth spurts</string>
+    <string name="feeding_bracket_2_4_months">Months 2–4</string>
+    <string name="feeding_mech_2_4_months">Longer overnight sleep stretches</string>
+    <string name="feeding_bracket_5_6_months">Months 5–6</string>
+    <string name="feeding_mech_5_6_months">Higher caloric density per feed</string>
+    <string name="feeding_bracket_7_9_months">Months 7–9</string>
+    <string name="feeding_mech_7_9_months">Introduction of complementary solid foods</string>
+    <string name="feeding_bracket_10_12_months">Months 10–12</string>
+    <string name="feeding_mech_10_12_months">Solid meals become main energy source</string>
+    <string name="feeding_bracket_12_plus_months">> 12 Months</string>
+    <string name="feeding_mech_12_plus_months">Established solid meal schedule</string>
 </resources>

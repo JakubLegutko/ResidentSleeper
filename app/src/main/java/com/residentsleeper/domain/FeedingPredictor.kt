@@ -117,4 +117,71 @@ object FeedingPredictor {
             isOptionalNightFeed = isOptional
         )
     }
+
+    /**
+     * Calculates the optimal feeding interval based on WHO/PTGHiŻD guidelines and
+     * a rolling median of inter-feeding intervals from the last 7 days.
+     */
+    fun calculateOptimalInterval(
+        profile: BabyProfile,
+        recentNursingEvents: List<BabyEvent>,
+        currentTime: Long = System.currentTimeMillis()
+    ): FeedingIntervalCalculationResult {
+        val ageDays = TimeUnit.MILLISECONDS.toDays(maxOf(0L, currentTime - profile.birthTimestamp)).toInt()
+        val ageWeeks = ageDays / 7
+        val bracket = FeedingScheduleDatabase.getBracketForAge(ageDays)
+
+        // Filter nursing events from the last 7 days
+        val sevenDaysAgo = currentTime - TimeUnit.DAYS.toMillis(7)
+        val sortedFeeds = recentNursingEvents
+            .filter { it.type == EventType.NURSING && it.startTime >= sevenDaysAgo && it.startTime <= currentTime }
+            .sortedBy { it.startTime }
+
+        // Compute consecutive intervals between feeds
+        val validIntervalsMinutes = mutableListOf<Int>()
+        for (i in 0 until sortedFeeds.size - 1) {
+            val start1 = sortedFeeds[i].startTime
+            val start2 = sortedFeeds[i + 1].startTime
+            val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(start2 - start1).toInt()
+            // Exclude micro-snacks / cluster feedings within 45 minutes
+            // Exclude overnight unbroken sleep stretches > 6 hours (360 minutes)
+            if (diffMinutes in 45..360) {
+                validIntervalsMinutes.add(diffMinutes)
+            }
+        }
+
+        if (validIntervalsMinutes.size >= 3) {
+            val sortedIntervals = validIntervalsMinutes.sorted()
+            val medianMinutes = if (sortedIntervals.size % 2 == 1) {
+                sortedIntervals[sortedIntervals.size / 2]
+            } else {
+                (sortedIntervals[sortedIntervals.size / 2 - 1] + sortedIntervals[sortedIntervals.size / 2]) / 2
+            }
+
+            // Clamp to WHO/PTGHiŻD physiological boundaries for safety
+            val clamped = medianMinutes.coerceIn(bracket.minIntervalMinutes, bracket.maxIntervalMinutes)
+            // Round to nearest 5 minutes
+            val rounded = ((clamped + 2) / 5) * 5
+
+            return FeedingIntervalCalculationResult(
+                recommendedIntervalMinutes = rounded,
+                ageBracket = bracket,
+                ageDays = ageDays,
+                ageWeeks = ageWeeks,
+                observedMedianMinutes = medianMinutes,
+                sampleCount = validIntervalsMinutes.size,
+                usedHistoricalData = true
+            )
+        } else {
+            return FeedingIntervalCalculationResult(
+                recommendedIntervalMinutes = bracket.defaultIntervalMinutes,
+                ageBracket = bracket,
+                ageDays = ageDays,
+                ageWeeks = ageWeeks,
+                observedMedianMinutes = null,
+                sampleCount = validIntervalsMinutes.size,
+                usedHistoricalData = false
+            )
+        }
+    }
 }
