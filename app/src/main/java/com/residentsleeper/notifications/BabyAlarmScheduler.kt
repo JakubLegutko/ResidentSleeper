@@ -13,9 +13,19 @@ object BabyAlarmScheduler {
     const val EXTRA_ALERT_BODY = "EXTRA_ALERT_BODY"
     const val ALERT_TYPE_WAKE_WINDOW = "ALERT_TYPE_WAKE_WINDOW"
     const val ALERT_TYPE_FEEDING = "ALERT_TYPE_FEEDING"
+    const val ALERT_TYPE_TEST = "ALERT_TYPE_TEST"
 
     private const val REQUEST_CODE_WAKE = 1001
     private const val REQUEST_CODE_FEED = 1002
+
+    fun triggerTestAlert(context: Context, customTitle: String? = null, customBody: String? = null) {
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            putExtra(EXTRA_ALERT_TYPE, ALERT_TYPE_TEST)
+            if (customTitle != null) putExtra(EXTRA_ALERT_TITLE, customTitle)
+            if (customBody != null) putExtra(EXTRA_ALERT_BODY, customBody)
+        }
+        context.sendBroadcast(intent)
+    }
 
     fun scheduleWakeWindowAlert(
         context: Context,

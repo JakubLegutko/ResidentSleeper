@@ -102,6 +102,10 @@ import com.residentsleeper.ui.theme.NursingPink
 import com.residentsleeper.ui.theme.SleepIndigo
 import com.residentsleeper.ui.theme.WakeMint
 import java.text.SimpleDateFormat
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -109,7 +113,8 @@ import java.util.Locale
 fun DashboardScreen(
     viewModel: DashboardViewModel,
     onNavigateToReviews: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToNotifications: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val isDark = isSystemInDarkTheme()
@@ -160,6 +165,33 @@ fun DashboardScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToNotifications) {
+                        if (state.unreadNotificationCount > 0) {
+                            BadgedBox(
+                                badge = {
+                                    Badge(
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError
+                                    ) {
+                                        Text(
+                                            text = if (state.unreadNotificationCount > 9) "9+" else "${state.unreadNotificationCount}",
+                                            fontSize = 10.sp
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = stringResource(R.string.nav_notifications)
+                                )
+                            }
+                        } else {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = stringResource(R.string.nav_notifications)
+                            )
+                        }
+                    }
                     IconButton(onClick = onNavigateToReviews) {
                         Icon(
                             imageVector = Icons.Default.BarChart,

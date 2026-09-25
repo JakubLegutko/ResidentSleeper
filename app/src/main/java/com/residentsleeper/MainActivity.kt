@@ -12,8 +12,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import android.content.Intent
+import androidx.compose.runtime.LaunchedEffect
 import com.residentsleeper.ui.dashboard.DashboardScreen
 import com.residentsleeper.ui.dashboard.DashboardViewModel
+import com.residentsleeper.ui.notifications.NotificationCenterScreen
+import com.residentsleeper.ui.notifications.NotificationCenterViewModel
 import com.residentsleeper.ui.review.ReviewScreen
 import com.residentsleeper.ui.review.ReviewViewModel
 import com.residentsleeper.ui.settings.SettingsScreen
@@ -27,6 +31,11 @@ class MainActivity : AppCompatActivity() {
             // Permission result handled
         }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,6 +44,12 @@ class MainActivity : AppCompatActivity() {
         setContent {
             ResidentSleeperTheme {
                 val navController = rememberNavController()
+
+                LaunchedEffect(intent) {
+                    if (intent?.getStringExtra("navigate_to") == "notifications") {
+                        navController.navigate("notifications")
+                    }
+                }
 
                 NavHost(
                     navController = navController,
@@ -45,7 +60,8 @@ class MainActivity : AppCompatActivity() {
                         DashboardScreen(
                             viewModel = dashboardViewModel,
                             onNavigateToReviews = { navController.navigate("reviews") },
-                            onNavigateToSettings = { navController.navigate("settings") }
+                            onNavigateToSettings = { navController.navigate("settings") },
+                            onNavigateToNotifications = { navController.navigate("notifications") }
                         )
                     }
                     composable("reviews") {
@@ -59,6 +75,13 @@ class MainActivity : AppCompatActivity() {
                         val settingsViewModel: SettingsViewModel = viewModel()
                         SettingsScreen(
                             viewModel = settingsViewModel,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable("notifications") {
+                        val notificationCenterViewModel: NotificationCenterViewModel = viewModel()
+                        NotificationCenterScreen(
+                            viewModel = notificationCenterViewModel,
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }

@@ -10,6 +10,11 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.residentsleeper.MainActivity
 import com.residentsleeper.R
+import com.residentsleeper.data.local.AppDatabase
+import com.residentsleeper.data.model.AppNotification
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -19,6 +24,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val openAppIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("navigate_to", "notifications")
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -37,6 +43,11 @@ class AlarmReceiver : BroadcastReceiver() {
                 context.getString(R.string.notif_feeding_title),
                 context.getString(R.string.notif_feeding_body),
                 1002
+            )
+            BabyAlarmScheduler.ALERT_TYPE_TEST -> Triple(
+                context.getString(R.string.notif_test_title),
+                context.getString(R.string.notif_test_body),
+                1003
             )
             else -> return
         }
@@ -57,6 +68,29 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(notifId, notification)
+
+        // Store notification for the 24-hour Notification Centre
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val db = AppDatabase.getDatabase(context)
+                val appNotif = AppNotification(
+                    title = title,
+                    message = message,
+                    type = alertType,
+                    timestamp = System.currentTimeMillis(),
+                    isRead = false
+                )
+                db.appNotificationDao().insert(appNotif)
+                // Clean up notifications older than 24 hours
+                val cutoff = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+                db.appNotificationDao().deleteOlderThan(cutoff)
+            } catch (e: Exception) {
+                // Log or ignore gracefully
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     private fun createNotificationChannel(context: Context) {

@@ -2,8 +2,10 @@ package com.residentsleeper.data.repository
 
 import com.residentsleeper.data.backup.BackupData
 import com.residentsleeper.data.backup.DataBackupManager
+import com.residentsleeper.data.local.AppNotificationDao
 import com.residentsleeper.data.local.BabyEventDao
 import com.residentsleeper.data.local.BabyProfileDao
+import com.residentsleeper.data.model.AppNotification
 import com.residentsleeper.data.model.BabyEvent
 import com.residentsleeper.data.model.BabyProfile
 import com.residentsleeper.data.model.DiaperType
@@ -11,10 +13,12 @@ import com.residentsleeper.data.model.EventType
 import com.residentsleeper.data.model.Gender
 import com.residentsleeper.data.model.NursingType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class BabyRepository(
     private val eventDao: BabyEventDao,
-    private val profileDao: BabyProfileDao
+    private val profileDao: BabyProfileDao,
+    private val notificationDao: AppNotificationDao? = null
 ) {
     val activeProfileFlow: Flow<BabyProfile?> = profileDao.getActiveProfileFlow()
     val allProfilesFlow: Flow<List<BabyProfile>> = profileDao.getAllProfiles()
@@ -244,5 +248,42 @@ class BabyRepository(
                 profileDao.setActiveProfile(all.first().id)
             }
         }
+    }
+
+    // --- Notification Centre ---
+
+    fun getNotificationsLast24HoursFlow(cutoffMillis: Long): Flow<List<AppNotification>> {
+        return notificationDao?.getNotificationsSince(cutoffMillis) ?: flowOf(emptyList())
+    }
+
+    fun getUnreadNotificationsCountFlow(cutoffMillis: Long): Flow<Int> {
+        return notificationDao?.getUnreadCountSince(cutoffMillis) ?: flowOf(0)
+    }
+
+    suspend fun insertNotification(notification: AppNotification): Long {
+        val id = notificationDao?.insert(notification) ?: 0L
+        pruneOldNotifications()
+        return id
+    }
+
+    suspend fun markAllNotificationsAsRead() {
+        notificationDao?.markAllAsRead()
+    }
+
+    suspend fun markNotificationAsRead(id: Long) {
+        notificationDao?.markAsRead(id)
+    }
+
+    suspend fun deleteNotification(id: Long) {
+        notificationDao?.deleteById(id)
+    }
+
+    suspend fun clearAllNotifications() {
+        notificationDao?.clearAll()
+    }
+
+    suspend fun pruneOldNotifications() {
+        val cutoff = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
+        notificationDao?.deleteOlderThan(cutoff)
     }
 }

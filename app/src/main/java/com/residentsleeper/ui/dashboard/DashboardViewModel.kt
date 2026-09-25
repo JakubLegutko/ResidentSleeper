@@ -39,7 +39,8 @@ data class DashboardUiState(
     val wakeWindowState: WakeWindowState,
     val feedingState: FeedingState,
     val activeProfile: BabyProfile = BabyProfile(),
-    val allProfiles: List<BabyProfile> = emptyList()
+    val allProfiles: List<BabyProfile> = emptyList(),
+    val unreadNotificationCount: Int = 0
 ) {
     val peeCount: Int
         get() = events.count { it.type == EventType.DIAPER && (it.diaperType == DiaperType.PEE || it.diaperType == DiaperType.BOTH || it.diaperType == null) }
@@ -69,7 +70,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         val db = AppDatabase.getDatabase(application)
-        repository = BabyRepository(db.babyEventDao(), db.babyProfileDao())
+        repository = BabyRepository(db.babyEventDao(), db.babyProfileDao(), db.appNotificationDao())
 
         // Ensure active profile exists on startup
         viewModelScope.launch {
@@ -123,7 +124,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             repository.getOngoingEventFlow(profileId, EventType.NURSING),
             repository.getLatestEventFlow(profileId, EventType.SLEEP),
             repository.getLatestEventFlow(profileId, EventType.NURSING),
-            ticker
+            ticker,
+            repository.getUnreadNotificationsCountFlow(System.currentTimeMillis() - 24 * 60 * 60 * 1000L)
         ) { params ->
             val dayOffset = params[0] as Int
             val allProfiles = (params[1] as? List<*>)?.filterIsInstance<BabyProfile>() ?: emptyList()
@@ -132,6 +134,7 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             val latestSleep = params[4] as? BabyEvent
             val latestNursing = params[5] as? BabyEvent
             val now = params[6] as Long
+            val unreadCount = (params[7] as? Int) ?: 0
 
             val dayStart = getStartOfDayForOffset(now, safeProfile.dayStartHour, dayOffset)
             val dayEnd = getEndOfDay(dayStart)
@@ -151,7 +154,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
                 wakeWindowState = wakeState,
                 feedingState = feedingState,
                 activeProfile = safeProfile,
-                allProfiles = allProfiles
+                allProfiles = allProfiles,
+                unreadNotificationCount = unreadCount
             )
         }
     }.stateIn(
@@ -162,7 +166,8 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
             selectedDayEnd = getEndOfDay(getStartOfToday(7)),
             isToday = true,
             wakeWindowState = WakeWindowCalculator.computeState(BabyProfile(), null, null, context = getApplication()),
-            feedingState = FeedingPredictor.computeState(BabyProfile(), null, null)
+            feedingState = FeedingPredictor.computeState(BabyProfile(), null, null),
+            unreadNotificationCount = 0
         )
     )
 

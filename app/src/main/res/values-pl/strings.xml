@@ -294,4 +294,27 @@
     <!-- Delete Profile Dialog -->
     <string name="dialog_delete_profile_title">Usunąć profil?</string>
     <string name="dialog_delete_profile_message">Czy na pewno chcesz usunąć profil \"%1$s\" wraz ze wszystkimi wpisami? Tej operacji nie można cofnąć.</string>
+
+    <!-- Notification Centre -->
+    <string name="nav_notifications">Powiadomienia</string>
+    <string name="notification_centre_title">Centrum powiadomień</string>
+    <string name="notification_centre_subtitle">Ostatnie 24 godziny</string>
+    <string name="notification_centre_info">Powiadomienia z ostatnich 24 godzin są przechowywane tutaj. Starsze alerty są automatycznie usuwane.</string>
+    <string name="notification_empty_title">Brak powiadomień</string>
+    <string name="notification_empty_desc">Alerty o kończących się oknach czuwania i przypomnienia o karmieniu z ostatnich 24 godzin pojawią się tutaj.</string>
+    <string name="notification_mark_all_read">Oznacz wszystkie jako przeczytane</string>
+    <string name="notification_clear_all">Wyczyść wszystko</string>
+    <string name="notification_clear_confirm_title">Wyczyścić powiadomienia?</string>
+    <string name="notification_clear_confirm_msg">Czy na pewno chcesz usunąć wszystkie powiadomienia z ostatnich 24 godzin?</string>
+    <string name="notification_send_test">Wyślij powiadomienie testowe</string>
+    <string name="notification_type_wake">Sen i okno czuwania</string>
+    <string name="notification_type_feed">Karmienie</string>
+    <string name="notification_type_test">Alert testowy</string>
+    <string name="notification_type_general">Powiadomienie</string>
+    <string name="notification_unread_badge">%1$d nieprzeczytane</string>
+    <string name="notif_test_title">Powiadomienie testowe</string>
+    <string name="notif_test_body">System powiadomień ResidentSleeper działa poprawnie!</string>
+    <string name="time_just_now">Przed chwilą</string>
+    <string name="time_minutes_ago">%1$d min temu</string>
+    <string name="time_hours_ago">%1$d godz. temu</string>
 </resources>
